@@ -22,7 +22,7 @@ public plugin_init()
 public ClCmd_Rtv(id)
 {
 	// TODO: rtv logic
-	if(true)
+	//if()
 	{
 		mapm_start_vote();
 	}

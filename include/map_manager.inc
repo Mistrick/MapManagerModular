@@ -12,6 +12,8 @@
 	#pragma library map_manager_core
 #endif
 
+#include <map_manager_consts>
+
 /**
  * TODO: write this.
  * 
@@ -25,6 +27,27 @@ native mapm_start_vote();
  * @noreturn
  */
 native mapm_stop_vote();
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+native mapm_push_map_to_votelist(map[]);
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+forward mapm_maplist_loaded(Array:maplist);
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+forward mapm_prepare_votelist();
 
 /**
  * TODO: write this.

@@ -5,7 +5,7 @@
 
 #define MAPNAME_LENGTH 32
 
-enum MapList {
+enum _:MapList {
 	MapName[MAPNAME_LENGTH],
 	MinPlayers,
 	MaxPlayers

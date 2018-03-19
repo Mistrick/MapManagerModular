@@ -1,8 +1,8 @@
 /*
-    Core functions:
-    - load maplist
-    - start vote by time ? or do with addon
-    - start/stop vote
+	Core functions:
+	- load maplist
+	- start vote by time ? or do with addon
+	- start/stop vote
 */
 #include <amxmodx>
 #include <map_manager_consts>
@@ -25,57 +25,63 @@
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
 
-enum Forwards
-{
-    PREPARE_VOTELIST
+enum Forwards {
+	PREPARE_VOTELIST,
+	MAPLIST_LOADED,
+	VOTE_STARTED,
+	VOTE_FINISHED
 };
 
 new g_iVoteListPointer;
 new g_sVoteList[VOTELIST_SIZE][MAPNAME_LENGTH];
 new g_hForwards[Forwards];
 
+new Array:g_aMapsList;
+new g_iMapsListSize;
+
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+	register_plugin(PLUGIN, VERSION, AUTHOR);
 
-    register_cvar("mapm_version", VERSION, FCVAR_SERVER | FCVAR_SPONLY);
+	register_cvar("mapm_version", VERSION, FCVAR_SERVER | FCVAR_SPONLY);
 
-    register_concmd("mapm_start_vote", "ConCmd_StartVote", ADMIN_MAP);
+	register_concmd("mapm_start_vote", "ConCmd_StartVote", ADMIN_MAP);
 
-    // TODO: register forwards
-    g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
+	// TODO: register forwards
+	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
+	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 }
 
 public plugin_natives()
 {
-    register_library("map_manager_core");
+	register_library("map_manager_core");
 
-    register_native("mapm_start_vote", "native_start_vote");
-    register_native("mapm_stop_vote", "native_stop_vote");
-    register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
+	register_native("mapm_start_vote", "native_start_vote");
+	register_native("mapm_stop_vote", "native_stop_vote");
+	register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
 }
 
 public native_start_vote(plugin, params)
 {
-    // TODO: call start vote func
+	// TODO: call start vote func
 }
 public native_stop_vote(plugin, params)
 {
-    // TODO: call stop vote func
+	// TODO: call stop vote func
 }
 public native_push_map_to_votelist(plugin, params)
 {
-    enum { arg_map = 1 };
+	enum { arg_map = 1 };
 
-    if(g_iVoteListPointer >= VOTELIST_SIZE) {
-        return 0;
-    }
+	if(g_iVoteListPointer >= VOTELIST_SIZE) {
+		return 0;
+	}
 
-    // TODO: add map validation
-    get_string(arg_map, g_sVoteList[g_iVoteListPointer], charsmax(g_sVoteList[]));
-    g_iVoteListPointer++;
+	// TODO: add map validation
+	get_string(arg_map, g_sVoteList[g_iVoteListPointer], charsmax(g_sVoteList[]));
+	g_iVoteListPointer++;
 
-    return 1;
+	return 1;
 }
 
 //-----------------------------------------------------//
@@ -83,105 +89,48 @@ public native_push_map_to_votelist(plugin, params)
 //-----------------------------------------------------//
 public plugin_cfg()
 {
-    load_maplist();
+	g_aMapsList = ArrayCreate(_:MapList, 1);
+	load_maplist(FILE_MAPS);
 }
-load_maplist()
+load_maplist(const file[])
 {
-    new file_path[128]; get_localinfo("amxx_configsdir", file_path, charsmax(file_path));
+	new file_path[128]; get_localinfo("amxx_configsdir", file_path, charsmax(file_path));
 	format(file_path, charsmax(file_path), "%s/%s", file_path, file);
 
-	if(!file_exists(file_path))
-	{
+	if(!file_exists(file_path)) {
 		set_fail_state("Maps file doesn't exist.");
 	}
 
-	new cur_map[MAP_NAME_LENGTH]; get_mapname(cur_map, charsmax(cur_map));
-	new file = fopen(file_path, "rt");
+	new f = fopen(file_path, "rt");
 	
-	if(file)
-	{
-		new map_info[MapsListStruct], text[48], map[MAP_NAME_LENGTH], min[3], max[3];
+	if(f) {
+		new map_info[MapList], text[48], map[MAPNAME_LENGTH], min[3], max[3];
 
-		#if defined FUNCTION_NEXTMAP
-		new nextmap = false, founded_nextmap = false, first_map[32];
-		#endif // FUNCTION_NEXTMAP
-
-		#if defined FUNCTION_NOMINATION
-		new prefix[MAP_NAME_LENGTH];
-		#endif // FUNCTION_NOMINATION
-
-		while(!feof(file))
-		{
-			fgets(file, text, charsmax(text));
+		while(!feof(f)) {
+			fgets(f, text, charsmax(text));
 			parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
 			
 			strtolower(map);
 
 			if(!map[0] || map[0] == ';' || !valid_map(map) || is_map_in_array(map)) continue;
 			
-			#if defined FUNCTION_NEXTMAP
-			if(!first_map[0])
-			{
-				copy(first_map, charsmax(first_map), map);
-			}
-			#endif
-			
-			if(equali(map, cur_map))
-			{
-				#if defined FUNCTION_NEXTMAP
-				nextmap = true;
-				#endif // FUNCTION_NEXTMAP
-				continue;
-			}
-
-			#if defined FUNCTION_NEXTMAP
-			if(nextmap)
-			{
-				nextmap = false;
-				founded_nextmap = true;
-				set_pcvar_string(g_pCvars[NEXTMAP], map);
-				server_print("founded nextmap: %s", map);
-			}
-			#endif // FUNCTION_NEXTMAP
-
-			#if defined FUNCTION_NOMINATION
-			if(get_map_prefix(map, prefix, charsmax(prefix)) && !is_prefix_in_array(prefix))
-			{
-				ArrayPushString(g_aMapsPrefixes, prefix);
-				g_iMapsPrefixesNum++;
-			}
-			#endif // FUNCTION_NOMINATION
-			
-			map_info[m_MapName] = map;
-			map_info[m_MinPlayers] = str_to_num(min);
-			map_info[m_MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
-			
-			#if defined FUNCTION_BLOCK_MAPS
-			if(TrieKeyExists(trie_blocked_maps, map))
-			{
-				TrieGetCell(trie_blocked_maps, map, map_info[m_BlockCount]);
-				g_iBlockedMaps++;
-			}
-			#endif // FUNCTION_BLOCK_MAPS
+			map_info[MapName] = map;
+			map_info[MinPlayers] = str_to_num(min);
+			map_info[MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
 
 			ArrayPushArray(g_aMapsList, map_info);
-			min = ""; max = ""; map_info[m_BlockCount] = 0;
+			min = ""; max = "";
 			g_iMapsListSize++;
 		}
-		fclose(file);
+		fclose(f);
 
-		if(g_iMapsListSize == 0)
-		{
-			set_fail_state("Nothing loaded from file.");
+		if(g_iMapsListSize == 0) {
+			new error[192]; formatex("Nothing loaded from ^"%s^".", file_path);
+			set_fail_state(error);
 		}
 
-		#if defined FUNCTION_NEXTMAP
-		if(!founded_nextmap)
-		{
-			set_pcvar_string(g_pCvars[NEXTMAP], first_map);
-			server_print("founded nextmap: %s (first in file)", first_map);
-		}
-		#endif // FUNCTION_NEXTMAP
+		new ret;
+		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, g_aMapsList);
 	}
 }
 //-----------------------------------------------------//
@@ -189,42 +138,86 @@ load_maplist()
 //-----------------------------------------------------//
 public ConCmd_StartVote(id, level, cid)
 {
-    // TODO: add flag check
-    prepare_vote();
+	// TODO: add flag check
+	prepare_vote();
 }
 //-----------------------------------------------------//
 // Vote stuff
 //-----------------------------------------------------//
 prepare_vote()
 {
-    // TODO: fill vote list
+	g_iVoteListPointer = 0;
 
-    g_iVoteListPointer = 0;
+	new menu_max_items = min(VOTELIST_SIZE, g_iMapsListSize);
 
-    // call mapm_prepare_votelist()
-    new ret;
-    ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret);
+	new ret;
+	ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret);
 
-    if(g_iVoteListPointer < VOTELIST_SIZE) {
-        // add random maps from list
-    }
+	// TODO: add min/max sort
+	if(g_iVoteListPointer < menu_max_items) {
+		new map_info[MapList];
+		for(new random_map; g_iVoteListPointer < menu_max_items; g_iVoteListPointer++) {
+			do {
+				random_map = random(g_iMapsListSize);
+				ArrayGetArray(g_aMapsList, random_map, map_info);
+			} while(is_map_in_vote(map_info[MapName]));
 
-    start_vote();
+			copy(g_sVoteList[g_iVoteListPointer], charsmax(g_sVoteList[]), map_info[MapName]);
+		}
+	}
+
+	start_vote();
 }
 
 start_vote()
 {
-    // show menu
-    // timer
-    server_print("Votelist:");
-    for(new i; i < g_iVoteListPointer; i++) {
-        if(g_sVoteList[i][0]) {
-            server_print("%d - %s", i + 1, g_sVoteList[i]);
-        }
-    }
+	// show menu
+	// timer
+	server_print("Votelist:");
+	for(new i; i < g_iVoteListPointer; i++) {
+		if(g_sVoteList[i][0]) {
+			server_print("%d - %s", i + 1, g_sVoteList[i]);
+		}
+	}
 }
 
 stop_vote()
 {
-    // vote results
+	// vote results
+}
+
+//-----------------------------------------------------//
+// Stocks and usefull func
+//-----------------------------------------------------//
+stock valid_map(map[])
+{
+	if(is_map_valid(map)) return true;
+	
+	new len = strlen(map) - 4;
+	
+	if(len < 0) return false;
+	
+	if(equali(map[len], ".bsp")) {
+		map[len] = '^0';
+		if(is_map_valid(map)) return true;
+	}
+	
+	return false;
+}
+is_map_in_array(map[])
+{
+	for(new i = 0, map_info[MapList]; i < g_iMapsListSize; i++) {
+		ArrayGetArray(g_aMapsList, i, map_info);
+		if(equali(map, map_info[MapName])) return i + 1;
+	}
+	return 0;
+}
+is_map_in_vote(map[])
+{
+	for(new i; i < g_iVoteListPointer; i++) {
+		if(equali(map, g_sVoteList[i])) {
+			return true;
+		}
+	}
+	return false;
 }

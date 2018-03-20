@@ -11,19 +11,89 @@
 
 #pragma semicolon 1
 
+enum Cvars {
+	ROCK_MODE,
+	ROCK_PERCENT,
+	ROCK_PLAYERS,
+	ROCK_DELAY,
+	ROCK_CHANGE_TYPE,
+	ROCK_ALLOW_EXTEND
+};
+
+enum {
+	MODE_PERCENTS,
+	MODE_PLAYERS
+};
+
+new g_pCvars[Cvars];
+new g_iMapStartTime;
+new bool:g_bVoted[33];
+new g_iVotes;
+
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
+	g_pCvars[ROCK_MODE] = register_cvar("mapm_rtv_mode", "0"); // 0 - percents, 1 - players
+	g_pCvars[ROCK_PERCENT] = register_cvar("mapm_rtv_percent", "60");
+	g_pCvars[ROCK_PLAYERS] = register_cvar("mapm_rtv_players", "5");
+	g_pCvars[ROCK_DELAY] = register_cvar("mapm_rtv_delay", "0"); // minutes
+	// g_pCvars[ROCK_CHANGE_TYPE] = register_cvar("mapm_rtv_change_type", "1"); // 0 - after vote, 1 - in round end
+	// g_pCvars[ROCK_ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
+
 	register_clcmd("say rtv", "ClCmd_Rtv");
 	register_clcmd("say /rtv", "ClCmd_Rtv");
-}
 
+	g_iMapStartTime = get_systime();
+}
+public client_disconnect(id)
+{
+	if(g_bVoted[id])
+	{
+		g_bVoted[id] = false;
+		g_iVotes--;
+	}
+}
 public ClCmd_Rtv(id)
 {
-	// TODO: rtv logic
-	//if()
-	{
-		mapm_start_vote();
+	// TODO: add checks in vote, finished vote
+	new delay = get_pcvar_num(g_pCvars[ROCK_DELAY]) * 60 - (get_systime() - g_iMapStartTime);
+	if(delay > 0) {
+		client_print_color(id, print_team_default, "You can't use rtv, wait %d:%d.", delay / 60, delay % 60);
+		return PLUGIN_HANDLED;
 	}
+
+	if(!g_bVoted[id]) {
+		g_iVotes++;
+	}
+
+	new need_votes;
+	if(get_pcvar_num(g_pCvars[ROCK_MODE]) == MODE_PERCENTS) {
+		need_votes = floatround(get_players_num() * get_pcvar_num(g_pCvars[ROCK_PERCENT]) / 100.0) - g_iVotes;
+	}
+	else {
+		need_votes = get_pcvar_num(g_pCvars[ROCK_PLAYERS]) - g_iVotes;
+	}
+
+	if(need_votes <= 0) {
+		// TODO: add rtv param for native
+		mapm_start_vote();
+		return PLUGIN_HANDLED;
+	}
+
+	if(!g_bVoted[id]) {
+		g_bVoted[id] = true;
+		new name[32]; get_user_name(id, name, charsmax(name));
+		client_print_color(0, id, "Player ^3%s^1 voted for rtv, remainds votes: %d.", name, need_votes);
+	}
+	else {
+		client_print_color(id, id, "You already voted, remainds votes: %d.", need_votes);
+	}
+
+	return PLUGIN_HANDLED;
+}
+get_players_num()
+{
+	new players[32], pnum; get_players(players, pnum, "ch");
+	return pnum;
 }

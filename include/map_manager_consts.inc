@@ -10,3 +10,8 @@ enum _:MapList {
 	MinPlayers,
 	MaxPlayers
 };
+
+enum {
+	MAP_ALLOWED,
+	MAP_BLOCKED
+};

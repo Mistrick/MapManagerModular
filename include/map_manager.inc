@@ -13,6 +13,7 @@
 #endif
 
 #include <map_manager_consts>
+#include <map_manager_stocks>
 
 /**
  * TODO: write this.
@@ -48,6 +49,13 @@ forward mapm_maplist_loaded(Array:maplist);
  * @noreturn
  */
 forward mapm_prepare_votelist();
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+forward mapm_can_be_in_votelist(map[]);
 
 /**
  * TODO: write this.

@@ -6,6 +6,7 @@
 */
 #include <amxmodx>
 #include <map_manager_consts>
+#include <map_manager_stocks>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
@@ -28,6 +29,7 @@ new const FILE_MAPS[] = "maps.ini";
 enum Forwards {
 	PREPARE_VOTELIST,
 	MAPLIST_LOADED,
+	CAN_BE_IN_VOTELIST,
 	VOTE_STARTED,
 	VOTE_FINISHED
 };
@@ -50,6 +52,7 @@ public plugin_init()
 	// TODO: register forwards
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
+	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING);
 }
 
 public plugin_natives()
@@ -89,7 +92,9 @@ public native_push_map_to_votelist(plugin, params)
 //-----------------------------------------------------//
 public plugin_cfg()
 {
-	g_aMapsList = ArrayCreate(_:MapList, 1);
+	g_aMapsList = ArrayCreate(MapList, 1);
+
+	// add forward for change file?
 	load_maplist(FILE_MAPS);
 }
 load_maplist(const file[])
@@ -125,7 +130,7 @@ load_maplist(const file[])
 		fclose(f);
 
 		if(g_iMapsListSize == 0) {
-			new error[192]; formatex("Nothing loaded from ^"%s^".", file_path);
+			new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
 			set_fail_state(error);
 		}
 
@@ -140,6 +145,7 @@ public ConCmd_StartVote(id, level, cid)
 {
 	// TODO: add flag check
 	prepare_vote();
+	return PLUGIN_HANDLED;
 }
 //-----------------------------------------------------//
 // Vote stuff
@@ -160,13 +166,20 @@ prepare_vote()
 			do {
 				random_map = random(g_iMapsListSize);
 				ArrayGetArray(g_aMapsList, random_map, map_info);
-			} while(is_map_in_vote(map_info[MapName]));
+			} while(is_map_in_vote(map_info[MapName]) || !is_map_allowed(map_info[MapName]));
 
 			copy(g_sVoteList[g_iVoteListPointer], charsmax(g_sVoteList[]), map_info[MapName]);
 		}
 	}
 
 	start_vote();
+}
+
+is_map_allowed(map[])
+{
+	new ret;
+	ExecuteForward(g_hForwards[CAN_BE_IN_VOTELIST], ret, map);
+	return ret == MAP_ALLOWED;
 }
 
 start_vote()
@@ -187,23 +200,8 @@ stop_vote()
 }
 
 //-----------------------------------------------------//
-// Stocks and usefull func
+// Usefull func
 //-----------------------------------------------------//
-stock valid_map(map[])
-{
-	if(is_map_valid(map)) return true;
-	
-	new len = strlen(map) - 4;
-	
-	if(len < 0) return false;
-	
-	if(equali(map[len], ".bsp")) {
-		map[len] = '^0';
-		if(is_map_valid(map)) return true;
-	}
-	
-	return false;
-}
 is_map_in_array(map[])
 {
 	for(new i = 0, map_info[MapList]; i < g_iMapsListSize; i++) {

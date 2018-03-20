@@ -23,6 +23,8 @@
 //-----------------------------------------------------//
 #define VOTELIST_SIZE 5
 
+new PREFIX[] = "[MapManager]";
+
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
 
@@ -53,38 +55,64 @@ public plugin_init()
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING);
+
+	register_dictionary("mapmanager.txt");
 }
 
 public plugin_natives()
 {
 	register_library("map_manager_core");
 
+	register_native("mapm_is_map_in_list", "native_is_map_in_list");
+	register_native("mapm_get_prefix", "native_get_prefix");
 	register_native("mapm_start_vote", "native_start_vote");
 	register_native("mapm_stop_vote", "native_stop_vote");
 	register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
 }
-
+public native_is_map_in_list(plugin, params)
+{
+	enum { arg_map = 1 };
+	new map[MAPNAME_LENGTH]; get_string(arg_map, map, charsmax(map));
+	return is_map_in_array(map);
+}
+public native_get_prefix(plugin, params)
+{
+	enum {
+		arg_prefix = 1,
+		arg_len
+	};
+	set_string(arg_prefix, PREFIX, get_param(arg_len));
+}
 public native_start_vote(plugin, params)
 {
-	// TODO: call start vote func
+	prepare_vote();
 }
 public native_stop_vote(plugin, params)
 {
-	// TODO: call stop vote func
+	stop_vote();
 }
 public native_push_map_to_votelist(plugin, params)
 {
 	enum { arg_map = 1 };
 
 	if(g_iVoteListPointer >= VOTELIST_SIZE) {
-		return 0;
+		return PUSH_CANCELED;
 	}
 
-	// TODO: add map validation
-	get_string(arg_map, g_sVoteList[g_iVoteListPointer], charsmax(g_sVoteList[]));
+	new map[MAPNAME_LENGTH]; get_string(arg_map, map, charsmax(map));
+	if(!is_map_valid(map)) {
+		return PUSH_CANCELED;
+	}
+
+	// TODO: add param call from native
+	if(!is_map_allowed(map)) {
+		return PUSH_BLOCKED;
+	}
+
+	copy(g_sVoteList[g_iVoteListPointer], charsmax(g_sVoteList[]), map);
 	g_iVoteListPointer++;
 
-	return 1;
+	return PUSH_SUCCESS;
 }
 
 //-----------------------------------------------------//
@@ -92,7 +120,7 @@ public native_push_map_to_votelist(plugin, params)
 //-----------------------------------------------------//
 public plugin_cfg()
 {
-	g_aMapsList = ArrayCreate(MapList, 1);
+	g_aMapsList = ArrayCreate(MapStruct, 1);
 
 	// add forward for change file?
 	load_maplist(FILE_MAPS);
@@ -108,35 +136,37 @@ load_maplist(const file[])
 
 	new f = fopen(file_path, "rt");
 	
-	if(f) {
-		new map_info[MapList], text[48], map[MAPNAME_LENGTH], min[3], max[3];
-
-		while(!feof(f)) {
-			fgets(f, text, charsmax(text));
-			parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
-			
-			strtolower(map);
-
-			if(!map[0] || map[0] == ';' || !valid_map(map) || is_map_in_array(map)) continue;
-			
-			map_info[MapName] = map;
-			map_info[MinPlayers] = str_to_num(min);
-			map_info[MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
-
-			ArrayPushArray(g_aMapsList, map_info);
-			min = ""; max = "";
-			g_iMapsListSize++;
-		}
-		fclose(f);
-
-		if(g_iMapsListSize == 0) {
-			new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
-			set_fail_state(error);
-		}
-
-		new ret;
-		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, g_aMapsList);
+	if(!f) {
+		set_fail_state("Can't read maps file.");
 	}
+
+	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], min[3], max[3];
+
+	while(!feof(f)) {
+		fgets(f, text, charsmax(text));
+		parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
+		
+		strtolower(map);
+
+		if(!map[0] || map[0] == ';' || !valid_map(map) || is_map_in_array(map)) continue;
+		
+		map_info[MapName] = map;
+		map_info[MinPlayers] = str_to_num(min);
+		map_info[MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
+
+		ArrayPushArray(g_aMapsList, map_info);
+		min = ""; max = "";
+		g_iMapsListSize++;
+	}
+	fclose(f);
+
+	if(g_iMapsListSize == 0) {
+		new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
+		set_fail_state(error);
+	}
+
+	new ret;
+	ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, g_aMapsList);
 }
 //-----------------------------------------------------//
 // Commands stuff
@@ -154,15 +184,15 @@ prepare_vote()
 {
 	g_iVoteListPointer = 0;
 
-	new menu_max_items = min(VOTELIST_SIZE, g_iMapsListSize);
+	new vote_max_items = min(VOTELIST_SIZE, g_iMapsListSize);
 
 	new ret;
 	ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret);
 
 	// TODO: add min/max sort
-	if(g_iVoteListPointer < menu_max_items) {
-		new map_info[MapList];
-		for(new random_map; g_iVoteListPointer < menu_max_items; g_iVoteListPointer++) {
+	if(g_iVoteListPointer < vote_max_items) {
+		new map_info[MapStruct];
+		for(new random_map; g_iVoteListPointer < vote_max_items; g_iVoteListPointer++) {
 			do {
 				random_map = random(g_iMapsListSize);
 				ArrayGetArray(g_aMapsList, random_map, map_info);
@@ -192,11 +222,18 @@ start_vote()
 			server_print("%d - %s", i + 1, g_sVoteList[i]);
 		}
 	}
+
+	finish_vote();
+}
+
+finish_vote()
+{
+	// vote results
 }
 
 stop_vote()
 {
-	// vote results
+	// cancel vote
 }
 
 //-----------------------------------------------------//
@@ -204,7 +241,7 @@ stop_vote()
 //-----------------------------------------------------//
 is_map_in_array(map[])
 {
-	for(new i = 0, map_info[MapList]; i < g_iMapsListSize; i++) {
+	for(new i = 0, map_info[MapStruct]; i < g_iMapsListSize; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);
 		if(equali(map, map_info[MapName])) return i + 1;
 	}

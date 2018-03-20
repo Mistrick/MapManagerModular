@@ -18,6 +18,20 @@
 /**
  * TODO: write this.
  * 
+ * @return Map index
+ */
+native mapm_is_map_in_list(map[]);
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+native mapm_get_prefix(prefix[], len);
+
+/**
+ * TODO: write this.
+ * 
  * @noreturn
  */
 native mapm_start_vote();

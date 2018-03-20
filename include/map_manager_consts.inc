@@ -5,13 +5,24 @@
 
 #define MAPNAME_LENGTH 32
 
-enum _:MapList {
+enum _:MapStruct {
 	MapName[MAPNAME_LENGTH],
 	MinPlayers,
 	MaxPlayers
 };
 
+enum _:NomStruct {
+	NomPlayer,
+	NomMapIndex
+};
+
 enum {
 	MAP_ALLOWED,
 	MAP_BLOCKED
+};
+
+enum {
+	PUSH_BLOCKED = -1,
+	PUSH_CANCELED,
+	PUSH_SUCCESS
 };

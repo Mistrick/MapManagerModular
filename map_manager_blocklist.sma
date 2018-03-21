@@ -21,6 +21,24 @@ public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 }
+public plugin_natives()
+{
+	register_library("map_manager_blocklist");
+	register_native("mapm_get_blocked_count", "native_get_blocked_count");
+}
+public native_get_blocked_count(plugin, params)
+{
+	enum { arg_map = 1 };
+	new map[MAPNAME_LENGTH]; get_string(arg_map, map, charsmax(map));
+
+	if(!TrieKeyExists(g_tBlockedList, map)) {
+		return 0;
+	}
+
+	new count; TrieGetCell(g_tBlockedList, map, count);
+
+	return count;
+}
 public plugin_cfg()
 {
 	g_tBlockedList = TrieCreate();

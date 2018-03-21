@@ -48,7 +48,7 @@ native mapm_stop_vote();
  * 
  * @noreturn
  */
-native mapm_push_map_to_votelist(map[]);
+native mapm_push_map_to_votelist(map[], ignore_check = false);
 
 /**
  * TODO: write this.

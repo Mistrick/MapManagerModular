@@ -93,7 +93,10 @@ public native_stop_vote(plugin, params)
 }
 public native_push_map_to_votelist(plugin, params)
 {
-	enum { arg_map = 1 };
+	enum {
+		arg_map = 1,
+		arg_ignore_check 
+	};
 
 	if(g_iVoteListPointer >= VOTELIST_SIZE) {
 		return PUSH_CANCELED;
@@ -105,7 +108,7 @@ public native_push_map_to_votelist(plugin, params)
 	}
 
 	// TODO: add param call from native
-	if(!is_map_allowed(map)) {
+	if(!get_param(arg_ignore_check) && !is_map_allowed(map)) {
 		return PUSH_BLOCKED;
 	}
 

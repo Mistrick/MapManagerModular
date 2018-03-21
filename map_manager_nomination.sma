@@ -1,5 +1,6 @@
 #include <amxmodx>
 #include <map_manager>
+#include <map_manager_blocklist>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
@@ -38,7 +39,17 @@ public plugin_init()
 	register_clcmd("say maps", "ClCmd_MapsList");
 	register_clcmd("say /maps", "ClCmd_MapsList");
 }
-
+public plugin_natives()
+{
+	set_native_filter("native_filter");
+}
+public native_filter(const native_func[], index, trap)
+{
+	if(!trap && equal(native_func, "mapm_get_blocked_count")) {
+		return PLUGIN_HANDLED;
+	}
+	return PLUGIN_CONTINUE;
+}
 public mapm_maplist_loaded(Array:maplist)
 {
 	g_aMapsList = maplist;
@@ -78,8 +89,7 @@ public ClCmd_Say(id)
 
 	if(map_index) {
 		nominate_map(id, text, map_index - 1);
-	}
-	else if(strlen(text) >= 4) {
+	} else if(strlen(text) >= 4) {
 		/*
 		new buffer[MAP_NAME_LENGTH], prefix[MAP_NAME_LENGTH], Array:array_nominate_list = ArrayCreate(), array_size;
 		for(new i; i < g_iMapsPrefixesNum; i++)
@@ -116,7 +126,10 @@ nominate_map(id, map[], index)
 {
 	new map_info[MapStruct]; ArrayGetArray(g_aMapsList, index, map_info);
 	
-	// TODO: add check is map blocked
+	if(mapm_get_blocked_count(map)) {
+		client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_NOM_NOT_AVAILABLE_MAP");
+		return NOMINATION_FAIL;
+	}
 	
 	new nom_info[NomStruct], name[32];
 	get_user_name(id, name, charsmax(name));

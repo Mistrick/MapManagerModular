@@ -58,7 +58,8 @@ enum {
 
 enum Cvars {
 	SHOW_RESULT_TYPE,
-	SHOW_SELECTS
+	SHOW_SELECTS,
+	RANDOM_NUMS
 };
 
 new g_pCvars[Cvars];
@@ -79,6 +80,8 @@ new g_bShowSelects;
 new g_iTimer;
 new g_bCanExtend;
 
+new g_iRandomNums[VOTELIST_SIZE + 1];
+
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
@@ -87,6 +90,7 @@ public plugin_init()
 
 	g_pCvars[SHOW_RESULT_TYPE] = register_cvar("mapm_show_result_type", "1"); //0 - disable, 1 - menu, 2 - hud
 	g_pCvars[SHOW_SELECTS] = register_cvar("mapm_show_selects", "1"); // 0 - disable, 1 - all
+	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "1"); // 0 - disable, 1 - all
 
 	register_concmd("mapm_start_vote", "concmd_startvote", ADMIN_MAP);
 
@@ -297,17 +301,47 @@ prepare_vote(type)
 		get_mapname(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]));
 	}
 
+	if(get_num(RANDOM_NUMS)) {
+		arrayset(g_iRandomNums, -1, sizeof(g_iRandomNums));
+		for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
+			do {
+				g_iRandomNums[i] = random(g_iVoteItems + g_bCanExtend);
+				//g_iRandomNums[i] = random_num(0, 9);
+			} while(in_array(i, g_iRandomNums[i]));
+		}
+	} else {
+		for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
+			g_iRandomNums[i] = i;
+		}
+	}
+
 	g_iTimer = PRESTART_TIME + 1;
 	countdown(TASK_COUNTDOWN);
 }
-
 is_map_allowed(map[])
 {
 	new ret;
 	ExecuteForward(g_hForwards[CAN_BE_IN_VOTELIST], ret, map);
 	return ret == MAP_ALLOWED;
 }
-
+in_array(index, num)
+{
+	for(new i; i < index; i++) {
+		if(num == g_iRandomNums[i]) {
+			return true;
+		}
+	}
+	return false;
+}
+get_original_num(num)
+{
+	for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
+		if(g_iRandomNums[i] == num) {
+			return i;
+		}
+	}
+	return 0;
+}
 public countdown(taskid)
 {
 	if(--g_iTimer > 0) {
@@ -349,10 +383,10 @@ public show_votemenu(id)
 		len += formatex(menu[len], charsmax(menu) - len, "%s", (item == g_iVoteItems) ? "^n" : "");
 
 		if(g_iVoted[id] == NOT_VOTED) {
-			len += formatex(menu[len], charsmax(menu) - len, "\r%d.\w %s", item + 1, g_sVoteList[item]);
-			keys |= (1 << item);
+			len += formatex(menu[len], charsmax(menu) - len, "\r%d.\w %s", g_iRandomNums[item] + 1, g_sVoteList[item]);
+			keys |= (1 << g_iRandomNums[item]);
 		} else {
-			len += formatex(menu[len], charsmax(menu) - len, "%s%s", (item == g_iVoted[id]) ? "\r" : "\d", g_sVoteList[item]);
+			len += formatex(menu[len], charsmax(menu) - len, "%s%s", (g_iRandomNums[item] == g_iVoted[id]) ? "\r" : "\d", g_sVoteList[item]);
 		}
 
 		percent = g_iTotalVotes ? floatround(g_iVotes[item] * 100.0 / g_iTotalVotes) : 0;
@@ -388,16 +422,17 @@ public votemenu_handler(id, key)
 		return PLUGIN_HANDLED;
 	}
 	
-	g_iVotes[key]++;
+	new original = get_original_num(key);
+	g_iVotes[original]++;
 	g_iTotalVotes++;
 	g_iVoted[id] = key;
 
 	if(g_bShowSelects) {
 		new name[32]; get_user_name(id, name, charsmax(name));
-		if(key == g_iVoteItems) {
+		if(original == g_iVoteItems) {
 			client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_CHOSE_EXTEND", name);
 		} else {
-			client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_CHOSE_MAP", name, g_sVoteList[key]);
+			client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_CHOSE_MAP", name, g_sVoteList[original]);
 		}
 	}
 
@@ -414,6 +449,8 @@ start_vote()
 	new ret;
 	ExecuteForward(g_hForwards[VOTE_STARTED], ret);
 
+	// TODO: add preview for N seconds
+	
 	g_iTimer = VOTE_TIME + 1;
 	countdown(TASK_VOTE_TIME);
 }
@@ -432,7 +469,7 @@ finish_vote()
 	}
 
 	new max_vote = 0;
-	if(g_iVotes) {
+	if(g_iTotalVotes) {
 		for(new i = 1; i < g_iVoteItems + 1; i++) {
 			if(g_iVotes[max_vote] < g_iVotes[i]) max_vote = i;
 		}

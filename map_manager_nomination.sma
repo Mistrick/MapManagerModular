@@ -41,11 +41,19 @@ public plugin_init()
 }
 public plugin_natives()
 {
-	set_native_filter("native_filter");
+	set_module_filter("module_filter_handler");
+	set_native_filter("native_filter_handler");
 }
-public native_filter(const native_func[], index, trap)
+public module_filter_handler(const library[], LibType:type)
 {
-	if(!trap && equal(native_func, "mapm_get_blocked_count")) {
+	if(equal(library, "map_manager_blocklist")) {
+		return PLUGIN_HANDLED;
+	}
+	return PLUGIN_CONTINUE;
+}
+public native_filter_handler(const native_func[], index, trap)
+{
+	if(equal(native_func, "mapm_get_blocked_count")) {
 		return PLUGIN_HANDLED;
 	}
 	return PLUGIN_CONTINUE;
@@ -87,8 +95,8 @@ public ClCmd_Say(id)
 	
 	new map_index = mapm_is_map_in_list(text);
 
-	if(map_index) {
-		nominate_map(id, text, map_index - 1);
+	if(map_index != INVALID_MAP_INDEX) {
+		nominate_map(id, text, map_index);
 	} else if(strlen(text) >= 4) {
 		/*
 		new buffer[MAP_NAME_LENGTH], prefix[MAP_NAME_LENGTH], Array:array_nominate_list = ArrayCreate(), array_size;
@@ -135,8 +143,8 @@ nominate_map(id, map[], index)
 	get_user_name(id, name, charsmax(name));
 	
 	new nom_index = is_map_nominated(index);
-	if(nom_index) {
-		ArrayGetArray(g_aNomList, nom_index - 1, nom_info);
+	if(nom_index != INVALID_MAP_INDEX) {
+		ArrayGetArray(g_aNomList, nom_index, nom_info);
 		if(id != nom_info[NomPlayer]) {
 			client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_NOM_ALREADY_NOM");
 			return NOMINATION_FAIL;
@@ -144,7 +152,7 @@ nominate_map(id, map[], index)
 
 		// TODO: add spam protection for nom/denom
 		g_iNomMaps[id]--;
-		ArrayDeleteItem(g_aNomList, nom_index - 1);
+		ArrayDeleteItem(g_aNomList, nom_index);
 		
 		client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_NOM_REMOVE_NOM", name, map);
 		return NOMINATION_REMOVED;
@@ -200,10 +208,10 @@ is_map_nominated(index)
 	for(new i; i < size; i++) {
 		ArrayGetArray(g_aNomList, i, nom_info);
 		if(index == nom_info[NomMapIndex]) {
-			return i + 1;
+			return i;
 		}
 	}
-	return 0;
+	return INVALID_MAP_INDEX;
 }
 clear_nominated_maps(id)
 {

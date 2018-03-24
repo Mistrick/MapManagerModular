@@ -14,12 +14,12 @@
 #define get_num(%0) get_pcvar_num(g_pCvars[%0])
 
 enum Cvars {
-	ROCK_MODE,
-	ROCK_PERCENT,
-	ROCK_PLAYERS,
-	ROCK_DELAY,
-	ROCK_CHANGE_TYPE,
-	ROCK_ALLOW_EXTEND
+	MODE,
+	PERCENT,
+	PLAYERS,
+	DELAY,
+	CHANGE_TYPE,
+	ALLOW_EXTEND
 };
 
 enum {
@@ -36,12 +36,12 @@ public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
-	g_pCvars[ROCK_MODE] = register_cvar("mapm_rtv_mode", "0"); // 0 - percents, 1 - players
-	g_pCvars[ROCK_PERCENT] = register_cvar("mapm_rtv_percent", "60");
-	g_pCvars[ROCK_PLAYERS] = register_cvar("mapm_rtv_players", "5");
-	g_pCvars[ROCK_DELAY] = register_cvar("mapm_rtv_delay", "0"); // minutes
-	// g_pCvars[ROCK_CHANGE_TYPE] = register_cvar("mapm_rtv_change_type", "1"); // 0 - after vote, 1 - in round end
-	g_pCvars[ROCK_ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
+	g_pCvars[MODE] = register_cvar("mapm_rtv_mode", "0"); // 0 - percents, 1 - players
+	g_pCvars[PERCENT] = register_cvar("mapm_rtv_percent", "60");
+	g_pCvars[PLAYERS] = register_cvar("mapm_rtv_players", "5");
+	g_pCvars[DELAY] = register_cvar("mapm_rtv_delay", "0"); // minutes
+	// g_pCvars[CHANGE_TYPE] = register_cvar("mapm_rtv_change_type", "1"); // 0 - after vote, 1 - in round end
+	g_pCvars[ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
 
 	register_clcmd("say rtv", "ClCmd_Rtv");
 	register_clcmd("say /rtv", "ClCmd_Rtv");
@@ -59,7 +59,7 @@ public client_disconnect(id)
 public ClCmd_Rtv(id)
 {
 	// TODO: add checks in vote, finished vote
-	new delay = get_num(ROCK_DELAY) * 60 - (get_systime() - g_iMapStartTime);
+	new delay = get_num(DELAY) * 60 - (get_systime() - g_iMapStartTime);
 	if(delay > 0) {
 		client_print_color(id, print_team_default, "You can't use rtv, wait %d:%d.", delay / 60, delay % 60);
 		return PLUGIN_HANDLED;
@@ -70,10 +70,10 @@ public ClCmd_Rtv(id)
 	}
 
 	new need_votes;
-	if(get_num(ROCK_MODE) == MODE_PERCENTS) {
-		need_votes = floatround(get_players_num() * get_num(ROCK_PERCENT) / 100.0) - g_iVotes;
+	if(get_num(MODE) == MODE_PERCENTS) {
+		need_votes = floatround(get_players_num() * get_num(PERCENT) / 100.0) - g_iVotes;
 	} else {
-		need_votes = get_num(ROCK_PLAYERS) - g_iVotes;
+		need_votes = get_num(PLAYERS) - g_iVotes;
 	}
 
 	if(need_votes <= 0) {
@@ -94,7 +94,7 @@ public ClCmd_Rtv(id)
 }
 public mapm_can_be_extended(type)
 {
-	if(type == VOTE_BY_RTV && !get_num(ROCK_ALLOW_EXTEND)) {
+	if(type == VOTE_BY_RTV && !get_num(ALLOW_EXTEND)) {
 		return false;
 	}
 	return true;

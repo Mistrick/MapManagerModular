@@ -11,6 +11,8 @@
 
 #pragma semicolon 1
 
+#define get_num(%0) get_pcvar_num(g_pCvars[%0])
+
 enum Cvars {
 	ROCK_MODE,
 	ROCK_PERCENT,
@@ -39,17 +41,17 @@ public plugin_init()
 	g_pCvars[ROCK_PLAYERS] = register_cvar("mapm_rtv_players", "5");
 	g_pCvars[ROCK_DELAY] = register_cvar("mapm_rtv_delay", "0"); // minutes
 	// g_pCvars[ROCK_CHANGE_TYPE] = register_cvar("mapm_rtv_change_type", "1"); // 0 - after vote, 1 - in round end
-	// g_pCvars[ROCK_ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
+	g_pCvars[ROCK_ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
 
 	register_clcmd("say rtv", "ClCmd_Rtv");
 	register_clcmd("say /rtv", "ClCmd_Rtv");
 
+	// reset it with sv_restart?
 	g_iMapStartTime = get_systime();
 }
 public client_disconnect(id)
 {
-	if(g_bVoted[id])
-	{
+	if(g_bVoted[id]) {
 		g_bVoted[id] = false;
 		g_iVotes--;
 	}
@@ -57,7 +59,7 @@ public client_disconnect(id)
 public ClCmd_Rtv(id)
 {
 	// TODO: add checks in vote, finished vote
-	new delay = get_pcvar_num(g_pCvars[ROCK_DELAY]) * 60 - (get_systime() - g_iMapStartTime);
+	new delay = get_num(ROCK_DELAY) * 60 - (get_systime() - g_iMapStartTime);
 	if(delay > 0) {
 		client_print_color(id, print_team_default, "You can't use rtv, wait %d:%d.", delay / 60, delay % 60);
 		return PLUGIN_HANDLED;
@@ -68,16 +70,15 @@ public ClCmd_Rtv(id)
 	}
 
 	new need_votes;
-	if(get_pcvar_num(g_pCvars[ROCK_MODE]) == MODE_PERCENTS) {
-		need_votes = floatround(get_players_num() * get_pcvar_num(g_pCvars[ROCK_PERCENT]) / 100.0) - g_iVotes;
-	}
-	else {
-		need_votes = get_pcvar_num(g_pCvars[ROCK_PLAYERS]) - g_iVotes;
+	if(get_num(ROCK_MODE) == MODE_PERCENTS) {
+		need_votes = floatround(get_players_num() * get_num(ROCK_PERCENT) / 100.0) - g_iVotes;
+	} else {
+		need_votes = get_num(ROCK_PLAYERS) - g_iVotes;
 	}
 
 	if(need_votes <= 0) {
 		// TODO: add rtv param for native
-		mapm_start_vote();
+		mapm_start_vote(VOTE_BY_RTV);
 		return PLUGIN_HANDLED;
 	}
 
@@ -85,12 +86,18 @@ public ClCmd_Rtv(id)
 		g_bVoted[id] = true;
 		new name[32]; get_user_name(id, name, charsmax(name));
 		client_print_color(0, id, "Player ^3%s^1 voted for rtv, remainds votes: %d.", name, need_votes);
-	}
-	else {
+	} else {
 		client_print_color(id, id, "You already voted, remainds votes: %d.", need_votes);
 	}
 
 	return PLUGIN_HANDLED;
+}
+public mapm_can_be_extended(type)
+{
+	if(type == VOTE_BY_RTV && !get_num(ROCK_ALLOW_EXTEND)) {
+		return false;
+	}
+	return true;
 }
 get_players_num()
 {

@@ -32,4 +32,9 @@ enum {
 	VOTE_BY_RTV
 };
 
+enum {
+	ALLOW_VOTE,
+	ABORT_VOTE
+};
+
 const INVALID_MAP_INDEX = -1;

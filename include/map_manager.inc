@@ -52,6 +52,22 @@ native mapm_push_map_to_votelist(map[], ignore_check = false);
 
 /**
  * TODO: write this.
+ * Use in mapm_analysis_of_results()
+ * 
+ * @noreturn
+ */
+native mapm_get_count_maps_in_vote();
+
+/**
+ * TODO: write this.
+ * Use in mapm_analysis_of_results()
+ * 
+ * @noreturn
+ */
+native mapm_get_voteitem_info(item, map[], len, &votes);
+
+/**
+ * TODO: write this.
  * 
  * @noreturn
  */
@@ -90,4 +106,11 @@ forward mapm_vote_started();
  * 
  * @noreturn
  */
-forward mapm_vote_finished();
+forward mapm_analysis_of_results();
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+forward mapm_vote_finished(map[]);

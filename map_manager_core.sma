@@ -46,6 +46,7 @@ enum Forwards {
 	CAN_BE_EXTENDED,
 	PREPARE_VOTELIST,
 	VOTE_STARTED,
+	ANALYSIS_OF_RESULTS,
 	VOTE_FINISHED
 };
 
@@ -93,7 +94,8 @@ public plugin_init()
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
 	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE);
-	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE);
+	g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE);
+	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE, FP_STRING);
 	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING);
 	g_hForwards[CAN_BE_EXTENDED] = CreateMultiForward("mapm_can_be_extended", ET_CONTINUE, FP_CELL);
 
@@ -111,6 +113,8 @@ public plugin_natives()
 	register_native("mapm_start_vote", "native_start_vote");
 	register_native("mapm_stop_vote", "native_stop_vote");
 	register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
+	register_native("mapm_get_count_maps_in_vote", "native_get_count_maps_in_vote");
+	register_native("mapm_get_voteitem_info", "native_get_voteitem_info");
 }
 public native_is_map_in_list(plugin, params)
 {
@@ -161,7 +165,29 @@ public native_push_map_to_votelist(plugin, params)
 
 	return PUSH_SUCCESS;
 }
+public native_get_count_maps_in_vote(plugin, params)
+{
+	return g_iVoteItems + g_bCanExtend;
+}
+public native_get_voteitem_info(plugin, params)
+{
+	enum {
+		arg_item = 1,
+		arg_map,
+		arg_len,
+		arg_votes
+	};
 
+	new item = get_param(arg_item);
+	if(item < 0 || item > g_iVoteItems + g_bCanExtend - 1) {
+		return 0;
+	}
+
+	set_string(arg_map, g_sVoteList[item], get_param(arg_len));
+	set_param_byref(arg_votes, g_iVotes[item]);
+
+	return 1;
+}
 //-----------------------------------------------------//
 // Maplist stuff
 //-----------------------------------------------------//
@@ -397,8 +423,26 @@ finish_vote()
 	// vote results
 	server_print("--finish vote--");
 
+	// pre forward
 	new ret;
-	ExecuteForward(g_hForwards[VOTE_FINISHED], ret);
+	ExecuteForward(g_hForwards[ANALYSIS_OF_RESULTS], ret);
+
+	if(ret) {
+		return;
+	}
+
+	new max_vote = 0;
+	if(g_iVotes) {
+		for(new i = 1; i < g_iVoteItems + 1; i++) {
+			if(g_iVotes[max_vote] < g_iVotes[i]) max_vote = i;
+		}
+	}
+	else {
+		max_vote = random(g_iVoteItems);
+	}
+
+	// post forward
+	ExecuteForward(g_hForwards[VOTE_FINISHED], ret, g_sVoteList[max_vote]);
 }
 
 stop_vote()

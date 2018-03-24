@@ -36,3 +36,19 @@ stock bool:is_string_with_space(string[])
 	}
 	return false;
 }
+stock trim_bracket(text[])
+{
+	for(new i; text[i]; i++) {
+		if(text[i] == '[') {
+			text[i] = 0;
+			break;
+		}
+	}
+}
+stock string_with_space(string[])
+{
+	for(new i; string[i]; i++) {
+		if(string[i] == ' ') return 1;
+	}
+	return 0;
+}

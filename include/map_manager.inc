@@ -34,7 +34,7 @@ native mapm_get_prefix(prefix[], len);
  * 
  * @noreturn
  */
-native mapm_start_vote();
+native mapm_start_vote(type);
 
 /**
  * TODO: write this.
@@ -70,6 +70,13 @@ forward mapm_prepare_votelist();
  * @noreturn
  */
 forward mapm_can_be_in_votelist(map[]);
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+forward mapm_can_be_extended(type);
 
 /**
  * TODO: write this.

@@ -22,16 +22,24 @@
 // Consts
 //-----------------------------------------------------//
 #define VOTELIST_SIZE 5
+#define PRESTART_TIME 5
+#define VOTE_TIME 5
 
 new PREFIX[] = "[MapManager]";
 
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
 
+enum (+=100) {
+	TASK_COUNTDOWN = 100,
+	TASK_VOTE_TIME
+};
+
 enum Forwards {
-	PREPARE_VOTELIST,
 	MAPLIST_LOADED,
 	CAN_BE_IN_VOTELIST,
+	CAN_BE_EXTENDED,
+	PREPARE_VOTELIST,
 	VOTE_STARTED,
 	VOTE_FINISHED
 };
@@ -43,6 +51,9 @@ new g_hForwards[Forwards];
 new Array:g_aMapsList;
 new g_iMapsListSize;
 
+new g_iTimer;
+new bool:g_bCanExtend;
+
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
@@ -52,9 +63,12 @@ public plugin_init()
 	register_concmd("mapm_start_vote", "ConCmd_StartVote", ADMIN_MAP);
 
 	// TODO: register forwards
-	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
+	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
+	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE);
+	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE);
 	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING);
+	g_hForwards[CAN_BE_EXTENDED] = CreateMultiForward("mapm_can_be_extended", ET_CONTINUE, FP_CELL);
 
 	register_dictionary("mapmanager.txt");
 }
@@ -85,7 +99,8 @@ public native_get_prefix(plugin, params)
 }
 public native_start_vote(plugin, params)
 {
-	prepare_vote();
+	enum { arg_type = 1 };
+	prepare_vote(get_param(arg_type));
 }
 public native_stop_vote(plugin, params)
 {
@@ -148,10 +163,8 @@ load_maplist(const file[])
 	while(!feof(f)) {
 		fgets(f, text, charsmax(text));
 		parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
-		
-		strtolower(map);
 
-		if(!map[0] || map[0] == ';' || !valid_map(map) || is_map_in_array(map)) continue;
+		if(!map[0] || map[0] == ';' || !valid_map(map) || is_map_in_array(map) != INVALID_MAP_INDEX) continue;
 		
 		map_info[MapName] = map;
 		map_info[MinPlayers] = str_to_num(min);
@@ -177,16 +190,19 @@ load_maplist(const file[])
 public ConCmd_StartVote(id, level, cid)
 {
 	// TODO: add flag check
-	prepare_vote();
+	prepare_vote(VOTE_BY_CMD);
 	return PLUGIN_HANDLED;
 }
 //-----------------------------------------------------//
 // Vote stuff
 //-----------------------------------------------------//
-prepare_vote()
+prepare_vote(type)
 {
+	server_print("--prepare vote--");
+
 	g_iVoteListPointer = 0;
 
+	// TODO: change this by api
 	new vote_max_items = min(VOTELIST_SIZE, g_iMapsListSize);
 
 	new ret;
@@ -205,7 +221,18 @@ prepare_vote()
 		}
 	}
 
-	start_vote();
+	server_print("Votelist:");
+	for(new i; i < g_iVoteListPointer; i++) {
+		if(g_sVoteList[i][0]) {
+			server_print("%d - %s", i + 1, g_sVoteList[i]);
+		}
+	}
+
+	ExecuteForward(g_hForwards[CAN_BE_EXTENDED], ret, type);
+	g_bCanExtend = bool:ret;
+
+	g_iTimer = PRESTART_TIME + 1;
+	countdown(TASK_COUNTDOWN);
 }
 
 is_map_allowed(map[])
@@ -215,28 +242,50 @@ is_map_allowed(map[])
 	return ret == MAP_ALLOWED;
 }
 
-start_vote()
+public countdown(taskid)
 {
-	// show menu
-	// timer
-	server_print("Votelist:");
-	for(new i; i < g_iVoteListPointer; i++) {
-		if(g_sVoteList[i][0]) {
-			server_print("%d - %s", i + 1, g_sVoteList[i]);
+	if(--g_iTimer > 0) {
+		if(taskid == TASK_COUNTDOWN) {
+			// add forward for sound addons?
+		}
+		else if(taskid == TASK_VOTE_TIME) {
+			//TODO: show menu
+		}
+		set_task(1.0, "countdown", taskid);
+	} else {
+		if(taskid == TASK_COUNTDOWN) {
+			start_vote();
+		} else if(taskid == TASK_VOTE_TIME) {
+			// TODO: close menu
+			finish_vote();
 		}
 	}
+}
 
-	finish_vote();
+start_vote()
+{
+	server_print("--start vote--");
+
+	new ret;
+	ExecuteForward(g_hForwards[VOTE_STARTED], ret);
+
+	g_iTimer = VOTE_TIME + 1;
+	countdown(TASK_VOTE_TIME);
 }
 
 finish_vote()
 {
 	// vote results
+	server_print("--finish vote--");
+
+	new ret;
+	ExecuteForward(g_hForwards[VOTE_FINISHED], ret);
 }
 
 stop_vote()
 {
 	// cancel vote
+	// stop tasks
 }
 
 //-----------------------------------------------------//
@@ -246,11 +295,11 @@ is_map_in_array(map[])
 {
 	for(new i = 0, map_info[MapStruct]; i < g_iMapsListSize; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);
-		if(equali(map, map_info[MapName])) return i + 1;
+		if(equali(map, map_info[MapName])) return i;
 	}
-	return 0;
+	return INVALID_MAP_INDEX;
 }
-is_map_in_vote(map[])
+bool:is_map_in_vote(map[])
 {
 	for(new i; i < g_iVoteListPointer; i++) {
 		if(equali(map, g_sVoteList[i])) {

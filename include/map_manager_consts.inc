@@ -3,7 +3,7 @@
 #endif
 #define _map_manager_consts_included
 
-#define MAPNAME_LENGTH 32
+const MAPNAME_LENGTH = 32;
 
 enum _:MapStruct {
 	MapName[MAPNAME_LENGTH],
@@ -26,3 +26,10 @@ enum {
 	PUSH_CANCELED,
 	PUSH_SUCCESS
 };
+
+enum {
+	VOTE_BY_CMD,
+	VOTE_BY_RTV
+};
+
+const INVALID_MAP_INDEX = -1;

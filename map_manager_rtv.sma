@@ -1,5 +1,6 @@
 #include <amxmodx>
 #include <map_manager>
+#include <map_manager_scheduler>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
@@ -32,6 +33,8 @@ new g_iMapStartTime;
 new bool:g_bVoted[33];
 new g_iVotes;
 
+new PREFIX[32];
+
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
@@ -48,6 +51,8 @@ public plugin_init()
 
 	// reset it with sv_restart?
 	g_iMapStartTime = get_systime();
+
+	mapm_get_prefix(PREFIX, charsmax(PREFIX));
 }
 public client_disconnect(id)
 {
@@ -58,10 +63,14 @@ public client_disconnect(id)
 }
 public ClCmd_Rtv(id)
 {
-	// TODO: add checks in vote, finished vote
+	if(is_vote_started() || is_vote_finished()) {
+		// add msg?
+		return PLUGIN_HANDLED;
+	}
+
 	new delay = get_num(DELAY) * 60 - (get_systime() - g_iMapStartTime);
 	if(delay > 0) {
-		client_print_color(id, print_team_default, "You can't use rtv, wait %d:%d.", delay / 60, delay % 60);
+		client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_RTV_DELAY", delay / 60, delay % 60);
 		return PLUGIN_HANDLED;
 	}
 
@@ -77,17 +86,16 @@ public ClCmd_Rtv(id)
 	}
 
 	if(need_votes <= 0) {
-		// TODO: add rtv param for native
-		mapm_start_vote(VOTE_BY_RTV);
+		map_scheduler_start_vote(VOTE_BY_RTV);
 		return PLUGIN_HANDLED;
 	}
 
 	if(!g_bVoted[id]) {
 		g_bVoted[id] = true;
 		new name[32]; get_user_name(id, name, charsmax(name));
-		client_print_color(0, id, "Player ^3%s^1 voted for rtv, remainds votes: %d.", name, need_votes);
+		client_print_color(0, print_team_default, "%s^3 %L %L.", PREFIX, LANG_PLAYER, "MAPM_RTV_VOTED", name, need_votes, LANG_PLAYER, "MAPM_VOTES");
 	} else {
-		client_print_color(id, id, "You already voted, remainds votes: %d.", need_votes);
+		client_print_color(id, print_team_default, "%s^1 %L %L.", PREFIX, id, "MAPM_RTV_ALREADY_VOTED", need_votes, id, "MAPM_VOTES");
 	}
 
 	return PLUGIN_HANDLED;
@@ -95,12 +103,7 @@ public ClCmd_Rtv(id)
 public mapm_can_be_extended(type)
 {
 	if(type == VOTE_BY_RTV && !get_num(ALLOW_EXTEND)) {
-		return false;
+		return EXTEND_BLOCKED;
 	}
-	return true;
-}
-get_players_num()
-{
-	new players[32], pnum; get_players(players, pnum, "ch");
-	return pnum;
+	return EXTEND_ALLOWED;
 }

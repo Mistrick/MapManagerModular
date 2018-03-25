@@ -16,6 +16,7 @@
 new const FILE_BLOCKED_MAPS[] = "blockedmaps.ini"; //datadir
 
 new Trie:g_tBlockedList;
+new g_iMaxItems;
 
 public plugin_init()
 {
@@ -39,10 +40,28 @@ public native_get_blocked_count(plugin, params)
 
 	return count;
 }
-public plugin_cfg()
+public mapm_maplist_loaded(Array:mapslist)
 {
 	g_tBlockedList = TrieCreate();
 	load_blocklist();
+
+	new map_info[MapStruct], blocked, size = ArraySize(mapslist);
+	for(new i; i < size; i++) {
+		ArrayGetArray(mapslist, i, map_info);
+		if(TrieKeyExists(g_tBlockedList, map_info[MapName])) {
+			blocked++;
+		}
+	}
+
+	new votelist_size = min(mapm_get_votelist_size(), size);
+	new valid_maps = size - blocked;
+
+	if(valid_maps <= 0) {
+		TrieClear(g_tBlockedList);
+	}
+	else if(valid_maps < votelist_size) {
+		g_iMaxItems = valid_maps;
+	}
 }
 load_blocklist()
 {
@@ -93,9 +112,16 @@ load_blocklist()
 		fclose(f);
 	}
 }
-
+public mapm_prepare_votelist(type)
+{
+	if(type == VOTE_BY_SCHEDULER_SECOND) {
+		return;
+	}
+	if(g_iMaxItems) {
+		mapm_set_votelist_max_items(g_iMaxItems);
+	}
+}
 public mapm_can_be_in_votelist(map[])
 {
-	// TODO: need checks if blocked maps more than available
 	return TrieKeyExists(g_tBlockedList, map) ? MAP_BLOCKED : MAP_ALLOWED;
 }

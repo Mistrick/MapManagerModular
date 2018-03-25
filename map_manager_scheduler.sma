@@ -230,6 +230,8 @@ public mapm_can_be_extended(type)
 }
 public mapm_analysis_of_results()
 {
+	g_iTotalVotes = 0;
+	
 	new max_items = mapm_get_count_maps_in_vote();
 	new map[MAPNAME_LENGTH], votes;
 	for(new i; i < max_items; i++) {
@@ -242,7 +244,7 @@ public mapm_analysis_of_results()
 
 	return ALLOW_VOTE;
 }
-public mapm_vote_finished(map[])
+public mapm_vote_finished(map[], type)
 {
 	// map extended
 	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));

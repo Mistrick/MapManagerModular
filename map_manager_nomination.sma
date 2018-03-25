@@ -311,8 +311,11 @@ public mapslist_handler(id, menu, item)
 	return PLUGIN_HANDLED;
 }
 
-public mapm_prepare_votelist()
+public mapm_prepare_votelist(type)
 {
+	if(type == VOTE_BY_SCHEDULER_SECOND) {
+		return;
+	}
 	new nom_info[NomStruct], map_info[MapStruct];
 	for(new i, index; i < get_num(MAPS_IN_VOTE) && ArraySize(g_aNomList); i++) {
 		index = random(ArraySize(g_aNomList));

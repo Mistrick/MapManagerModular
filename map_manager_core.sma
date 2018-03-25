@@ -26,7 +26,7 @@
 #define PRESTART_TIME 5
 #define VOTE_TIME 10
 
-new PREFIX[] = "[^4MapManager^1]";
+new PREFIX[] = "^4[MapManager]";
 
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
@@ -79,9 +79,11 @@ new g_iShowType;
 new g_bShowSelects;
 new g_iTimer;
 new g_bCanExtend;
+new g_iMaxItems;
 
 new g_iRandomNums[VOTELIST_SIZE + 1];
 
+new g_iVoteType;
 new bool:g_bVoteStarted;
 new bool:g_bVoteFinished;
 
@@ -98,10 +100,10 @@ public plugin_init()
 	register_concmd("mapm_start_vote", "concmd_startvote", ADMIN_MAP);
 
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
-	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
-	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE);
-	g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE);
-	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE, FP_STRING);
+	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
+	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
+	g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE, FP_CELL);
+	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE, FP_STRING, FP_CELL);
 	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING);
 	g_hForwards[CAN_BE_EXTENDED] = CreateMultiForward("mapm_can_be_extended", ET_CONTINUE, FP_CELL);
 
@@ -118,6 +120,8 @@ public plugin_natives()
 	register_native("mapm_get_prefix", "native_get_prefix");
 	register_native("mapm_start_vote", "native_start_vote");
 	register_native("mapm_stop_vote", "native_stop_vote");
+	register_native("mapm_get_votelist_size", "native_get_votelist_size");
+	register_native("mapm_set_votelist_max_items", "native_set_votelist_max_items");
 	register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
 	register_native("mapm_get_count_maps_in_vote", "native_get_count_maps_in_vote");
 	register_native("mapm_get_voteitem_info", "native_get_voteitem_info");
@@ -146,6 +150,15 @@ public native_start_vote(plugin, params)
 public native_stop_vote(plugin, params)
 {
 	stop_vote();
+}
+public native_get_votelist_size(plugin, params)
+{
+	return VOTELIST_SIZE;
+}
+public native_set_votelist_max_items(plugin, params)
+{
+	enum { arg_value = 1 };
+	g_iMaxItems = get_param(arg_value);
 }
 public native_push_map_to_votelist(plugin, params)
 {
@@ -230,12 +243,17 @@ load_maplist(const file[])
 	}
 
 	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], min[3], max[3];
+	new cur_map[MAPNAME_LENGTH]; get_mapname(cur_map, charsmax(cur_map));
 
 	while(!feof(f)) {
 		fgets(f, text, charsmax(text));
 		parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
 
 		if(!map[0] || map[0] == ';' || !valid_map(map) || map_in_list(map) != INVALID_MAP_INDEX) continue;
+		
+		if(equali(map, cur_map)) {
+			continue;
+		}
 		
 		map_info[MapName] = map;
 		map_info[MinPlayers] = str_to_num(min);
@@ -284,6 +302,8 @@ prepare_vote(type)
 	g_bVoteStarted = true;
 	g_bVoteFinished = false;
 
+	g_iVoteType = type;
+
 	g_iVoteItems = 0;
 	g_iTotalVotes = 0;
 	arrayset(g_iVoted, NOT_VOTED, sizeof(g_iVoted));
@@ -293,7 +313,12 @@ prepare_vote(type)
 	new vote_max_items = min(VOTELIST_SIZE, g_iMapsListSize);
 
 	new ret;
-	ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret);
+	ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret, type);
+
+	if(g_iMaxItems) {
+		vote_max_items = g_iMaxItems;
+		g_iMaxItems = 0;
+	}
 
 	// TODO: add min/max sort
 	if(g_iVoteItems < vote_max_items) {
@@ -470,7 +495,7 @@ start_vote()
 	server_print("--start vote--");
 
 	new ret;
-	ExecuteForward(g_hForwards[VOTE_STARTED], ret);
+	ExecuteForward(g_hForwards[VOTE_STARTED], ret, g_iVoteType);
 
 	// TODO: add preview for N seconds
 
@@ -487,7 +512,7 @@ finish_vote()
 
 	// pre forward
 	new ret;
-	ExecuteForward(g_hForwards[ANALYSIS_OF_RESULTS], ret);
+	ExecuteForward(g_hForwards[ANALYSIS_OF_RESULTS], ret, g_iVoteType);
 
 	if(ret) {
 		return;
@@ -506,7 +531,7 @@ finish_vote()
 	}
 
 	// post forward
-	ExecuteForward(g_hForwards[VOTE_FINISHED], ret, g_sVoteList[max_vote]);
+	ExecuteForward(g_hForwards[VOTE_FINISHED], ret, g_sVoteList[max_vote], g_iVoteType);
 }
 
 stop_vote()

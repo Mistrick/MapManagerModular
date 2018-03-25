@@ -46,6 +46,20 @@ native mapm_stop_vote();
 /**
  * TODO: write this.
  * 
+ * @return Votelist size
+ */
+native mapm_get_votelist_size();
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+native mapm_set_votelist_max_items(value);
+
+/**
+ * TODO: write this.
+ * 
  * @noreturn
  */
 native mapm_push_map_to_votelist(map[], ignore_check = false);
@@ -92,7 +106,7 @@ forward mapm_maplist_loaded(Array:maplist);
  * 
  * @noreturn
  */
-forward mapm_prepare_votelist();
+forward mapm_prepare_votelist(type);
 
 /**
  * TODO: write this.
@@ -113,18 +127,18 @@ forward mapm_can_be_extended(type);
  * 
  * @noreturn
  */
-forward mapm_vote_started();
+forward mapm_vote_started(type);
 
 /**
  * TODO: write this.
  * 
  * @noreturn
  */
-forward mapm_analysis_of_results();
+forward mapm_analysis_of_results(type);
 
 /**
  * TODO: write this.
  * 
  * @noreturn
  */
-forward mapm_vote_finished(map[]);
+forward mapm_vote_finished(map[], type);

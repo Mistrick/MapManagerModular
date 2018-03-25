@@ -29,12 +29,18 @@ enum {
 
 enum {
 	VOTE_BY_CMD,
-	VOTE_BY_RTV
+	VOTE_BY_RTV,
+	VOTE_BY_SCHEDULER
 };
 
 enum {
 	ALLOW_VOTE,
 	ABORT_VOTE
+};
+
+enum {
+	EXTEND_ALLOWED,
+	EXTEND_BLOCKED
 };
 
 const INVALID_MAP_INDEX = -1;

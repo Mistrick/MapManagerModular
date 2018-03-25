@@ -98,7 +98,7 @@ public clcmd_say(id)
 	
 	if(is_string_with_space(text)) return PLUGIN_CONTINUE;
 	
-	new map_index = mapm_is_map_in_list(text);
+	new map_index = mapm_map_in_list(text);
 
 	if(map_index != INVALID_MAP_INDEX) {
 		nominate_map(id, text, map_index);

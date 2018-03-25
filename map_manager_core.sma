@@ -26,7 +26,7 @@
 #define PRESTART_TIME 5
 #define VOTE_TIME 10
 
-new PREFIX[] = "[MapManager]";
+new PREFIX[] = "[^4MapManager^1]";
 
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
@@ -82,6 +82,9 @@ new g_bCanExtend;
 
 new g_iRandomNums[VOTELIST_SIZE + 1];
 
+new bool:g_bVoteStarted;
+new bool:g_bVoteFinished;
+
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
@@ -90,11 +93,10 @@ public plugin_init()
 
 	g_pCvars[SHOW_RESULT_TYPE] = register_cvar("mapm_show_result_type", "1"); //0 - disable, 1 - menu, 2 - hud
 	g_pCvars[SHOW_SELECTS] = register_cvar("mapm_show_selects", "1"); // 0 - disable, 1 - all
-	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "1"); // 0 - disable, 1 - all
+	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "0"); // 0 - disable, 1 - all
 
 	register_concmd("mapm_start_vote", "concmd_startvote", ADMIN_MAP);
 
-	// TODO: register forwards
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE);
 	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE);
@@ -112,19 +114,21 @@ public plugin_natives()
 {
 	register_library("map_manager_core");
 
-	register_native("mapm_is_map_in_list", "native_is_map_in_list");
+	register_native("mapm_map_in_list", "native_map_in_list");
 	register_native("mapm_get_prefix", "native_get_prefix");
 	register_native("mapm_start_vote", "native_start_vote");
 	register_native("mapm_stop_vote", "native_stop_vote");
 	register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
 	register_native("mapm_get_count_maps_in_vote", "native_get_count_maps_in_vote");
 	register_native("mapm_get_voteitem_info", "native_get_voteitem_info");
+	register_native("is_vote_started", "native_is_vote_started");
+	register_native("is_vote_finished", "native_is_vote_finished");
 }
-public native_is_map_in_list(plugin, params)
+public native_map_in_list(plugin, params)
 {
 	enum { arg_map = 1 };
 	new map[MAPNAME_LENGTH]; get_string(arg_map, map, charsmax(map));
-	return is_map_in_array(map);
+	return map_in_list(map);
 }
 public native_get_prefix(plugin, params)
 {
@@ -137,7 +141,7 @@ public native_get_prefix(plugin, params)
 public native_start_vote(plugin, params)
 {
 	enum { arg_type = 1 };
-	prepare_vote(get_param(arg_type));
+	return prepare_vote(get_param(arg_type));
 }
 public native_stop_vote(plugin, params)
 {
@@ -192,6 +196,14 @@ public native_get_voteitem_info(plugin, params)
 
 	return 1;
 }
+public native_is_vote_started(plugin, params)
+{
+	return g_bVoteStarted;
+}
+public native_is_vote_finished(plugin, params)
+{
+	return g_bVoteFinished;
+}
 //-----------------------------------------------------//
 // Maplist stuff
 //-----------------------------------------------------//
@@ -223,7 +235,7 @@ load_maplist(const file[])
 		fgets(f, text, charsmax(text));
 		parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
 
-		if(!map[0] || map[0] == ';' || !valid_map(map) || is_map_in_array(map) != INVALID_MAP_INDEX) continue;
+		if(!map[0] || map[0] == ';' || !valid_map(map) || map_in_list(map) != INVALID_MAP_INDEX) continue;
 		
 		map_info[MapName] = map;
 		map_info[MinPlayers] = str_to_num(min);
@@ -252,7 +264,9 @@ public concmd_startvote(id, level, cid)
 		return PLUGIN_HANDLED;
 	}
 
-	prepare_vote(VOTE_BY_CMD);
+	if(!prepare_vote(VOTE_BY_CMD)) {
+		// write vote already started
+	}
 
 	return PLUGIN_HANDLED;
 }
@@ -261,7 +275,14 @@ public concmd_startvote(id, level, cid)
 //-----------------------------------------------------//
 prepare_vote(type)
 {
+	if(g_bVoteStarted) {
+		return 0;
+	}
+
 	server_print("--prepare vote--");
+
+	g_bVoteStarted = true;
+	g_bVoteFinished = false;
 
 	g_iVoteItems = 0;
 	g_iTotalVotes = 0;
@@ -295,7 +316,7 @@ prepare_vote(type)
 	}
 
 	ExecuteForward(g_hForwards[CAN_BE_EXTENDED], ret, type);
-	g_bCanExtend = bool:ret;
+	g_bCanExtend = !ret;
 
 	if(g_bCanExtend) {
 		get_mapname(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]));
@@ -317,6 +338,8 @@ prepare_vote(type)
 
 	g_iTimer = PRESTART_TIME + 1;
 	countdown(TASK_COUNTDOWN);
+
+	return 1;
 }
 is_map_allowed(map[])
 {
@@ -450,13 +473,15 @@ start_vote()
 	ExecuteForward(g_hForwards[VOTE_STARTED], ret);
 
 	// TODO: add preview for N seconds
-	
+
 	g_iTimer = VOTE_TIME + 1;
 	countdown(TASK_VOTE_TIME);
 }
 
 finish_vote()
 {
+	g_bVoteStarted = false;
+
 	// vote results
 	server_print("--finish vote--");
 
@@ -467,6 +492,8 @@ finish_vote()
 	if(ret) {
 		return;
 	}
+
+	g_bVoteFinished = true;
 
 	new max_vote = 0;
 	if(g_iTotalVotes) {
@@ -484,14 +511,21 @@ finish_vote()
 
 stop_vote()
 {
-	// cancel vote
-	// stop tasks
+	if(task_exists(TASK_VOTE_TIME)) {
+		show_menu(0, 0, "^n", 1);
+	}
+
+	remove_task(TASK_COUNTDOWN);
+	remove_task(TASK_VOTE_TIME);
+	
+	g_bVoteStarted = false;
+	g_bVoteFinished = false;
 }
 
 //-----------------------------------------------------//
 // Usefull func
 //-----------------------------------------------------//
-is_map_in_array(map[])
+map_in_list(map[])
 {
 	for(new i = 0, map_info[MapStruct]; i < g_iMapsListSize; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);

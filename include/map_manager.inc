@@ -20,7 +20,7 @@
  * 
  * @return Map index
  */
-native mapm_is_map_in_list(map[]);
+native mapm_map_in_list(map[]);
 
 /**
  * TODO: write this.
@@ -65,6 +65,20 @@ native mapm_get_count_maps_in_vote();
  * @noreturn
  */
 native mapm_get_voteitem_info(item, map[], len, &votes);
+
+/**
+ * TODO: write this.
+ * 
+ * @return true/false
+ */
+native bool:is_vote_started();
+
+/**
+ * TODO: write this.
+ * 
+ * @return true/false
+ */
+native bool:is_vote_finished();
 
 /**
  * TODO: write this.

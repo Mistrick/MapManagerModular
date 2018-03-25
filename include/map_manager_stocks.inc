@@ -52,3 +52,13 @@ stock string_with_space(string[])
 	}
 	return 0;
 }
+stock intermission()
+{
+	emessage_begin(MSG_ALL, SVC_INTERMISSION);
+	emessage_end();
+}
+stock get_players_num()
+{
+	new players[32], pnum; get_players(players, pnum, "ch");
+	return pnum;
+}

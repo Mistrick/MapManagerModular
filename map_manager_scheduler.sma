@@ -39,6 +39,8 @@ enum Cvars {
 	TIMELEFT_TO_VOTE,
 	VOTE_IN_NEW_ROUND,
 	LAST_ROUND,
+	SECOND_VOTE,
+	SECOND_VOTE_PERCENT,
 	EXTENDED_TYPE,
 	EXTENDED_MAX,
 	EXTENDED_TIME,
@@ -59,7 +61,7 @@ new Float:g_fOldTimeLimit;
 new g_iExtendedNum;
 new g_iVoteType;
 
-new g_iTotalVotes;
+new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 
 new PREFIX[32];
 
@@ -71,6 +73,9 @@ public plugin_init()
 	g_pCvars[TIMELEFT_TO_VOTE] = register_cvar("mapm_timeleft_to_vote", "2"); // minutes
 	g_pCvars[VOTE_IN_NEW_ROUND] = register_cvar("mapm_vote_in_new_round", "0"); // 0 - disable, 1 - enable
 	g_pCvars[LAST_ROUND] = register_cvar("mapm_last_round", "0"); // 0 - disable, 1 - enable
+
+	g_pCvars[SECOND_VOTE] = register_cvar("mapm_second_vote", "0"); // 0 - disable, 1 - enable
+	g_pCvars[SECOND_VOTE_PERCENT] = register_cvar("mapm_second_vote_percent", "50");
 
 	g_pCvars[EXTENDED_TYPE] = register_cvar("mapm_extended_type", "0"); // 0 - minutes, 1 - rounds
 	g_pCvars[EXTENDED_MAX] = register_cvar("mapm_extended_map_max", "3");
@@ -223,28 +228,57 @@ planning_vote(type)
 }
 public mapm_can_be_extended(type)
 {
+	if(type == VOTE_BY_SCHEDULER_SECOND) {
+		return EXTEND_BLOCKED;
+	}
 	if(g_iExtendedNum >= get_num(EXTENDED_MAX)) {
 		return EXTEND_BLOCKED;
 	}
 	return EXTEND_ALLOWED;
 }
-public mapm_analysis_of_results()
+public mapm_prepare_votelist(type)
 {
-	g_iTotalVotes = 0;
-	
-	new max_items = mapm_get_count_maps_in_vote();
-	new map[MAPNAME_LENGTH], votes;
-	for(new i; i < max_items; i++) {
-		mapm_get_voteitem_info(i, map, charsmax(map), votes);
-		server_print("%d - %s - %d", i + 1, map, votes);
-		g_iTotalVotes += votes;
+	if(type != VOTE_BY_SCHEDULER_SECOND) {
+		return;
 	}
 	
-	// TODO: add second vote
-
-	return ALLOW_VOTE;
+	// add maps for second vote
+	for(new i; i < 2; i++) {
+		mapm_push_map_to_votelist(g_sSecondVoteMaps[i], true);
+	}
+	mapm_set_votelist_max_items(2);
 }
-public mapm_vote_finished(map[], type)
+public mapm_analysis_of_results(type, total_votes)
+{
+	if(type == VOTE_BY_SCHEDULER_SECOND || !get_num(SECOND_VOTE)) {
+		return ALLOW_VOTE;
+	}
+
+	new max_items = mapm_get_count_maps_in_vote();
+	new map[MAPNAME_LENGTH], votes, max_votes;
+
+	for(new i; i < max_items; i++) {
+		mapm_get_voteitem_info(i, map, charsmax(map), votes);
+		if(votes > max_votes) {
+			copy(g_sSecondVoteMaps[1], charsmax(g_sSecondVoteMaps[]), g_sSecondVoteMaps[0]);
+			max_votes = votes;
+			copy(g_sSecondVoteMaps[0], charsmax(g_sSecondVoteMaps[]), map);
+		}
+	}
+	
+	new percent = total_votes ? floatround(max_votes * 100.0 / total_votes) : 0;
+
+	if(percent > get_num(SECOND_VOTE_PERCENT)) {
+		return ALLOW_VOTE;
+	}
+
+	// TODO: add ML
+	client_print_color(0, print_team_default, "%s^1 Second vote.", PREFIX);
+	mapm_start_vote(VOTE_BY_SCHEDULER_SECOND);
+
+	return ABORT_VOTE;
+}
+public mapm_vote_finished(map[], type, total_votes)
 {
 	// map extended
 	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));
@@ -282,7 +316,7 @@ public mapm_vote_finished(map[], type)
 	}
 
 	// change map
-	if(!g_iTotalVotes) {
+	if(!total_votes) {
 		client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_NOBODY_VOTE", map);
 	} else {
 		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", PREFIX, LANG_PLAYER, "MAPM_NEXTMAP", map);

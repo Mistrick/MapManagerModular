@@ -134,11 +134,11 @@ forward mapm_vote_started(type);
  * 
  * @noreturn
  */
-forward mapm_analysis_of_results(type);
+forward mapm_analysis_of_results(type, total_votes);
 
 /**
  * TODO: write this.
  * 
  * @noreturn
  */
-forward mapm_vote_finished(map[], type);
+forward mapm_vote_finished(map[], type, total_votes);

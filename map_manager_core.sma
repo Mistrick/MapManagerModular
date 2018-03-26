@@ -80,6 +80,7 @@ new g_bShowSelects;
 new g_iTimer;
 new g_bCanExtend;
 new g_iMaxItems;
+new g_iCurMap;
 
 new g_iRandomNums[VOTELIST_SIZE + 1];
 
@@ -102,8 +103,8 @@ public plugin_init()
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
 	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
-	g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE, FP_CELL);
-	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE, FP_STRING, FP_CELL);
+	g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE, FP_CELL, FP_CELL);
+	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE, FP_STRING, FP_CELL, FP_CELL);
 	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING);
 	g_hForwards[CAN_BE_EXTENDED] = CreateMultiForward("mapm_can_be_extended", ET_CONTINUE, FP_CELL);
 
@@ -343,8 +344,15 @@ prepare_vote(type)
 	ExecuteForward(g_hForwards[CAN_BE_EXTENDED], ret, type);
 	g_bCanExtend = !ret;
 
+	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));
 	if(g_bCanExtend) {
-		get_mapname(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]));
+		copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), curmap);
+	}
+	for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
+		if(equali(curmap, g_sVoteList[i])) {
+			g_iCurMap = i;
+			break;
+		}
 	}
 
 	if(get_num(RANDOM_NUMS)) {
@@ -440,7 +448,7 @@ public show_votemenu(id)
 		percent = g_iTotalVotes ? floatround(g_iVotes[item] * 100.0 / g_iTotalVotes) : 0;
 		len += formatex(menu[len], charsmax(menu) - len, "\d[\r%d%%\d]", percent);
 
-		if(item == g_iVoteItems) {
+		if(item == g_iCurMap) {
 			len += formatex(menu[len], charsmax(menu) - len, "\y[%L]", id, "MAPM_MENU_EXTEND");
 		}
 		
@@ -512,7 +520,7 @@ finish_vote()
 
 	// pre forward
 	new ret;
-	ExecuteForward(g_hForwards[ANALYSIS_OF_RESULTS], ret, g_iVoteType);
+	ExecuteForward(g_hForwards[ANALYSIS_OF_RESULTS], ret, g_iVoteType, g_iTotalVotes);
 
 	if(ret) {
 		return;
@@ -531,7 +539,7 @@ finish_vote()
 	}
 
 	// post forward
-	ExecuteForward(g_hForwards[VOTE_FINISHED], ret, g_sVoteList[max_vote], g_iVoteType);
+	ExecuteForward(g_hForwards[VOTE_FINISHED], ret, g_sVoteList[max_vote], g_iVoteType, g_iTotalVotes);
 }
 
 stop_vote()

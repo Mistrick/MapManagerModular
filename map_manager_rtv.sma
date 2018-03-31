@@ -12,6 +12,10 @@
 
 #pragma semicolon 1
 
+#if !defined client_disconnected
+#define client_disconnected client_disconnect
+#endif
+
 #define get_num(%0) get_pcvar_num(g_pCvars[%0])
 
 enum Cvars {
@@ -54,7 +58,7 @@ public plugin_init()
 
 	mapm_get_prefix(PREFIX, charsmax(PREFIX));
 }
-public client_disconnect(id)
+public client_disconnected(id)
 {
 	if(g_bVoted[id]) {
 		g_bVoted[id] = false;
@@ -106,4 +110,9 @@ public mapm_can_be_extended(type)
 		return EXTEND_BLOCKED;
 	}
 	return EXTEND_ALLOWED;
+}
+public mapm_vote_finished(map[], type, total_votes)
+{
+	g_iVotes = 0;
+	arrayset(g_bVoted, false, sizeof(g_bVoted));
 }

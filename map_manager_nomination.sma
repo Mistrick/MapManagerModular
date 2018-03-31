@@ -17,6 +17,10 @@
 #define NOMINATED_MAPS_IN_VOTE 3
 #define NOMINATED_MAPS_PER_PLAYER 3
 
+#if !defined client_disconnected
+#define client_disconnected client_disconnect
+#endif
+
 enum {
 	NOMINATION_FAIL,
 	NOMINATION_SUCCESS,
@@ -85,7 +89,7 @@ public mapm_maplist_loaded(Array:maplist)
 	g_aNomList = ArrayCreate(NomStruct, 1);
 	mapm_get_prefix(PREFIX, charsmax(PREFIX));
 }
-public client_disconnect(id)
+public client_disconnected(id)
 {
 	if(g_iNomMaps[id]) {
 		clear_nominated_maps(id);
@@ -98,7 +102,7 @@ public clcmd_say(id)
 	
 	if(is_string_with_space(text)) return PLUGIN_CONTINUE;
 	
-	new map_index = mapm_map_in_list(text);
+	new map_index = mapm_get_map_index(text);
 
 	if(map_index != INVALID_MAP_INDEX) {
 		nominate_map(id, text, map_index);
@@ -116,9 +120,7 @@ public clcmd_say(id)
 			map_index = ArrayGetCell(nominate_list, 0);
 			new map_info[MapStruct]; ArrayGetArray(g_aMapsList, map_index, map_info);
 			nominate_map(id, map_info[MapName], map_index);
-		}
-		else if(array_size > 1)
-		{
+		} else if(array_size > 1) {
 			show_nomlist(id, nominate_list, array_size);
 		}
 		
@@ -182,8 +184,7 @@ show_nomlist(id, Array: array, size)
 	new menu = menu_create(text, "nomlist_handler");
 	new map_info[MapStruct], item_info[48], map_index, nom_index, block_count;
 	
-	for(new i, str_num[6]; i < size; i++)
-	{
+	for(new i, str_num[6]; i < size; i++) {
 		map_index = ArrayGetCell(array, i);
 		ArrayGetArray(g_aMapsList, map_index, map_info);
 		

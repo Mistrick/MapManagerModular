@@ -48,7 +48,6 @@ enum Cvars {
 	MAXROUNDS,
 	WINLIMIT,
 	TIMELIMIT,
-	FREEZETIME,
 	CHATTIME,
 	NEXTMAP
 };
@@ -85,7 +84,6 @@ public plugin_init()
 	g_pCvars[MAXROUNDS] = get_cvar_pointer("mp_maxrounds");
 	g_pCvars[WINLIMIT] = get_cvar_pointer("mp_winlimit");
 	g_pCvars[TIMELIMIT] = get_cvar_pointer("mp_timelimit");
-	g_pCvars[FREEZETIME] = get_cvar_pointer("mp_freezetime");
 	g_pCvars[CHATTIME] = get_cvar_pointer("mp_chattime");
 
 	g_pCvars[NEXTMAP] = register_cvar("amx_nextmap", "", FCVAR_SERVER|FCVAR_EXTDLL|FCVAR_SPONLY);
@@ -244,7 +242,7 @@ public mapm_prepare_votelist(type)
 	
 	// add maps for second vote
 	for(new i; i < 2; i++) {
-		mapm_push_map_to_votelist(g_sSecondVoteMaps[i], true);
+		mapm_push_map_to_votelist(g_sSecondVoteMaps[i], CHECK_IGNORE_MAP_ALLOWED);
 	}
 	mapm_set_votelist_max_items(2);
 }
@@ -258,7 +256,7 @@ public mapm_analysis_of_results(type, total_votes)
 	new map[MAPNAME_LENGTH], votes, max_votes;
 
 	for(new i; i < max_items; i++) {
-		mapm_get_voteitem_info(i, map, charsmax(map), votes);
+		votes = mapm_get_voteitem_info(i, map, charsmax(map));
 		if(votes > max_votes) {
 			copy(g_sSecondVoteMaps[1], charsmax(g_sSecondVoteMaps[]), g_sSecondVoteMaps[0]);
 			max_votes = votes;
@@ -280,16 +278,17 @@ public mapm_analysis_of_results(type, total_votes)
 }
 public mapm_vote_finished(map[], type, total_votes)
 {
+	if(g_fOldTimeLimit > 0.0) {
+		set_float(TIMELIMIT, g_fOldTimeLimit);
+		g_fOldTimeLimit = 0.0;
+	}
+	g_bVoteInNewRound = false;
+
 	// map extended
 	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));
 	if(equali(map, curmap)) {
 		g_iExtendedNum++;
 
-		if(g_fOldTimeLimit > 0.0) {
-			set_float(TIMELIMIT, g_fOldTimeLimit);
-			g_fOldTimeLimit = 0.0;
-		}
-		
 		new win_limit = get_num(WINLIMIT);
 		new max_rounds = get_num(MAXROUNDS);
 
@@ -320,11 +319,6 @@ public mapm_vote_finished(map[], type, total_votes)
 		client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_NOBODY_VOTE", map);
 	} else {
 		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", PREFIX, LANG_PLAYER, "MAPM_NEXTMAP", map);
-	}
-
-	if(g_bVoteInNewRound && g_fOldTimeLimit > 0.0 && get_num(CHANGE_TYPE) != CHANGE_NEXT_ROUND) {
-		set_float(TIMELIMIT, g_fOldTimeLimit);
-		g_fOldTimeLimit = 0.0;
 	}
 
 	set_pcvar_string(g_pCvars[NEXTMAP], map);

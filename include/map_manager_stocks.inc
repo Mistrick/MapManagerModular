@@ -62,3 +62,13 @@ stock get_players_num()
 	new players[32], pnum; get_players(players, pnum, "ch");
 	return pnum;
 }
+stock send_audio(id, audio[], pitch)
+{
+	static msg_send_audio; if(!msg_send_audio) msg_send_audio = get_user_msgid("SendAudio");
+
+	message_begin( id ? MSG_ONE_UNRELIABLE : MSG_BROADCAST, msg_send_audio, _, id);
+	write_byte(id);
+	write_string(audio);
+	write_short(pitch);
+	message_end();
+}

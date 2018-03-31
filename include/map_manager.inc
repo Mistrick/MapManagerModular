@@ -20,7 +20,7 @@
  * 
  * @return Map index
  */
-native mapm_map_in_list(map[]);
+native mapm_get_map_index(map[]);
 
 /**
  * TODO: write this.
@@ -62,7 +62,7 @@ native mapm_set_votelist_max_items(value);
  * 
  * @noreturn
  */
-native mapm_push_map_to_votelist(map[], ignore_check = false);
+native mapm_push_map_to_votelist(map[], ignore_check = CHECK_NOT_IGNORED);
 
 /**
  * TODO: write this.
@@ -76,9 +76,9 @@ native mapm_get_count_maps_in_vote();
  * TODO: write this.
  * Use in mapm_analysis_of_results()
  * 
- * @noreturn
+ * @return Votes
  */
-native mapm_get_voteitem_info(item, map[], len, &votes);
+native mapm_get_voteitem_info(item, map[], len);
 
 /**
  * TODO: write this.
@@ -100,6 +100,13 @@ native bool:is_vote_finished();
  * @noreturn
  */
 forward mapm_maplist_loaded(Array:maplist);
+
+/**
+ * TODO: write this.
+ * 
+ * @noreturn
+ */
+forward mapm_countdown(type, time);
 
 /**
  * TODO: write this.

@@ -189,6 +189,10 @@ public native_push_map_to_votelist(plugin, params)
 		return PUSH_BLOCKED;
 	}
 
+	if(is_map_in_vote(map)) {
+		return PUSH_BLOCKED;
+	}
+
 	copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), map);
 	g_iVoteItems++;
 
@@ -315,7 +319,6 @@ prepare_vote(type)
 	arrayset(g_iVoted, NOT_VOTED, sizeof(g_iVoted));
 	arrayset(g_iVotes, 0, sizeof(g_iVotes));
 
-	// TODO: change this by api
 	new vote_max_items = min(VOTELIST_SIZE, g_iMapsListSize);
 
 	new ret;

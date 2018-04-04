@@ -3,10 +3,6 @@
 #include <hamsandwich>
 #include <map_manager>
 
-#if AMXX_VERSION_NUM < 183
-#include <colorchat>
-#endif
-
 #define PLUGIN "Map Manager: Effects"
 #define VERSION "0.0.1"
 #define AUTHOR "Mistrick"

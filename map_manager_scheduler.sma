@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -245,11 +245,14 @@ public event_intermission()
 		log_amx("Double intermission, how?");
 		return;
 	}
-	set_task(get_float(CHATTIME), "delayed_change", TASK_DELAYED_CHANGE);
+	new Float:chattime = get_float(CHATTIME);
+	set_float(CHATTIME, chattime + 1.0);
+	set_task(chattime, "delayed_change", TASK_DELAYED_CHANGE);
 }
 public delayed_change()
 {
 	new nextmap[MAPNAME_LENGTH]; get_pcvar_string(g_pCvars[NEXTMAP], nextmap, charsmax(nextmap));
+	set_float(CHATTIME, get_float(CHATTIME) - 1.0);
 	server_cmd("changelevel %s", nextmap);
 }
 planning_vote(type)

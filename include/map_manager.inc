@@ -35,6 +35,15 @@ native mapm_get_map_index(map[]);
 native mapm_get_prefix(prefix[], len);
 
 /**
+ * Set value for vote finished variable.
+ * 
+ * @param value		Bool value
+ *
+ * @noreturn
+ */
+native mapm_set_vote_finished(bool:value);
+
+/**
  * Start vote.
  * 
  * @param type			Vote type, use const VOTE_BY_*

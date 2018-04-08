@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "0.0.1"
+#define VERSION "3.0.0-Beta-3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -115,6 +115,7 @@ public plugin_natives()
 
 	register_native("mapm_get_map_index", "native_get_map_index");
 	register_native("mapm_get_prefix", "native_get_prefix");
+	register_native("mapm_set_vote_finished", "native_set_vote_finished");
 	register_native("mapm_start_vote", "native_start_vote");
 	register_native("mapm_stop_vote", "native_stop_vote");
 	register_native("mapm_get_votelist_size", "native_get_votelist_size");
@@ -138,6 +139,11 @@ public native_get_prefix(plugin, params)
 		arg_len
 	};
 	set_string(arg_prefix, PREFIX, get_param(arg_len));
+}
+public native_set_vote_finished(plugin, params)
+{
+	enum { arg_value = 1 };
+	g_bVoteFinished = bool:get_param(arg_value);
 }
 public native_start_vote(plugin, params)
 {

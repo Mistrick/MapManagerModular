@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Informer"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -36,6 +36,8 @@ public plugin_init()
 	register_clcmd("say thetime", "clcmd_thetime");
 	register_clcmd("say nextmap", "clcmd_nextmap");
 	register_clcmd("say currentmap", "clcmd_currentmap");
+
+	register_event("TeamScore", "event_teamscore", "a");
 
 	get_mapname(g_szCurMap, charsmax(g_szCurMap));
 	mapm_get_prefix(PREFIX, charsmax(PREFIX));

@@ -13,8 +13,17 @@
 #endif
 
 /**
- * TODO: write this.
+ * Start vote by scheduler, work with own cvars.
  * 
+ * @param type			Type of vote, used const VOTE_BY_*
+ *
  * @noreturn
  */
 native map_scheduler_start_vote(type);
+
+/**
+ * Returns if vote will in next round.
+ *
+ * @return				true/false
+ */
+native bool:is_vote_will_in_next_round();

@@ -30,11 +30,6 @@ enum {
 	CHANGE_MAP_END
 };
 
-enum {
-	EXTEND_MINUTES,
-	EXTEND_ROUNDS
-};
-
 enum Cvars {
 	CHANGE_TYPE,
 	TIMELEFT_TO_VOTE,
@@ -92,6 +87,8 @@ public plugin_init()
 	register_concmd("mapm_start_vote", "concmd_startvote", ADMIN_MAP);
 	register_concmd("mapm_stop_vote", "concmd_stopvote", ADMIN_MAP);
 
+	register_clcmd("votemap", "clcmd_votemap");
+
 	register_event("TeamScore", "event_teamscore", "a");
 	register_event("HLTV", "event_newround", "a", "1=0", "2=0");
 	// register_event("TextMsg", "event_restart", "a", "2=#Game_Commencing", "2=#Game_will_restart_in");
@@ -106,6 +103,7 @@ public plugin_natives()
 	register_library("map_manager_scheduler");
 
 	register_native("map_scheduler_start_vote", "native_start_vote");
+	register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
 }
 public native_start_vote(plugin, params)
 {
@@ -117,6 +115,10 @@ public native_start_vote(plugin, params)
 	planning_vote(get_param(arg_type));
 
 	return 1;
+}
+public native_vote_will_in_next_round(plugin, params)
+{
+	return g_bVoteInNewRound;
 }
 public plugin_end()
 {
@@ -177,6 +179,11 @@ public concmd_stopvote(id, level, cid)
 
 	return PLUGIN_HANDLED;
 }
+public clcmd_votemap()
+{
+	// Block default vote
+	return PLUGIN_HANDLED;
+}
 public task_checktime()
 {
 	if(is_vote_started() || is_vote_finished() || get_float(TIMELIMIT) <= 0.0) {
@@ -234,6 +241,10 @@ public event_restart()
 */
 public event_intermission()
 {
+	if(task_exists(TASK_DELAYED_CHANGE)) {
+		log_amx("Double intermission, how?");
+		return;
+	}
 	set_task(get_float(CHATTIME), "delayed_change", TASK_DELAYED_CHANGE);
 }
 public delayed_change()

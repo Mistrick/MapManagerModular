@@ -14,9 +14,6 @@
 
 #define get_num(%0) get_pcvar_num(g_pCvars[%0])
 
-#define NOMINATED_MAPS_IN_VOTE 3
-#define NOMINATED_MAPS_PER_PLAYER 3
-
 #if !defined client_disconnected
 #define client_disconnected client_disconnect
 #endif
@@ -27,7 +24,13 @@ enum {
 	NOMINATION_REMOVED
 };
 
+enum {
+	TYPE_STANDART,
+	TYPE_FIXED
+};
+
 enum Cvars {
+	TYPE,
 	MAPS_IN_VOTE,
 	MAPS_PER_PLAYER,
 	DONT_CLOSE_MENU,
@@ -48,6 +51,7 @@ public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
+	g_pCvars[TYPE] = register_cvar("mapm_nom_type", "0"); // 0 - standart, 1 - fixed
 	g_pCvars[MAPS_IN_VOTE] = register_cvar("mapm_nom_maps_in_vote", "3");
 	g_pCvars[MAPS_PER_PLAYER] = register_cvar("mapm_nom_maps_per_player", "3");
 	g_pCvars[DONT_CLOSE_MENU] = register_cvar("mapm_nom_dont_close_menu", "1"); // 0 - disable, 1 - enable
@@ -135,6 +139,12 @@ nominate_map(id, map[], index)
 	
 	if(mapm_get_blocked_count(map)) {
 		client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_NOM_NOT_AVAILABLE_MAP");
+		return NOMINATION_FAIL;
+	}
+
+	if(get_num(TYPE) == TYPE_FIXED && ArraySize(g_aNomList) >= get_num(MAPS_IN_VOTE)) {
+		// TODO: add ML
+		client_print_color(id, print_team_default, "%s^1 All nomination slots are reserved.", PREFIX);
 		return NOMINATION_FAIL;
 	}
 	

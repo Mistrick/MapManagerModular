@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -305,7 +305,7 @@ public mapm_analysis_of_results(type, total_votes)
 
 	for(new i; i < max_items; i++) {
 		votes = mapm_get_voteitem_info(i, map, charsmax(map));
-		if(votes > max_votes) {
+		if(votes >= max_votes) {
 			copy(g_sSecondVoteMaps[1], charsmax(g_sSecondVoteMaps[]), g_sSecondVoteMaps[0]);
 			max_votes = votes;
 			copy(g_sSecondVoteMaps[0], charsmax(g_sSecondVoteMaps[]), map);
@@ -358,6 +358,8 @@ public mapm_vote_finished(map[], type, total_votes)
 			set_float(TIMELIMIT, get_float(TIMELIMIT) + float(min));
 		}
 		
+		mapm_set_vote_finished(false);
+
 		server_print("map extended");
 		return 0;
 	}

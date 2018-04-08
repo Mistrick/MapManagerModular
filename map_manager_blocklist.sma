@@ -7,7 +7,13 @@
 
 #pragma semicolon 1
 
-#define BLOCK_MAP_COUNT 10
+#define get_num(%0) get_pcvar_num(g_pCvars[%0])
+
+enum Cvars {
+	BAN_LAST_MAPS
+};
+
+new g_pCvars[Cvars];
 
 new const FILE_BLOCKED_MAPS[] = "blockedmaps.ini"; //datadir
 
@@ -17,6 +23,8 @@ new g_iMaxItems;
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
+
+	g_pCvars[BAN_LAST_MAPS] = register_cvar("mapm_blocklist_ban_last_maps", "10");
 }
 public plugin_natives()
 {
@@ -64,8 +72,10 @@ load_blocklist()
 	new file_dir[128]; get_localinfo("amxx_datadir", file_dir, charsmax(file_dir));
 	new file_path[128]; formatex(file_path, charsmax(file_path), "%s/%s", file_dir, FILE_BLOCKED_MAPS);
 
+	new block_value = get_num(BAN_LAST_MAPS);
+
 	new cur_map[MAPNAME_LENGTH]; get_mapname(cur_map, charsmax(cur_map)); strtolower(cur_map);
-	TrieSetCell(g_tBlockedList, cur_map, BLOCK_MAP_COUNT);
+	TrieSetCell(g_tBlockedList, cur_map, block_value);
 
 	new f, temp;
 
@@ -83,7 +93,7 @@ load_blocklist()
 			
 			if(!is_map_valid(map) || TrieKeyExists(g_tBlockedList, map)) continue;
 			
-			count = min(str_to_num(str_count) - 1, BLOCK_MAP_COUNT);
+			count = min(str_to_num(str_count) - 1, block_value);
 			
 			if(count <= 0) continue;
 
@@ -92,7 +102,7 @@ load_blocklist()
 			// server_print("%s", map);
 		}
 		
-		fprintf(temp, "^"%s^" ^"%d^"^n", cur_map, BLOCK_MAP_COUNT);
+		fprintf(temp, "^"%s^" ^"%d^"^n", cur_map, block_value);
 		
 		fclose(f);
 		fclose(temp);
@@ -103,7 +113,7 @@ load_blocklist()
 	else {
 		f = fopen(file_path, "wt");
 		if(f) {
-			fprintf(f, "^"%s^" ^"%d^"^n", cur_map, BLOCK_MAP_COUNT);
+			fprintf(f, "^"%s^" ^"%d^"^n", cur_map, block_value);
 		}
 		fclose(f);
 	}

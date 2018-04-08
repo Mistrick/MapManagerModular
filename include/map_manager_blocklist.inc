@@ -13,7 +13,9 @@
 #endif
 
 /**
- * TODO: write this.
+ * Check map if it in blocklist.
+ *
+ * @param map			Map name
  * 
  * @return Blocked count
  */

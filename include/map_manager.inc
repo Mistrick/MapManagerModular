@@ -62,7 +62,7 @@ native mapm_set_votelist_max_items(value);
  * 
  * @noreturn
  */
-native mapm_push_map_to_votelist(map[], ignore_check = CHECK_NOT_IGNORED);
+native mapm_push_map_to_votelist(map[], type = PUSH_BY_NATIVE, ignore_check = CHECK_NOT_IGNORED);
 
 /**
  * TODO: write this.
@@ -120,7 +120,7 @@ forward mapm_prepare_votelist(type);
  * 
  * @noreturn
  */
-forward mapm_can_be_in_votelist(map[]);
+forward mapm_can_be_in_votelist(map[], type, index);
 
 /**
  * TODO: write this.

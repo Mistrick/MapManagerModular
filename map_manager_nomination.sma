@@ -325,7 +325,7 @@ public mapm_prepare_votelist(type)
 		ArrayDeleteItem(g_aNomList, index);
 		g_iNomMaps[nom_info[NomPlayer]]--;
 
-		if(mapm_push_map_to_votelist(map_info[MapName]) == PUSH_BLOCKED) {
+		if(mapm_push_map_to_votelist(map_info[MapName], PUSH_BY_NOMINATION) == PUSH_BLOCKED) {
 			i--;
 		}
 	}

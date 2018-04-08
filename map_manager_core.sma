@@ -109,7 +109,7 @@ public plugin_init()
 	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
 	g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE, FP_CELL, FP_CELL);
 	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE, FP_STRING, FP_CELL, FP_CELL);
-	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING);
+	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING, FP_CELL, FP_CELL);
 	g_hForwards[CAN_BE_EXTENDED] = CreateMultiForward("mapm_can_be_extended", ET_CONTINUE, FP_CELL);
 	g_hForwards[COUNTDOWN] = CreateMultiForward("mapm_countdown", ET_IGNORE, FP_CELL, FP_CELL);
 
@@ -170,6 +170,7 @@ public native_push_map_to_votelist(plugin, params)
 {
 	enum {
 		arg_map = 1,
+		arg_type,
 		arg_ignore_check 
 	};
 
@@ -185,7 +186,7 @@ public native_push_map_to_votelist(plugin, params)
 		return PUSH_CANCELED;
 	}
 
-	if(!(ignore_checks & CHECK_IGNORE_MAP_ALLOWED) && !is_map_allowed(map)) {
+	if(!(ignore_checks & CHECK_IGNORE_MAP_ALLOWED) && !is_map_allowed(map, get_param(arg_type), get_map_index(map))) {
 		return PUSH_BLOCKED;
 	}
 
@@ -336,7 +337,7 @@ prepare_vote(type)
 			do {
 				random_map = random(g_iMapsListSize);
 				ArrayGetArray(g_aMapsList, random_map, map_info);
-			} while(is_map_in_vote(map_info[MapName]) || !is_map_allowed(map_info[MapName]));
+			} while(is_map_in_vote(map_info[MapName]) || !is_map_allowed(map_info[MapName], PUSH_BY_CORE, random_map));
 
 			copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), map_info[MapName]);
 		}
@@ -383,10 +384,10 @@ prepare_vote(type)
 
 	return 1;
 }
-is_map_allowed(map[])
+is_map_allowed(map[], type, index)
 {
 	new ret;
-	ExecuteForward(g_hForwards[CAN_BE_IN_VOTELIST], ret, map);
+	ExecuteForward(g_hForwards[CAN_BE_IN_VOTELIST], ret, map, type, index);
 	return ret == MAP_ALLOWED;
 }
 in_array(index, num)

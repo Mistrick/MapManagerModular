@@ -5,7 +5,6 @@
 	- start/stop vote
 */
 #include <amxmodx>
-#include <amxmisc>
 #include <map_manager_consts>
 #include <map_manager_stocks>
 
@@ -101,8 +100,6 @@ public plugin_init()
 	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "0"); // 0 - disable, 1 - enable
 	g_pCvars[PREPARE_TIME] = register_cvar("mapm_prepare_time", "5"); // seconds
 	g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
-
-	register_concmd("mapm_start_vote", "concmd_startvote", ADMIN_MAP);
 
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
@@ -253,7 +250,7 @@ load_maplist(const file[])
 		set_fail_state("Can't read maps file.");
 	}
 
-	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], min[3], max[3];
+	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], min[3], max[3], bool:nextmap;
 	new cur_map[MAPNAME_LENGTH]; get_mapname(cur_map, charsmax(cur_map));
 
 	while(!feof(f)) {
@@ -263,7 +260,12 @@ load_maplist(const file[])
 		if(!map[0] || map[0] == ';' || !valid_map(map) || get_map_index(map) != INVALID_MAP_INDEX) continue;
 		
 		if(equali(map, cur_map)) {
+			nextmap = true;
 			continue;
+		}
+		if(nextmap) {
+			nextmap = false;
+			set_cvar_string("amx_nextmap", map);
 		}
 		
 		map_info[MapName] = map;
@@ -285,21 +287,6 @@ load_maplist(const file[])
 	ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, g_aMapsList);
 }
 //-----------------------------------------------------//
-// Commands stuff
-//-----------------------------------------------------//
-public concmd_startvote(id, level, cid)
-{
-	if(!cmd_access(id, level, cid, 1)) {
-		return PLUGIN_HANDLED;
-	}
-
-	if(!prepare_vote(VOTE_BY_CMD)) {
-		// write vote already started
-	}
-
-	return PLUGIN_HANDLED;
-}
-//-----------------------------------------------------//
 // Vote stuff
 //-----------------------------------------------------//
 prepare_vote(type)
@@ -308,7 +295,7 @@ prepare_vote(type)
 		return 0;
 	}
 
-	server_print("--prepare vote--");
+	// server_print("--prepare vote--");
 
 	g_bVoteStarted = true;
 	g_bVoteFinished = false;
@@ -343,12 +330,12 @@ prepare_vote(type)
 		}
 	}
 
-	server_print("Votelist:");
+	/* server_print("Votelist:");
 	for(new i; i < g_iVoteItems; i++) {
 		if(g_sVoteList[i][0]) {
 			server_print("%d - %s", i + 1, g_sVoteList[i]);
 		}
-	}
+	} */
 
 	ExecuteForward(g_hForwards[CAN_BE_EXTENDED], ret, type);
 	g_bCanExtend = !ret;
@@ -447,7 +434,7 @@ public countdown(taskid)
 }
 start_vote()
 {
-	server_print("--start vote--");
+	// server_print("--start vote--");
 
 	new ret;
 	ExecuteForward(g_hForwards[VOTE_STARTED], ret, g_iVoteType);
@@ -532,7 +519,7 @@ finish_vote()
 	g_bVoteStarted = false;
 
 	// vote results
-	server_print("--finish vote--");
+	// server_print("--finish vote--");
 
 	// pre forward
 	new ret;

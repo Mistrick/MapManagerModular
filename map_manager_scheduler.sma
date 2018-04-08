@@ -1,4 +1,5 @@
 #include <amxmodx>
+#include <amxmisc>
 #include <map_manager>
 
 #if AMXX_VERSION_NUM < 183
@@ -88,6 +89,9 @@ public plugin_init()
 
 	g_pCvars[NEXTMAP] = register_cvar("amx_nextmap", "", FCVAR_SERVER|FCVAR_EXTDLL|FCVAR_SPONLY);
 
+	register_concmd("mapm_start_vote", "concmd_startvote", ADMIN_MAP);
+	register_concmd("mapm_stop_vote", "concmd_stopvote", ADMIN_MAP);
+
 	register_event("TeamScore", "event_teamscore", "a");
 	register_event("HLTV", "event_newround", "a", "1=0", "2=0");
 	// register_event("TextMsg", "event_restart", "a", "2=#Game_Commencing", "2=#Game_will_restart_in");
@@ -142,6 +146,36 @@ restore_limits()
 		}
 		g_iExtendedNum = 0;
 	}
+}
+public concmd_startvote(id, level, cid)
+{
+	if(!cmd_access(id, level, cid, 1)) {
+		return PLUGIN_HANDLED;
+	}
+
+	// TODO: add logging
+	planning_vote(VOTE_BY_CMD);
+
+	return PLUGIN_HANDLED;
+}
+public concmd_stopvote(id, level, cid)
+{
+	if(!cmd_access(id, level, cid, 1)) {
+		return PLUGIN_HANDLED;
+	}
+
+	// TODO: add logging
+	mapm_stop_vote();
+
+	if(g_bVoteInNewRound) {
+		g_bVoteInNewRound = false;
+
+		if(g_fOldTimeLimit > 0.0) {
+			set_float(TIMELIMIT, g_fOldTimeLimit);
+		}
+	}
+
+	return PLUGIN_HANDLED;
 }
 public task_checktime()
 {

@@ -75,7 +75,7 @@ load_blocklist()
 		temp = fopen(temp_file_path, "wt");
 
 		new buffer[40], map[MAPNAME_LENGTH], str_count[6], count;
-		server_print("Blocked list:^n%s", cur_map);
+		// server_print("Blocked list:^n%s", cur_map);
 		while(!feof(f)) {
 			fgets(f, buffer, charsmax(buffer));
 			parse(buffer, map, charsmax(map), str_count, charsmax(str_count));
@@ -89,7 +89,7 @@ load_blocklist()
 
 			fprintf(temp, "^"%s^" ^"%d^"^n", map, count);
 			TrieSetCell(g_tBlockedList, map, count);
-			server_print("%s", map);
+			// server_print("%s", map);
 		}
 		
 		fprintf(temp, "^"%s^" ^"%d^"^n", cur_map, BLOCK_MAP_COUNT);

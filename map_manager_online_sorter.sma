@@ -38,12 +38,12 @@ public mapm_prepare_votelist(type)
 	new Array:array = ArrayCreate(MAPNAME_LENGTH, 1);
 	new map_info[MapStruct], size = ArraySize(g_aMapsList);
 
-	server_print("Found maps for current online:");
+	// server_print("Found maps for current online:");
 	for(new i; i < size; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);
 		if(map_info[MinPlayers] <= players_num <= map_info[MaxPlayers]) {
 			ArrayPushString(array, map_info[MapName]);
-			server_print("%d - %s", ArraySize(array), map_info[MapName]);
+			// server_print("%d - %s", ArraySize(array), map_info[MapName]);
 		}
 	}
 

@@ -16,135 +16,183 @@
 #include <map_manager_stocks>
 
 /**
- * TODO: write this.
- * 
- * @return Map index
+ * Get map index in mapslist array.
+ *
+ * @param map			Map name
+ *
+ * @return				Map index or INVALID_MAP_INDEX if map not exist in mapslist
  */
 native mapm_get_map_index(map[]);
 
 /**
- * TODO: write this.
+ * Get prefix const from core.
  * 
+ * @param prefix		Prefix string
+ * @param len			String lenght
+ *
  * @noreturn
  */
 native mapm_get_prefix(prefix[], len);
 
 /**
- * TODO: write this.
+ * Start vote.
  * 
+ * @param type			Vote type, use const VOTE_BY_*
+ *
  * @noreturn
  */
 native mapm_start_vote(type);
 
 /**
- * TODO: write this.
+ * Stop vote.
  * 
  * @noreturn
  */
 native mapm_stop_vote();
 
 /**
- * TODO: write this.
+ * Get votelist size const from core.
  * 
  * @return Votelist size
  */
 native mapm_get_votelist_size();
 
 /**
- * TODO: write this.
+ * Set max items in vote.
+ *
+ * @param value			Amount items in vote
  * 
  * @noreturn
  */
 native mapm_set_votelist_max_items(value);
 
 /**
- * TODO: write this.
+ * Push map in votelist.
+ *
+ * @note Use native in forward mapm_prepare_votelist().
+ *
+ * @param map			Map name
+ * @param type			Type for addons
+ * @param ignore_check	Allow ignore some checks, bit sum, use const CHECK_*
  * 
- * @noreturn
+ * @return				Result of pushing, const PUSH_*
  */
 native mapm_push_map_to_votelist(map[], type = PUSH_BY_NATIVE, ignore_check = CHECK_NOT_IGNORED);
 
 /**
- * TODO: write this.
- * Use in mapm_analysis_of_results()
+ * Get amount maps in votelist.
+ *
+ * @note Use in mapm_analysis_of_results()
  * 
  * @noreturn
  */
 native mapm_get_count_maps_in_vote();
 
 /**
- * TODO: write this.
- * Use in mapm_analysis_of_results()
+ * Get info about votelist item.
+ *
+ * @note Use in mapm_analysis_of_results()
+ *
+ * @param item			Index in votelist
+ * @param map			Map name
+ * @param len			Map name string lenght
  * 
- * @return Votes
+ * @return				Votes
  */
 native mapm_get_voteitem_info(item, map[], len);
 
 /**
- * TODO: write this.
+ * Returns if vote started.
  * 
- * @return true/false
+ * @return				true/false
  */
 native bool:is_vote_started();
 
 /**
- * TODO: write this.
+ * Returns if vote finished.
  * 
- * @return true/false
+ * @return				true/false
  */
 native bool:is_vote_finished();
 
 /**
- * TODO: write this.
+ * Called after load maps from file.
  * 
+ * @param maplist		Array with loaded maps
+ *
  * @noreturn
  */
 forward mapm_maplist_loaded(Array:maplist);
 
 /**
- * TODO: write this.
+ * Called every second before vote or in vote.
+ *
+ * @param type			Type of countdown, used const COUNTDOWN_*
+ * @param time			Current second of countdown
  * 
  * @noreturn
  */
 forward mapm_countdown(type, time);
 
 /**
- * TODO: write this.
+ * Called before vote.
+ *
+ * @param type			Type of vote, used const VOTE_BY_*
  * 
  * @noreturn
  */
 forward mapm_prepare_votelist(type);
 
 /**
- * TODO: write this.
+ * Called when core or addons are trying add map in votelist.
+ *
+ * @param map			Map name
+ * @param type			Type of vote, used const VOTE_BY_*
+ * @param index			Index in mapslist array
  * 
- * @noreturn
+ * @return				MAP_ALLOWED
+ *						MAP_BLOCKED	
  */
 forward mapm_can_be_in_votelist(map[], type, index);
 
 /**
- * TODO: write this.
- * 
- * @noreturn
+ * Called for permission to extend current map.
+ *
+ * @param type			Type of vote, used const VOTE_BY_*
+ *
+ * @return				EXTEND_ALLOWED to allow extend current map
+ *						EXTEND_BLOCKED to block extend current map
  */
 forward mapm_can_be_extended(type);
 
 /**
- * TODO: write this.
+ * Called when core start show menu with vote.
+ *
+ * @param type			Type of vote, used const VOTE_BY_*
  * 
  * @noreturn
  */
 forward mapm_vote_started(type);
 
 /**
- * TODO: write this.
+ * Called before vote finish.
+ *
+ * @param type			Type of vote, used const VOTE_BY_*
+ * @param total_votes	Type of vote, used const VOTE_BY_*
  * 
- * @noreturn
+ * @return				ALLOW_VOTE to allow finish vote
+ *						ABORT_VOTE to block finish vote, forward mapm_vote_finished() will not be called
  */
 forward mapm_analysis_of_results(type, total_votes);
 
 /**
- * TODO: write this.
+ * Called when vote finished.
+ *
+ * @note Can be blocked in forward mapm_analysis_of_results()
+ *
+ * @param map			Type of vote, used const VOTE_BY_*
+ * @param type			Type of vote, used const VOTE_BY_*
+ * @param total_votes	Type of vote, used const VOTE_BY_*
  * 
  * @noreturn
  */

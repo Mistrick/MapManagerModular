@@ -53,6 +53,11 @@ enum {
 };
 
 enum {
+	EXTEND_MINUTES,
+	EXTEND_ROUNDS
+};
+
+enum {
 	EXTEND_ALLOWED,
 	EXTEND_BLOCKED
 };

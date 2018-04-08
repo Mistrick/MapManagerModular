@@ -1,9 +1,3 @@
-/*
-	Core functions:
-	- load maplist
-	- start vote by time ? or do with addon
-	- start/stop vote
-*/
 #include <amxmodx>
 #include <map_manager_consts>
 #include <map_manager_stocks>
@@ -232,6 +226,9 @@ public plugin_cfg()
 {
 	g_aMapsList = ArrayCreate(MapStruct, 1);
 
+	new configsdir[256]; get_localinfo("amxx_configsdir", configsdir, charsmax(configsdir));
+	server_cmd("exec %s/map_manager.cfg", configsdir);
+
 	// add forward for change file?
 	load_maplist(FILE_MAPS);
 }
@@ -250,7 +247,7 @@ load_maplist(const file[])
 		set_fail_state("Can't read maps file.");
 	}
 
-	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], min[3], max[3], bool:nextmap;
+	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], first_map[MAPNAME_LENGTH], min[3], max[3], bool:nextmap, bool:found_nextmap;
 	new cur_map[MAPNAME_LENGTH]; get_mapname(cur_map, charsmax(cur_map));
 
 	while(!feof(f)) {
@@ -259,12 +256,16 @@ load_maplist(const file[])
 
 		if(!map[0] || map[0] == ';' || !valid_map(map) || get_map_index(map) != INVALID_MAP_INDEX) continue;
 		
+		if(!first_map[0]) {
+			copy(first_map, charsmax(first_map), map);
+		}
 		if(equali(map, cur_map)) {
 			nextmap = true;
 			continue;
 		}
 		if(nextmap) {
 			nextmap = false;
+			found_nextmap = true;
 			set_cvar_string("amx_nextmap", map);
 		}
 		
@@ -281,6 +282,10 @@ load_maplist(const file[])
 	if(g_iMapsListSize == 0) {
 		new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
 		set_fail_state(error);
+	}
+
+	if(!found_nextmap) {
+		set_cvar_string("amx_nextmap", first_map);
 	}
 
 	new ret;

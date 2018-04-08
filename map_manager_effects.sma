@@ -115,11 +115,7 @@ public mapm_prepare_votelist(type)
 			// increase freezetime
 			set_float(FREEZETIME, get_float(FREEZETIME) + get_float(PREPARE_TIME) + get_float(VOTE_TIME) + 1);
 		} else {
-			new players[32], pnum; get_players(players, pnum, "a");
-			for(new id, i; i < pnum; i++) {
-				id = players[i];
-				set_pev(id, pev_flags, pev(id, pev_flags) | FL_FROZEN);
-			}
+			freeze_unfreeze(0);
 		}
 	}
 	EnableHamForward(g_hHamSpawn);
@@ -144,12 +140,12 @@ public mapm_vote_finished(map[], type, total_votes)
 		if((type == VOTE_BY_SCHEDULER || type == VOTE_BY_SCHEDULER_SECOND || type == VOTE_BY_RTV) && get_num(VOTE_IN_NEW_ROUND)) {
 			// decrease freezetime
 			set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
-		} else {
-			new players[32], pnum; get_players(players, pnum, "a");
-			for(new id, i; i < pnum; i++) {
-				id = players[i];
-				set_pev(id, pev_flags, pev(id, pev_flags) & ~FL_FROZEN);
+			// TODO: make this better
+			if(type == VOTE_BY_SCHEDULER_SECOND) {
+				freeze_unfreeze(1);
 			}
+		} else {
+			freeze_unfreeze(1);
 		}
 	}
 	DisableHamForward(g_hHamSpawn);
@@ -157,6 +153,14 @@ public mapm_vote_finished(map[], type, total_votes)
 public set_full_black(taskid)
 {
 	set_black_screenfade(1);
+}
+stock freeze_unfreeze(type)
+{
+	new players[32], pnum; get_players(players, pnum, "a");
+	for(new id, i; i < pnum; i++) {
+		id = players[i];
+		set_pev(id, pev_flags, type ? (pev(id, pev_flags) & ~FL_FROZEN) : pev(id, pev_flags) | FL_FROZEN);
+	}
 }
 stock set_black_screenfade(fade)
 {

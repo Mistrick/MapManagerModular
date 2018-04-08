@@ -50,8 +50,8 @@ public plugin_init()
 	// g_pCvars[CHANGE_TYPE] = register_cvar("mapm_rtv_change_type", "1"); // 0 - after vote, 1 - in round end
 	g_pCvars[ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
 
-	register_clcmd("say rtv", "ClCmd_Rtv");
-	register_clcmd("say /rtv", "ClCmd_Rtv");
+	register_clcmd("say rtv", "clcmd_rtv");
+	register_clcmd("say /rtv", "clcmd_rtv");
 
 	// reset it with sv_restart?
 	g_iMapStartTime = get_systime();
@@ -65,7 +65,7 @@ public client_disconnected(id)
 		g_iVotes--;
 	}
 }
-public ClCmd_Rtv(id)
+public clcmd_rtv(id)
 {
 	if(is_vote_started() || is_vote_finished()) {
 		// add msg?
@@ -97,9 +97,9 @@ public ClCmd_Rtv(id)
 	if(!g_bVoted[id]) {
 		g_bVoted[id] = true;
 		new name[32]; get_user_name(id, name, charsmax(name));
-		client_print_color(0, print_team_default, "%s^3 %L %L.", PREFIX, LANG_PLAYER, "MAPM_RTV_VOTED", name, need_votes, LANG_PLAYER, "MAPM_VOTES");
+		client_print_color(0, print_team_default, "%s^3 %L.", PREFIX, LANG_PLAYER, "MAPM_RTV_VOTED", name, need_votes);
 	} else {
-		client_print_color(id, print_team_default, "%s^1 %L %L.", PREFIX, id, "MAPM_RTV_ALREADY_VOTED", need_votes, id, "MAPM_VOTES");
+		client_print_color(id, print_team_default, "%s^1 %L.", PREFIX, id, "MAPM_RTV_ALREADY_VOTED", need_votes);
 	}
 
 	return PLUGIN_HANDLED;

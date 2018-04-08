@@ -34,7 +34,8 @@ enum Cvars {
 	MAPS_IN_VOTE,
 	MAPS_PER_PLAYER,
 	DONT_CLOSE_MENU,
-	DENOMINATE_TIME
+	DENOMINATE_TIME,
+	RANDOM_SORT
 };
 
 new g_pCvars[Cvars];
@@ -56,6 +57,7 @@ public plugin_init()
 	g_pCvars[MAPS_PER_PLAYER] = register_cvar("mapm_nom_maps_per_player", "3");
 	g_pCvars[DONT_CLOSE_MENU] = register_cvar("mapm_nom_dont_close_menu", "1"); // 0 - disable, 1 - enable
 	g_pCvars[DENOMINATE_TIME] = register_cvar("mapm_nom_denominate_time", "5"); // seconds
+	g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "1"); // 0 - disable, 1 - enable
 
 	register_clcmd("say", "clcmd_say");
 	register_clcmd("say_team", "clcmd_say");
@@ -261,10 +263,20 @@ public clcmd_mapslist(id)
 	new text[64]; formatex(text, charsmax(text), "%L", LANG_PLAYER, "MAPM_MENU_MAP_LIST");
 	new menu = menu_create(text, "mapslist_handler");
 	
-	new map_info[MapStruct], item_info[48], block_count, end = ArraySize(g_aMapsList);
+	new map_info[MapStruct], item_info[48], block_count, size = ArraySize(g_aMapsList);
+	new random_sort = get_num(RANDOM_SORT), Array:array = ArrayCreate(1, 1);
 
-	for(new i = 0, nom_index; i < end; i++) {
-		ArrayGetArray(g_aMapsList, i, map_info);
+	for(new i = 0, index, nom_index; i < size; i++) {
+		if(random_sort) {
+			do {
+				index = random(size);
+			} while(in_array(array, index));
+			ArrayPushCell(array, index);
+		} else {
+			index = i;
+		}
+
+		ArrayGetArray(g_aMapsList, index, map_info);
 		nom_index = map_nominated(i);
 		block_count = mapm_get_blocked_count(map_info[MapName]);
 		
@@ -284,6 +296,9 @@ public clcmd_mapslist(id)
 			menu_additem(menu, map_info[MapName]);
 		}
 	}
+
+	ArrayDestroy(array);
+
 	formatex(text, charsmax(text), "%L", id, "MAPM_MENU_BACK");
 	menu_setprop(menu, MPROP_BACKNAME, text);
 	formatex(text, charsmax(text), "%L", id, "MAPM_MENU_NEXT");
@@ -292,6 +307,15 @@ public clcmd_mapslist(id)
 	menu_setprop(menu, MPROP_EXITNAME, text);
 	
 	menu_display(id, menu);
+}
+bool:in_array(Array:array, index)
+{
+	for(new i, size = ArraySize(array); i < size; i++) {
+		if(ArrayGetCell(array, i) == index) {
+			return true;
+		}
+	}
+	return false;
 }
 public mapslist_handler(id, menu, item)
 {

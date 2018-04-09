@@ -301,22 +301,40 @@ public mapm_analysis_of_results(type, total_votes)
 	}
 
 	new max_items = mapm_get_count_maps_in_vote();
-	new map[MAPNAME_LENGTH], votes, max_votes;
 
-	for(new i; i < max_items; i++) {
-		votes = mapm_get_voteitem_info(i, map, charsmax(map));
-		if(votes >= max_votes) {
-			copy(g_sSecondVoteMaps[1], charsmax(g_sSecondVoteMaps[]), g_sSecondVoteMaps[0]);
-			max_votes = votes;
-			copy(g_sSecondVoteMaps[0], charsmax(g_sSecondVoteMaps[]), map);
-		}
-	}
-	
-	new percent = total_votes ? floatround(max_votes * 100.0 / total_votes) : 0;
-
-	if(percent > get_num(SECOND_VOTE_PERCENT)) {
+	if(max_items <= 2) {
 		return ALLOW_VOTE;
 	}
+
+	new first, second, max_votes_first, max_votes_second;
+	new map[MAPNAME_LENGTH], votes;
+
+	for(new i, temp_votes, temp_index; i < max_items; i++) {
+		votes = mapm_get_voteitem_info(i, map, charsmax(map));
+		if(votes >= max_votes_first) {
+			temp_votes = max_votes_first;
+			temp_index = first;
+			max_votes_first = votes;
+			first = i;
+
+			if(temp_votes > max_votes_second) {
+				max_votes_second = temp_votes;
+				second = temp_index;
+			}
+		} else if(votes >= max_votes_second) {
+			max_votes_second = votes;
+			second = i;
+		}
+	}
+
+	new percent = total_votes ? floatround(max_votes_first * 100.0 / total_votes) : 0;
+
+	if(percent >= get_num(SECOND_VOTE_PERCENT)) {
+		return ALLOW_VOTE;
+	}
+
+	mapm_get_voteitem_info(first, g_sSecondVoteMaps[0], charsmax(g_sSecondVoteMaps[]));
+	mapm_get_voteitem_info(second, g_sSecondVoteMaps[1], charsmax(g_sSecondVoteMaps[]));
 
 	// TODO: add ML
 	client_print_color(0, print_team_default, "%s^1 Second vote.", PREFIX);

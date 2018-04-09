@@ -57,7 +57,7 @@ public plugin_init()
 	g_pCvars[MAPS_PER_PLAYER] = register_cvar("mapm_nom_maps_per_player", "3");
 	g_pCvars[DONT_CLOSE_MENU] = register_cvar("mapm_nom_dont_close_menu", "1"); // 0 - disable, 1 - enable
 	g_pCvars[DENOMINATE_TIME] = register_cvar("mapm_nom_denominate_time", "5"); // seconds
-	g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "1"); // 0 - disable, 1 - enable
+	g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "0"); // 0 - disable, 1 - enable
 
 	register_clcmd("say", "clcmd_say");
 	register_clcmd("say_team", "clcmd_say");

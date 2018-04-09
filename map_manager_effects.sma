@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -30,6 +30,12 @@ enum Cvars {
 	VOTE_TIME
 };
 
+enum {
+	FREEZE_DISABLED,
+	FREEZE_TIME_ENABLED,
+	FREEZE_FORCE_USE_FLAGS
+};
+
 new g_pCvars[Cvars];
 new bool:g_bBlockChat;
 new HamHook:g_hHamSpawn;
@@ -46,7 +52,7 @@ public plugin_init()
 	g_pCvars[BLACK_SCREEN] = register_cvar("mapm_black_screen", "1"); // 0 - disable, 1 - enable
 	g_pCvars[BLOCK_CHAT] = register_cvar("mapm_block_chat", "1"); // 0 - disable, 1 - enable
 	g_pCvars[BLOCK_VOICE] = register_cvar("mapm_block_voice", "1"); // 0 - disable, 1 - enable
-	g_pCvars[FREEZE_IN_VOTE] = register_cvar("mapm_freeze_in_vote", "1"); //0 - disable, 1 - enable
+	g_pCvars[FREEZE_IN_VOTE] = register_cvar("mapm_freeze_in_vote", "1"); //0 - disable, 1 - enable, 2 - force use flags
 
 	g_pCvars[VOICE_ENABLED] = get_cvar_pointer("sv_voiceenable");
 
@@ -111,7 +117,9 @@ public mapm_prepare_votelist(type)
 		set_num(VOICE_ENABLED, 0);
 	}
 	if(get_num(FREEZE_IN_VOTE)) {
-		if((type == VOTE_BY_SCHEDULER || type == VOTE_BY_RTV) && get_num(VOTE_IN_NEW_ROUND)) {
+		if(get_num(FREEZE_IN_VOTE) == FREEZE_TIME_ENABLED 
+			&& (type == VOTE_BY_SCHEDULER || type == VOTE_BY_RTV)
+			&& get_num(VOTE_IN_NEW_ROUND)) {
 			// increase freezetime
 			set_float(FREEZETIME, get_float(FREEZETIME) + get_float(PREPARE_TIME) + get_float(VOTE_TIME) + 1);
 		} else {
@@ -136,8 +144,10 @@ public mapm_vote_finished(map[], type, total_votes)
 	if(get_num(BLOCK_VOICE)) {
 		set_num(VOICE_ENABLED, 1);
 	}
-	if(get_num(FREEZE_IN_VOTE)) {
-		if((type == VOTE_BY_SCHEDULER || type == VOTE_BY_SCHEDULER_SECOND || type == VOTE_BY_RTV) && get_num(VOTE_IN_NEW_ROUND)) {
+	if(get_num(FREEZE_IN_VOTE) != FREEZE_DISABLED) {
+		if(get_num(FREEZE_IN_VOTE) == FREEZE_TIME_ENABLED
+			&& (type == VOTE_BY_SCHEDULER || type == VOTE_BY_SCHEDULER_SECOND || type == VOTE_BY_RTV)
+			&& get_num(VOTE_IN_NEW_ROUND)) {
 			// decrease freezetime
 			set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
 			// TODO: make this better

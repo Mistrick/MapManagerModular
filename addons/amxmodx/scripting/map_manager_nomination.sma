@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -266,7 +266,7 @@ public clcmd_mapslist(id)
 	new map_info[MapStruct], item_info[48], block_count, size = ArraySize(g_aMapsList);
 	new random_sort = get_num(RANDOM_SORT), Array:array = ArrayCreate(1, 1);
 
-	for(new i = 0, index, nom_index; i < size; i++) {
+	for(new i = 0, index, nom_index, num[8]; i < size; i++) {
 		if(random_sort) {
 			do {
 				index = random(size);
@@ -276,8 +276,9 @@ public clcmd_mapslist(id)
 			index = i;
 		}
 
+		num_to_str(index, num, charsmax(num));
 		ArrayGetArray(g_aMapsList, index, map_info);
-		nom_index = map_nominated(i);
+		nom_index = map_nominated(index);
 		block_count = mapm_get_blocked_count(map_info[MapName]);
 		
 		if(block_count) {
@@ -287,13 +288,13 @@ public clcmd_mapslist(id)
 			new nom_info[NomStruct]; ArrayGetArray(g_aNomList, nom_index, nom_info);
 			if(id == nom_info[NomPlayer]) {
 				formatex(item_info, charsmax(item_info), "%s[\y*\w]", map_info[MapName]);
-				menu_additem(menu, item_info);
+				menu_additem(menu, item_info, num);
 			} else {
 				formatex(item_info, charsmax(item_info), "%s[\y*\d]", map_info[MapName]);
-				menu_additem(menu, item_info, _, _, g_hCallbackDisabled);
+				menu_additem(menu, item_info, num, _, g_hCallbackDisabled);
 			}
 		} else {
-			menu_additem(menu, map_info[MapName]);
+			menu_additem(menu, map_info[MapName], num);
 		}
 	}
 
@@ -324,10 +325,10 @@ public mapslist_handler(id, menu, item)
 		return PLUGIN_HANDLED;
 	}
 	
-	new item_info[2], item_name[MAPNAME_LENGTH + 16], access, callback;
+	new item_info[8], item_name[MAPNAME_LENGTH + 16], access, callback;
 	menu_item_getinfo(menu, item, access, item_info, charsmax(item_info), item_name, charsmax(item_name), callback);
 	
-	new map_index = item;
+	new map_index = str_to_num(item_info);
 	trim_bracket(item_name);
 	new map_nominated = nominate_map(id, item_name, map_index);
 	
@@ -338,7 +339,7 @@ public mapslist_handler(id, menu, item)
 		} else if(map_nominated == NOMINATION_REMOVED) {
 			menu_item_setname(menu, item, item_name);
 		}
-		menu_display(id, menu, map_index / 7);
+		menu_display(id, menu, item / 7);
 	} else {
 		menu_destroy(menu);
 	}

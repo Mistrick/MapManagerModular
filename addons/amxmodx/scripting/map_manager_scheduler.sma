@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.4"
+#define VERSION "0.0.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -292,7 +292,7 @@ public mapm_prepare_votelist(type)
 	
 	// add maps for second vote
 	for(new i; i < 2; i++) {
-		mapm_push_map_to_votelist(g_sSecondVoteMaps[i], CHECK_IGNORE_MAP_ALLOWED);
+		mapm_push_map_to_votelist(g_sSecondVoteMaps[i], PUSH_BY_SECOND_VOTE, CHECK_IGNORE_MAP_ALLOWED);
 	}
 	mapm_set_votelist_max_items(2);
 }

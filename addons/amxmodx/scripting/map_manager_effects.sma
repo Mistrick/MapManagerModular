@@ -38,6 +38,7 @@ enum {
 
 new g_pCvars[Cvars];
 new bool:g_bBlockChat;
+new bool:g_bFreezetimeChanged;
 new HamHook:g_hHamSpawn;
 
 new const g_sSound[][] = {
@@ -69,6 +70,12 @@ public plugin_cfg()
 		g_pCvars[VOTE_IN_NEW_ROUND] = get_cvar_pointer("mapm_vote_in_new_round");
 		g_pCvars[PREPARE_TIME] = get_cvar_pointer("mapm_prepare_time");
 		g_pCvars[VOTE_TIME] = get_cvar_pointer("mapm_vote_time");
+	}
+}
+public plugin_end()
+{
+	if(g_bFreezetimeChanged) {
+		set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
 	}
 }
 public clcmd_say(id)
@@ -121,6 +128,7 @@ public mapm_prepare_votelist(type)
 			&& (type == VOTE_BY_SCHEDULER || type == VOTE_BY_RTV)
 			&& get_num(VOTE_IN_NEW_ROUND)) {
 			// increase freezetime
+			g_bFreezetimeChanged = true;
 			set_float(FREEZETIME, get_float(FREEZETIME) + get_float(PREPARE_TIME) + get_float(VOTE_TIME) + 1);
 		} else {
 			freeze_unfreeze(0);
@@ -145,18 +153,12 @@ public mapm_vote_finished(map[], type, total_votes)
 		set_num(VOICE_ENABLED, 1);
 	}
 	if(get_num(FREEZE_IN_VOTE) != FREEZE_DISABLED) {
-		if(get_num(FREEZE_IN_VOTE) == FREEZE_TIME_ENABLED
-			&& (type == VOTE_BY_SCHEDULER || type == VOTE_BY_SCHEDULER_SECOND || type == VOTE_BY_RTV)
-			&& get_num(VOTE_IN_NEW_ROUND)) {
+		if(g_bFreezetimeChanged) {
 			// decrease freezetime
+			g_bFreezetimeChanged = false;
 			set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
-			// TODO: make this better
-			if(type == VOTE_BY_SCHEDULER_SECOND) {
-				freeze_unfreeze(1);
-			}
-		} else {
-			freeze_unfreeze(1);
 		}
+		freeze_unfreeze(1);
 	}
 	DisableHamForward(g_hHamSpawn);
 }

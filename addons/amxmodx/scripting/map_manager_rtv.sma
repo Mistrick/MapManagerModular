@@ -111,7 +111,7 @@ public mapm_can_be_extended(type)
 	}
 	return EXTEND_ALLOWED;
 }
-public mapm_vote_finished(map[], type, total_votes)
+public mapm_vote_started(type)
 {
 	g_iVotes = 0;
 	arrayset(g_bVoted, false, sizeof(g_bVoted));

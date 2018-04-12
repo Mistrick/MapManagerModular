@@ -157,7 +157,9 @@ public concmd_startvote(id, level, cid)
 		return PLUGIN_HANDLED;
 	}
 
-	// TODO: add logging
+	new name[32]; get_user_name(id, name, charsmax(name));
+	log_amx("%s started vote", id ? name : "Server");
+	
 	planning_vote(VOTE_BY_CMD);
 
 	return PLUGIN_HANDLED;
@@ -168,7 +170,9 @@ public concmd_stopvote(id, level, cid)
 		return PLUGIN_HANDLED;
 	}
 
-	// TODO: add logging
+	new name[32]; get_user_name(id, name, charsmax(name));
+	log_amx("%s stopped vote", id ? name : "Server");
+	
 	mapm_stop_vote();
 
 	if(g_bVoteInNewRound) {
@@ -196,7 +200,7 @@ public task_checktime()
 	
 	new timeleft = get_timeleft();
 	if(timeleft <= floatround(time_to_vote * 60.0) && get_players_num()) {
-		log_amx("SetVoteStart: timeleft %d", timeleft);
+		log_amx("[checktime]: start vote, timeleft %d", timeleft);
 		
 		planning_vote(VOTE_BY_SCHEDULER);
 	}
@@ -212,18 +216,18 @@ public event_newround()
 {
 	new max_rounds = get_num(MAXROUNDS);
 	if(!is_vote_finished() && max_rounds && (g_iTeamScore[0] + g_iTeamScore[1]) >= max_rounds - get_num(ROUNDS_TO_VOTE)) {
-		log_amx("StartVote: maxrounds %d [%d]", max_rounds, g_iTeamScore[0] + g_iTeamScore[1]);
+		log_amx("[newround]: start vote, maxrounds %d [%d]", max_rounds, g_iTeamScore[0] + g_iTeamScore[1]);
 		mapm_start_vote(VOTE_BY_SCHEDULER);
 	}
 	
 	new win_limit = get_num(WINLIMIT) - get_num(ROUNDS_TO_VOTE);
 	if(!is_vote_finished() && win_limit > 0 && (g_iTeamScore[0] >= win_limit || g_iTeamScore[1] >= win_limit)) {
-		log_amx("StartVote: winlimit %d [CT: %d, T: %d]", win_limit, g_iTeamScore[0], g_iTeamScore[1]);
+		log_amx("[newround]: start vote, winlimit %d [CT: %d, T: %d]", win_limit, g_iTeamScore[0], g_iTeamScore[1]);
 		mapm_start_vote(VOTE_BY_SCHEDULER);
 	}
 
 	if(g_bVoteInNewRound && !is_vote_started()) {
-		log_amx("StartVote: timeleft %d, new round", get_timeleft());
+		log_amx("[newround]: start vote, timeleft %d, new round", get_timeleft());
 		mapm_start_vote(g_iVoteType);
 	}
 
@@ -244,7 +248,7 @@ public event_restart()
 public event_intermission()
 {
 	if(task_exists(TASK_DELAYED_CHANGE)) {
-		log_amx("Double intermission, how?");
+		log_amx("double intermission, how?");
 		return;
 	}
 	new Float:chattime = get_float(CHATTIME);
@@ -269,7 +273,7 @@ planning_vote(type)
 		}
 
 		client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_VOTE_WILL_BEGIN");
-		server_print("SetVoteStart: vote in new round");
+		log_amx("[planning_vote]: vote in new round.");
 	} else {
 		mapm_start_vote(type);
 	}
@@ -290,8 +294,7 @@ public mapm_prepare_votelist(type)
 		return;
 	}
 	
-	// add maps for second vote
-	for(new i; i < 2; i++) {
+	for(new i; i < sizeof(g_sSecondVoteMaps); i++) {
 		mapm_push_map_to_votelist(g_sSecondVoteMaps[i], PUSH_BY_SECOND_VOTE, CHECK_IGNORE_MAP_ALLOWED);
 	}
 	mapm_set_votelist_max_items(2);
@@ -338,6 +341,8 @@ public mapm_analysis_of_results(type, total_votes)
 	mapm_get_voteitem_info(first, g_sSecondVoteMaps[0], charsmax(g_sSecondVoteMaps[]));
 	mapm_get_voteitem_info(second, g_sSecondVoteMaps[1], charsmax(g_sSecondVoteMaps[]));
 
+	log_amx("[analysis]: second vote started. (%s, %s)", g_sSecondVoteMaps[0], g_sSecondVoteMaps[1]);
+
 	// TODO: add ML
 	client_print_color(0, print_team_default, "%s^1 Second vote.", PREFIX);
 	mapm_start_vote(VOTE_BY_SCHEDULER_SECOND);
@@ -380,7 +385,7 @@ public mapm_vote_finished(map[], type, total_votes)
 		
 		mapm_set_vote_finished(false);
 
-		server_print("map extended");
+		log_amx("[vote_finished]: map extended[%d].", g_iExtendedNum);
 		return 0;
 	}
 
@@ -393,13 +398,15 @@ public mapm_vote_finished(map[], type, total_votes)
 
 	set_pcvar_string(g_pCvars[NEXTMAP], map);
 
+	log_amx("[vote_finished]: nextmap is %s.", map);
+
 	if(get_num(LAST_ROUND)) {
 		// What if timelimit 0?
 		g_fOldTimeLimit = get_float(TIMELIMIT);
 		set_float(TIMELIMIT, 0.0);
 		client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_LASTROUND");
 		
-		server_print("last round cvar: saved timelimit is %f", g_fOldTimeLimit);
+		log_amx("[vote_finished]: last round - saved timelimit is %f", g_fOldTimeLimit);
 	} else {
 		switch(get_num(CHANGE_TYPE)) {
 			case CHANGE_NEXT_ROUND: {

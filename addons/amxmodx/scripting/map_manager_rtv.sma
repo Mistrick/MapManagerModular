@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -37,7 +37,7 @@ new g_iMapStartTime;
 new bool:g_bVoted[33];
 new g_iVotes;
 
-new PREFIX[32];
+new g_sPrefix[48];
 
 public plugin_init()
 {
@@ -55,8 +55,10 @@ public plugin_init()
 
 	// reset it with sv_restart?
 	g_iMapStartTime = get_systime();
-
-	mapm_get_prefix(PREFIX, charsmax(PREFIX));
+}
+public plugin_cfg()
+{
+	mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
 }
 public client_disconnected(id)
 {
@@ -74,7 +76,7 @@ public clcmd_rtv(id)
 
 	new delay = get_num(DELAY) * 60 - (get_systime() - g_iMapStartTime);
 	if(delay > 0) {
-		client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_RTV_DELAY", delay / 60, delay % 60);
+		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_RTV_DELAY", delay / 60, delay % 60);
 		return PLUGIN_HANDLED;
 	}
 
@@ -97,9 +99,9 @@ public clcmd_rtv(id)
 	if(!g_bVoted[id]) {
 		g_bVoted[id] = true;
 		new name[32]; get_user_name(id, name, charsmax(name));
-		client_print_color(0, print_team_default, "%s^3 %L.", PREFIX, LANG_PLAYER, "MAPM_RTV_VOTED", name, need_votes);
+		client_print_color(0, print_team_default, "%s^3 %L.", g_sPrefix, LANG_PLAYER, "MAPM_RTV_VOTED", name, need_votes);
 	} else {
-		client_print_color(id, print_team_default, "%s^1 %L.", PREFIX, id, "MAPM_RTV_ALREADY_VOTED", need_votes);
+		client_print_color(id, print_team_default, "%s^1 %L.", g_sPrefix, id, "MAPM_RTV_ALREADY_VOTED", need_votes);
 	}
 
 	return PLUGIN_HANDLED;

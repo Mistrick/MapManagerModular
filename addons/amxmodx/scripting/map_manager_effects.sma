@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -27,7 +27,9 @@ enum Cvars {
 	FREEZETIME,
 	VOTE_IN_NEW_ROUND,
 	PREPARE_TIME,
-	VOTE_TIME
+	VOTE_TIME,
+	CHANGE_TYPE,
+	LAST_ROUND
 };
 
 enum {
@@ -70,6 +72,8 @@ public plugin_cfg()
 		g_pCvars[VOTE_IN_NEW_ROUND] = get_cvar_pointer("mapm_vote_in_new_round");
 		g_pCvars[PREPARE_TIME] = get_cvar_pointer("mapm_prepare_time");
 		g_pCvars[VOTE_TIME] = get_cvar_pointer("mapm_vote_time");
+		g_pCvars[CHANGE_TYPE] = get_cvar_pointer("mapm_change_type");
+		g_pCvars[LAST_ROUND] = get_cvar_pointer("mapm_last_round");
 	}
 }
 public plugin_end()
@@ -158,7 +162,9 @@ public mapm_vote_finished(map[], type, total_votes)
 			g_bFreezetimeChanged = false;
 			set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
 		}
-		freeze_unfreeze(1);
+		if(get_num(CHANGE_TYPE) || get_num(LAST_ROUND)) {
+			freeze_unfreeze(1);
+		}
 	}
 	DisableHamForward(g_hHamSpawn);
 }

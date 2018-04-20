@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -46,7 +46,7 @@ new g_hCallbackDisabled;
 new g_iNomMaps[33];
 new g_iLastDenominate[33];
 
-new PREFIX[32];
+new g_sPrefix[48];
 
 public plugin_init()
 {
@@ -93,7 +93,7 @@ public mapm_maplist_loaded(Array:maplist)
 {
 	g_aMapsList = maplist;
 	g_aNomList = ArrayCreate(NomStruct, 1);
-	mapm_get_prefix(PREFIX, charsmax(PREFIX));
+	mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
 }
 public client_disconnected(id)
 {
@@ -140,13 +140,13 @@ nominate_map(id, map[], index)
 	new map_info[MapStruct]; ArrayGetArray(g_aMapsList, index, map_info);
 	
 	if(mapm_get_blocked_count(map)) {
-		client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_NOM_NOT_AVAILABLE_MAP");
+		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_NOT_AVAILABLE_MAP");
 		return NOMINATION_FAIL;
 	}
 
 	if(get_num(TYPE) == TYPE_FIXED && ArraySize(g_aNomList) >= get_num(MAPS_IN_VOTE)) {
 		// TODO: add ML
-		client_print_color(id, print_team_default, "%s^1 All nomination slots are reserved.", PREFIX);
+		client_print_color(id, print_team_default, "%s^1 All nomination slots are reserved.", g_sPrefix);
 		return NOMINATION_FAIL;
 	}
 	
@@ -157,13 +157,13 @@ nominate_map(id, map[], index)
 	if(nom_index != INVALID_MAP_INDEX) {
 		ArrayGetArray(g_aNomList, nom_index, nom_info);
 		if(id != nom_info[NomPlayer]) {
-			client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_NOM_ALREADY_NOM");
+			client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_ALREADY_NOM");
 			return NOMINATION_FAIL;
 		}
 
 		new systime = get_systime();
 		if(g_iLastDenominate[id] + get_num(DENOMINATE_TIME) >= systime) {
-			client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_NOM_SPAM");
+			client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_SPAM");
 			return NOMINATION_FAIL;
 		}
 
@@ -171,12 +171,12 @@ nominate_map(id, map[], index)
 		g_iNomMaps[id]--;
 		ArrayDeleteItem(g_aNomList, nom_index);
 		
-		client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_NOM_REMOVE_NOM", name, map);
+		client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_NOM_REMOVE_NOM", name, map);
 		return NOMINATION_REMOVED;
 	}
 	
 	if(g_iNomMaps[id] >= get_num(MAPS_PER_PLAYER)) {
-		client_print_color(id, print_team_default, "%s^1 %L", PREFIX, id, "MAPM_NOM_CANT_NOM");
+		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM");
 		return NOMINATION_FAIL;
 	}
 	
@@ -186,7 +186,7 @@ nominate_map(id, map[], index)
 	
 	g_iNomMaps[id]++;
 	
-	client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_NOM_MAP", name, map);
+	client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_NOM_MAP", name, map);
 	
 	return NOMINATION_SUCCESS;
 }

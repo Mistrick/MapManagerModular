@@ -83,8 +83,7 @@ public clcmd_timeleft(id)
 			client_print_color(0, id, "%s^1 %L:^3 %d:%02d", g_sPrefix, LANG_PLAYER, "MAPM_TIME_TO_END", (a / 60), (a % 60));
 		} else {
 			if(is_vote_will_in_next_round()) {
-				// TODO: add ML
-				client_print_color(0, print_team_default, "%s^1 Wait vote in next round.", g_sPrefix);
+				client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_VOTE_IN_NEXTROUND");
 			} else {
 				client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_NO_TIMELIMIT");
 			}

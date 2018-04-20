@@ -347,8 +347,7 @@ public mapm_analysis_of_results(type, total_votes)
 
 	log_amx("[analysis]: second vote started. (%s, %s)", g_sSecondVoteMaps[0], g_sSecondVoteMaps[1]);
 
-	// TODO: add ML
-	client_print_color(0, print_team_default, "%s^1 Second vote.", g_sPrefix);
+	client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_SECOND_VOTE");
 	mapm_start_vote(VOTE_BY_SCHEDULER_SECOND);
 
 	return ABORT_VOTE;

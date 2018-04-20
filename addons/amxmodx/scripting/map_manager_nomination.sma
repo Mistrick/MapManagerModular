@@ -145,8 +145,7 @@ nominate_map(id, map[], index)
 	}
 
 	if(get_num(TYPE) == TYPE_FIXED && ArraySize(g_aNomList) >= get_num(MAPS_IN_VOTE)) {
-		// TODO: add ML
-		client_print_color(id, print_team_default, "%s^1 All nomination slots are reserved.", g_sPrefix);
+		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM2");
 		return NOMINATION_FAIL;
 	}
 	

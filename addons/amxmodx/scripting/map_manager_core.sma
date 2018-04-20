@@ -18,8 +18,6 @@
 // make this cvar?
 #define VOTELIST_SIZE 5
 
-new PREFIX[] = "^4[MapManager]";
-
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
 
@@ -50,6 +48,7 @@ enum {
 };
 
 enum Cvars {
+	PREFIX,
 	SHOW_RESULT_TYPE,
 	SHOW_SELECTS,
 	RANDOM_NUMS,
@@ -83,12 +82,15 @@ new g_iVoteType;
 new bool:g_bVoteStarted;
 new bool:g_bVoteFinished;
 
+new g_sPrefix[48];
+
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
 	register_cvar("mapm_version", VERSION, FCVAR_SERVER | FCVAR_SPONLY);
 
+	g_pCvars[PREFIX] = register_cvar("mapm_prefix", "^4[MapManager]");
 	g_pCvars[SHOW_RESULT_TYPE] = register_cvar("mapm_show_result_type", "1"); //0 - disable, 1 - menu, 2 - hud
 	g_pCvars[SHOW_SELECTS] = register_cvar("mapm_show_selects", "1"); // 0 - disable, 1 - all
 	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "0"); // 0 - disable, 1 - enable
@@ -138,7 +140,7 @@ public native_get_prefix(plugin, params)
 		arg_prefix = 1,
 		arg_len
 	};
-	set_string(arg_prefix, PREFIX, get_param(arg_len));
+	set_string(arg_prefix, g_sPrefix, get_param(arg_len));
 }
 public native_set_vote_finished(plugin, params)
 {
@@ -183,11 +185,11 @@ public native_push_map_to_votelist(plugin, params)
 		return PUSH_CANCELED;
 	}
 
-	if(!(ignore_checks & CHECK_IGNORE_MAP_ALLOWED) && !is_map_allowed(map, get_param(arg_type), get_map_index(map))) {
+	if(is_map_in_vote(map)) {
 		return PUSH_BLOCKED;
 	}
 
-	if(is_map_in_vote(map)) {
+	if(!(ignore_checks & CHECK_IGNORE_MAP_ALLOWED) && !is_map_allowed(map, get_param(arg_type), get_map_index(map))) {
 		return PUSH_BLOCKED;
 	}
 
@@ -234,6 +236,10 @@ public plugin_cfg()
 
 	new configsdir[256]; get_localinfo("amxx_configsdir", configsdir, charsmax(configsdir));
 	server_cmd("exec %s/map_manager.cfg", configsdir);
+	server_exec();
+
+	get_pcvar_string(g_pCvars[PREFIX], g_sPrefix, charsmax(g_sPrefix));
+	replace_color_tag(g_sPrefix, charsmax(g_sPrefix));
 
 	// add forward for change file?
 	load_maplist(FILE_MAPS);
@@ -513,9 +519,9 @@ public votemenu_handler(id, key)
 	if(g_bShowSelects) {
 		new name[32]; get_user_name(id, name, charsmax(name));
 		if(original == g_iVoteItems) {
-			client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_CHOSE_EXTEND", name);
+			client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_CHOSE_EXTEND", name);
 		} else {
-			client_print_color(0, id, "%s^3 %L", PREFIX, LANG_PLAYER, "MAPM_CHOSE_MAP", name, g_sVoteList[original]);
+			client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_CHOSE_MAP", name, g_sVoteList[original]);
 		}
 	}
 

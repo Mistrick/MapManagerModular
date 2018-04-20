@@ -72,3 +72,12 @@ stock send_audio(id, audio[], pitch)
 	write_short(pitch);
 	message_end();
 }
+stock replace_color_tag(string[], len)
+{
+	while(replace(string, len, "^^1", "^1")) {}
+	while(replace(string, len, "^^3", "^3")) {}
+	while(replace(string, len, "^^4", "^4")) {}
+	while(replace(string, len, "!d", "^1")) {}
+	while(replace(string, len, "!t", "^3")) {}
+	while(replace(string, len, "!g", "^4")) {}
+}

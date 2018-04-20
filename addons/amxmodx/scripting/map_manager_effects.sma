@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.4"
+#define VERSION "0.0.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -162,7 +162,7 @@ public mapm_vote_finished(map[], type, total_votes)
 			g_bFreezetimeChanged = false;
 			set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
 		}
-		if(get_num(CHANGE_TYPE) || get_num(LAST_ROUND)) {
+		if(get_num(CHANGE_TYPE) || get_num(LAST_ROUND) || is_map_extended(map)) {
 			freeze_unfreeze(1);
 		}
 	}
@@ -179,6 +179,11 @@ stock freeze_unfreeze(type)
 		id = players[i];
 		set_pev(id, pev_flags, type ? (pev(id, pev_flags) & ~FL_FROZEN) : pev(id, pev_flags) | FL_FROZEN);
 	}
+}
+is_map_extended(map[])
+{
+	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));
+	return equali(map, curmap);
 }
 stock set_black_screenfade(fade)
 {

@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.5"
+#define VERSION "0.0.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -59,7 +59,9 @@ new g_iVoteType;
 
 new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 
-new PREFIX[32];
+new bool:g_bChangeMapNextRound;
+
+new g_sPrefix[32];
 
 public plugin_init()
 {
@@ -97,8 +99,10 @@ public plugin_init()
 	register_event(EVENT_SVC_INTERMISSION, "event_intermission", "a");
 
 	set_task(10.0, "task_checktime", TASK_CHECKTIME, .flags = "b");
-
-	mapm_get_prefix(PREFIX, charsmax(PREFIX));
+}
+public plugin_cfg()
+{
+	mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
 }
 public plugin_natives()
 {
@@ -231,9 +235,9 @@ public event_newround()
 		mapm_start_vote(g_iVoteType);
 	}
 
-	if(is_vote_finished() && (get_num(CHANGE_TYPE) == CHANGE_NEXT_ROUND || get_num(LAST_ROUND))) {
+	if(is_vote_finished() && (g_bChangeMapNextRound || get_num(LAST_ROUND))) {
 		new nextmap[MAPNAME_LENGTH]; get_pcvar_string(g_pCvars[NEXTMAP], nextmap, charsmax(nextmap));
-		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", PREFIX, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
+		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
 		intermission();
 	}
 }
@@ -272,7 +276,7 @@ planning_vote(type)
 			set_float(TIMELIMIT, 0.0);
 		}
 
-		client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_VOTE_WILL_BEGIN");
+		client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_VOTE_WILL_BEGIN");
 		log_amx("[planning_vote]: vote in new round.");
 	} else {
 		mapm_start_vote(type);
@@ -344,7 +348,7 @@ public mapm_analysis_of_results(type, total_votes)
 	log_amx("[analysis]: second vote started. (%s, %s)", g_sSecondVoteMaps[0], g_sSecondVoteMaps[1]);
 
 	// TODO: add ML
-	client_print_color(0, print_team_default, "%s^1 Second vote.", PREFIX);
+	client_print_color(0, print_team_default, "%s^1 Second vote.", g_sPrefix);
 	mapm_start_vote(VOTE_BY_SCHEDULER_SECOND);
 
 	return ABORT_VOTE;
@@ -375,11 +379,11 @@ public mapm_vote_finished(map[], type, total_votes)
 				set_num(MAXROUNDS, max_rounds + rounds);
 			}
 			
-			client_print_color(0, print_team_default, "%s^1 %L %L.", PREFIX, LANG_PLAYER, "MAPM_MAP_EXTEND", rounds, LANG_PLAYER, "MAPM_ROUNDS");
+			client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", rounds, LANG_PLAYER, "MAPM_ROUNDS");
 		} else {
 			new min = get_num(EXTENDED_TIME);
 			
-			client_print_color(0, print_team_default, "%s^1 %L %L.", PREFIX, LANG_PLAYER, "MAPM_MAP_EXTEND", min, LANG_PLAYER, "MAPM_MINUTES");
+			client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", min, LANG_PLAYER, "MAPM_MINUTES");
 			set_float(TIMELIMIT, get_float(TIMELIMIT) + float(min));
 		}
 		
@@ -391,9 +395,9 @@ public mapm_vote_finished(map[], type, total_votes)
 
 	// change map
 	if(!total_votes) {
-		client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_NOBODY_VOTE", map);
+		client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", map);
 	} else {
-		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", PREFIX, LANG_PLAYER, "MAPM_NEXTMAP", map);
+		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", map);
 	}
 
 	set_pcvar_string(g_pCvars[NEXTMAP], map);
@@ -404,19 +408,15 @@ public mapm_vote_finished(map[], type, total_votes)
 		// What if timelimit 0?
 		g_fOldTimeLimit = get_float(TIMELIMIT);
 		set_float(TIMELIMIT, 0.0);
-		client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_LASTROUND");
+		client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_LASTROUND");
 		
 		log_amx("[vote_finished]: last round - saved timelimit is %f", g_fOldTimeLimit);
-	} else {
-		switch(get_num(CHANGE_TYPE)) {
-			case CHANGE_NEXT_ROUND: {
-				client_print_color(0, print_team_default, "%s^1 %L", PREFIX, LANG_PLAYER, "MAPM_MAP_CHANGE_NEXTROUND");
-			}
-			case CHANGE_AFTER_VOTE: {
-				client_print_color(0, print_team_default, "%s^1 %L^1 %L.", PREFIX, LANG_PLAYER, "MAPM_MAP_CHANGE", get_num(CHATTIME), LANG_PLAYER, "MAPM_SECONDS");
-				intermission();
-			}
-		}
+	} else if(get_num(CHANGE_TYPE) == CHANGE_AFTER_VOTE) {
+		client_print_color(0, print_team_default, "%s^1 %L^1 %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_CHANGE", get_num(CHATTIME), LANG_PLAYER, "MAPM_SECONDS");
+		intermission();
+	} else if(get_num(CHANGE_TYPE) == CHANGE_NEXT_ROUND || type == VOTE_BY_RTV) {
+		g_bChangeMapNextRound = true;
+		client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_MAP_CHANGE_NEXTROUND");
 	}
 
 	return 0;

@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.6"
+#define VERSION "0.0.7"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -34,6 +34,7 @@ enum Cvars {
 	CHANGE_TYPE,
 	TIMELEFT_TO_VOTE,
 	ROUNDS_TO_VOTE,
+	FRAGS_TO_VOTE,
 	VOTE_IN_NEW_ROUND,
 	LAST_ROUND,
 	SECOND_VOTE,
@@ -46,6 +47,8 @@ enum Cvars {
 	WINLIMIT,
 	TIMELIMIT,
 	CHATTIME,
+	FRAGLIMIT,
+	FRAGSLEFT,
 	NEXTMAP
 };
 
@@ -70,6 +73,7 @@ public plugin_init()
 	g_pCvars[CHANGE_TYPE] = register_cvar("mapm_change_type", "1"); // 0 - after end vote, 1 - in round end, 2 - after end map
 	g_pCvars[TIMELEFT_TO_VOTE] = register_cvar("mapm_timeleft_to_vote", "2"); // minutes
 	g_pCvars[ROUNDS_TO_VOTE] = register_cvar("mapm_rounds_to_vote", "2"); // rounds
+	g_pCvars[FRAGS_TO_VOTE] = register_cvar("mapm_frags_to_vote", "5"); // frags
 	g_pCvars[VOTE_IN_NEW_ROUND] = register_cvar("mapm_vote_in_new_round", "0"); // 0 - disable, 1 - enable
 	g_pCvars[LAST_ROUND] = register_cvar("mapm_last_round", "0"); // 0 - disable, 1 - enable
 
@@ -85,6 +89,9 @@ public plugin_init()
 	g_pCvars[WINLIMIT] = get_cvar_pointer("mp_winlimit");
 	g_pCvars[TIMELIMIT] = get_cvar_pointer("mp_timelimit");
 	g_pCvars[CHATTIME] = get_cvar_pointer("mp_chattime");
+	g_pCvars[FRAGLIMIT] = get_cvar_pointer("mp_fraglimit");
+	g_pCvars[FRAGSLEFT] = get_cvar_pointer("mp_fragsleft");
+
 
 	g_pCvars[NEXTMAP] = register_cvar("amx_nextmap", "", FCVAR_SERVER|FCVAR_EXTDLL|FCVAR_SPONLY);
 
@@ -93,6 +100,7 @@ public plugin_init()
 
 	register_clcmd("votemap", "clcmd_votemap");
 
+	register_event("DeathMsg", "event_deathmsg", "a");
 	register_event("TeamScore", "event_teamscore", "a");
 	register_event("HLTV", "event_newround", "a", "1=0", "2=0");
 	// register_event("TextMsg", "event_restart", "a", "2=#Game_Commencing", "2=#Game_will_restart_in");
@@ -210,6 +218,15 @@ public task_checktime()
 	}
 	
 	return 0;
+}
+public event_deathmsg()
+{
+	if(get_num(FRAGLIMIT)) {
+		if(get_num(FRAGSLEFT) <= get_num(FRAGS_TO_VOTE)) {
+			log_amx("[deathmsg]: start vote, fragsleft %d", get_num(FRAGSLEFT));
+			mapm_start_vote(VOTE_BY_SCHEDULER);
+		}
+	}
 }
 public event_teamscore()
 {

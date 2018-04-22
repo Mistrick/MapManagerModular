@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.4"
+#define VERSION "0.0.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -35,7 +35,8 @@ enum Cvars {
 	MAPS_PER_PLAYER,
 	DONT_CLOSE_MENU,
 	DENOMINATE_TIME,
-	RANDOM_SORT
+	RANDOM_SORT,
+	REMOVE_MAPS
 };
 
 new g_pCvars[Cvars];
@@ -58,6 +59,7 @@ public plugin_init()
 	g_pCvars[DONT_CLOSE_MENU] = register_cvar("mapm_nom_dont_close_menu", "1"); // 0 - disable, 1 - enable
 	g_pCvars[DENOMINATE_TIME] = register_cvar("mapm_nom_denominate_time", "5"); // seconds
 	g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "0"); // 0 - disable, 1 - enable
+	g_pCvars[REMOVE_MAPS] = register_cvar("mapm_nom_remove_maps", "1"); // 0 - disable, 1 - enable
 
 	register_clcmd("say", "clcmd_say");
 	register_clcmd("say_team", "clcmd_say");
@@ -92,7 +94,15 @@ public callback_disable_item()
 public mapm_maplist_loaded(Array:maplist)
 {
 	g_aMapsList = maplist;
-	g_aNomList = ArrayCreate(NomStruct, 1);
+
+	if(!g_aNomList) {
+		g_aNomList = ArrayCreate(NomStruct, 1);
+	}
+
+	if(get_num(REMOVE_MAPS)) {
+		remove_maps();
+	}
+
 	mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
 }
 public client_disconnected(id)
@@ -393,4 +403,15 @@ find_similar_map(map_index, string[MAPNAME_LENGTH])
 		}
 	}
 	return INVALID_MAP_INDEX;
+}
+remove_maps()
+{
+	new nom_info[NomStruct];
+	for(new i; i < ArraySize(g_aNomList); i++) {
+		ArrayGetArray(g_aNomList, i, nom_info);
+		if(mapm_get_map_index(nom_info[NomMapName]) == INVALID_MAP_INDEX) {
+			g_iNomMaps[nom_info[NomPlayer]]--;
+			ArrayDeleteItem(g_aNomList, i--);
+		}
+	}
 }

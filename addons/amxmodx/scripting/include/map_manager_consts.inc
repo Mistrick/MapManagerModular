@@ -12,8 +12,8 @@ enum _:MapStruct {
 };
 
 enum _:NomStruct {
-	NomPlayer,
-	NomMapIndex
+	NomMapName[MAPNAME_LENGTH],
+	NomPlayer
 };
 
 enum {

@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -111,7 +111,7 @@ public clcmd_say(id)
 	new map_index = mapm_get_map_index(text);
 
 	if(map_index != INVALID_MAP_INDEX) {
-		nominate_map(id, text, map_index);
+		nominate_map(id, text);
 	} else if(strlen(text) >= 4) {
 		new Array:nominate_list = ArrayCreate(1, 1), array_size;
 
@@ -125,7 +125,7 @@ public clcmd_say(id)
 		if(array_size == 1) {
 			map_index = ArrayGetCell(nominate_list, 0);
 			new map_info[MapStruct]; ArrayGetArray(g_aMapsList, map_index, map_info);
-			nominate_map(id, map_info[MapName], map_index);
+			nominate_map(id, map_info[MapName]);
 		} else if(array_size > 1) {
 			show_nomlist(id, nominate_list, array_size);
 		}
@@ -135,10 +135,8 @@ public clcmd_say(id)
 
 	return PLUGIN_CONTINUE;
 }
-nominate_map(id, map[], index)
+nominate_map(id, map[])
 {
-	new map_info[MapStruct]; ArrayGetArray(g_aMapsList, index, map_info);
-	
 	if(mapm_get_blocked_count(map)) {
 		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_NOT_AVAILABLE_MAP");
 		return NOMINATION_FAIL;
@@ -152,7 +150,7 @@ nominate_map(id, map[], index)
 	new nom_info[NomStruct], name[32];
 	get_user_name(id, name, charsmax(name));
 	
-	new nom_index = map_nominated(index);
+	new nom_index = map_nominated(map);
 	if(nom_index != INVALID_MAP_INDEX) {
 		ArrayGetArray(g_aNomList, nom_index, nom_info);
 		if(id != nom_info[NomPlayer]) {
@@ -179,8 +177,8 @@ nominate_map(id, map[], index)
 		return NOMINATION_FAIL;
 	}
 	
+	copy(nom_info[NomMapName], charsmax(nom_info[NomMapName]), map);
 	nom_info[NomPlayer] = id;
-	nom_info[NomMapIndex] = index;
 	ArrayPushArray(g_aNomList, nom_info);
 	
 	g_iNomMaps[id]++;
@@ -200,23 +198,23 @@ show_nomlist(id, Array: array, size)
 		ArrayGetArray(g_aMapsList, map_index, map_info);
 		
 		num_to_str(map_index, str_num, charsmax(str_num));
-		nom_index = map_nominated(map_index);
+		nom_index = map_nominated(map_info[MapName]);
 		block_count = mapm_get_blocked_count(map_info[MapName]);
 
 		if(block_count) {
 			formatex(item_info, charsmax(item_info), "%s[\r%d\d]", map_info[MapName], block_count);
-			menu_additem(menu, item_info, str_num, _, g_hCallbackDisabled);
+			menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
 		} else if(nom_index != INVALID_MAP_INDEX) {
 			new nom_info[NomStruct]; ArrayGetArray(g_aNomList, nom_index, nom_info);
 			if(id == nom_info[NomPlayer]) {
 				formatex(item_info, charsmax(item_info), "%s[\y*\w]", map_info[MapName]);
-				menu_additem(menu, item_info, str_num);
+				menu_additem(menu, item_info);
 			} else {
 				formatex(item_info, charsmax(item_info), "%s[\y*\d]", map_info[MapName]);
-				menu_additem(menu, item_info, str_num, _, g_hCallbackDisabled);
+				menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
 			}
 		} else {
-			menu_additem(menu, map_info[MapName], str_num);
+			menu_additem(menu, map_info[MapName]);
 		}
 	}
 	
@@ -238,16 +236,15 @@ public nomlist_handler(id, menu, item)
 	
 	new item_info[8], item_name[MAPNAME_LENGTH + 16], access, callback;
 	menu_item_getinfo(menu, item, access, item_info, charsmax(item_info), item_name, charsmax(item_name), callback);
-	
-	new map_index = str_to_num(item_info);
+
 	trim_bracket(item_name);
-	new map_nominated = nominate_map(id, item_name, map_index);
+	new nominated = nominate_map(id, item_name);
 	
-	if(map_nominated == NOMINATION_REMOVED || get_num(DONT_CLOSE_MENU)) {
-		if(map_nominated == NOMINATION_SUCCESS) {
+	if(nominated == NOMINATION_REMOVED || get_num(DONT_CLOSE_MENU)) {
+		if(nominated == NOMINATION_SUCCESS) {
 			format(item_name, charsmax(item_name), "%s[\y*\w]", item_name);
 			menu_item_setname(menu, item, item_name);
-		} else if(map_nominated == NOMINATION_REMOVED) {
+		} else if(nominated == NOMINATION_REMOVED) {
 			menu_item_setname(menu, item, item_name);
 		}
 		menu_display(id, menu);
@@ -265,7 +262,7 @@ public clcmd_mapslist(id)
 	new map_info[MapStruct], item_info[48], block_count, size = ArraySize(g_aMapsList);
 	new random_sort = get_num(RANDOM_SORT), Array:array = ArrayCreate(1, 1);
 
-	for(new i = 0, index, nom_index, num[8]; i < size; i++) {
+	for(new i = 0, index, nom_index; i < size; i++) {
 		if(random_sort) {
 			do {
 				index = random(size);
@@ -275,25 +272,24 @@ public clcmd_mapslist(id)
 			index = i;
 		}
 
-		num_to_str(index, num, charsmax(num));
 		ArrayGetArray(g_aMapsList, index, map_info);
-		nom_index = map_nominated(index);
+		nom_index = map_nominated(map_info[MapName]);
 		block_count = mapm_get_blocked_count(map_info[MapName]);
 		
 		if(block_count) {
 			formatex(item_info, charsmax(item_info), "%s[\r%d\d]", map_info[MapName], block_count);
-			menu_additem(menu, item_info, _, _, g_hCallbackDisabled);
+			menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
 		} else if(nom_index != INVALID_MAP_INDEX) {
 			new nom_info[NomStruct]; ArrayGetArray(g_aNomList, nom_index, nom_info);
 			if(id == nom_info[NomPlayer]) {
 				formatex(item_info, charsmax(item_info), "%s[\y*\w]", map_info[MapName]);
-				menu_additem(menu, item_info, num);
+				menu_additem(menu, item_info);
 			} else {
 				formatex(item_info, charsmax(item_info), "%s[\y*\d]", map_info[MapName]);
-				menu_additem(menu, item_info, num, _, g_hCallbackDisabled);
+				menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
 			}
 		} else {
-			menu_additem(menu, map_info[MapName], num);
+			menu_additem(menu, map_info[MapName]);
 		}
 	}
 
@@ -327,15 +323,14 @@ public mapslist_handler(id, menu, item)
 	new item_info[8], item_name[MAPNAME_LENGTH + 16], access, callback;
 	menu_item_getinfo(menu, item, access, item_info, charsmax(item_info), item_name, charsmax(item_name), callback);
 	
-	new map_index = str_to_num(item_info);
 	trim_bracket(item_name);
-	new map_nominated = nominate_map(id, item_name, map_index);
+	new nominated = nominate_map(id, item_name);
 	
 	if(g_iNomMaps[id] < get_num(MAPS_PER_PLAYER) || get_num(DONT_CLOSE_MENU)) {
-		if(map_nominated == NOMINATION_SUCCESS) {
+		if(nominated == NOMINATION_SUCCESS) {
 			format(item_name, charsmax(item_name), "%s[\y*\w]", item_name);
 			menu_item_setname(menu, item, item_name);
-		} else if(map_nominated == NOMINATION_REMOVED) {
+		} else if(nominated == NOMINATION_REMOVED) {
 			menu_item_setname(menu, item, item_name);
 		}
 		menu_display(id, menu, item / 7);
@@ -351,26 +346,25 @@ public mapm_prepare_votelist(type)
 	if(type == VOTE_BY_SCHEDULER_SECOND) {
 		return;
 	}
-	new nom_info[NomStruct], map_info[MapStruct];
+	new nom_info[NomStruct];
 	for(new i, index; i < get_num(MAPS_IN_VOTE) && ArraySize(g_aNomList); i++) {
 		index = random(ArraySize(g_aNomList));
 		ArrayGetArray(g_aNomList, index, nom_info);
-		ArrayGetArray(g_aMapsList, nom_info[NomMapIndex], map_info);
 		ArrayDeleteItem(g_aNomList, index);
 		g_iNomMaps[nom_info[NomPlayer]]--;
 
-		if(mapm_push_map_to_votelist(map_info[MapName], PUSH_BY_NOMINATION) == PUSH_BLOCKED) {
+		if(mapm_push_map_to_votelist(nom_info[NomMapName], PUSH_BY_NOMINATION) == PUSH_BLOCKED) {
 			i--;
 		}
 	}
 }
 
-map_nominated(index)
+map_nominated(map[])
 {
 	new nom_info[NomStruct], size = ArraySize(g_aNomList);
 	for(new i; i < size; i++) {
 		ArrayGetArray(g_aNomList, i, nom_info);
-		if(index == nom_info[NomMapIndex]) {
+		if(equali(map, nom_info[NomMapName])) {
 			return i;
 		}
 	}

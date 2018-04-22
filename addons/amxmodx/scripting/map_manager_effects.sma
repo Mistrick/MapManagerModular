@@ -182,7 +182,10 @@ stock freeze_unfreeze(type)
 }
 is_map_extended(map[])
 {
-	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));
+	static curmap[MAPNAME_LENGTH];
+	if(!curmap[0]) {
+		get_mapname(curmap, charsmax(curmap));
+	}
 	return equali(map, curmap);
 }
 stock set_black_screenfade(fade)

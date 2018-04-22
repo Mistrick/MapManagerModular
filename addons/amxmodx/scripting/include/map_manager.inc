@@ -16,6 +16,17 @@
 #include <map_manager_stocks>
 
 /**
+ * Load maps from file.
+ * File loads from configs dir. 
+ *
+ * @param filename		File name
+ * @param clearlist		Clear old maplist before new load. 
+ *
+ * @noreturn
+ */
+native mapm_load_maplist(filename[], clearlist = true);
+
+/**
  * Get map index in mapslist array.
  *
  * @param map			Map name

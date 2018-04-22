@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.0-Beta-3"
+#define VERSION "3.0.0-Beta-4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -67,7 +67,6 @@ new g_iVoted[33];
 new g_hForwards[Forwards];
 
 new Array:g_aMapsList;
-new g_iMapsListSize;
 
 new g_iShowType;
 new g_bShowSelects;
@@ -115,6 +114,7 @@ public plugin_natives()
 {
 	register_library("map_manager_core");
 
+	register_native("mapm_load_maplist", "native_load_maplist");
 	register_native("mapm_get_map_index", "native_get_map_index");
 	register_native("mapm_get_prefix", "native_get_prefix");
 	register_native("mapm_set_vote_finished", "native_set_vote_finished");
@@ -127,6 +127,21 @@ public plugin_natives()
 	register_native("mapm_get_voteitem_info", "native_get_voteitem_info");
 	register_native("is_vote_started", "native_is_vote_started");
 	register_native("is_vote_finished", "native_is_vote_finished");
+}
+public native_load_maplist(plugin, params)
+{
+	enum {
+		arg_filename = 1,
+		arg_clearlist
+	};
+
+	if(get_param(arg_clearlist)) {
+		ArrayClear(g_aMapsList);
+	}
+
+	new filename[256];
+	get_string(arg_filename, filename, charsmax(filename));
+	load_maplist(filename);
 }
 public native_get_map_index(plugin, params)
 {
@@ -173,7 +188,7 @@ public native_push_map_to_votelist(plugin, params)
 		arg_ignore_check 
 	};
 
-	if(g_iVoteItems >= min(VOTELIST_SIZE, g_iMapsListSize)) {
+	if(g_iVoteItems >= min(VOTELIST_SIZE, ArraySize(g_aMapsList))) {
 		return PUSH_CANCELED;
 	}
 
@@ -246,7 +261,7 @@ public plugin_cfg()
 }
 load_maplist(const file[])
 {
-	new file_path[128]; get_localinfo("amxx_configsdir", file_path, charsmax(file_path));
+	new file_path[256]; get_localinfo("amxx_configsdir", file_path, charsmax(file_path));
 	format(file_path, charsmax(file_path), "%s/%s", file_path, file);
 
 	if(!file_exists(file_path)) {
@@ -287,11 +302,10 @@ load_maplist(const file[])
 
 		ArrayPushArray(g_aMapsList, map_info);
 		min = ""; max = "";
-		g_iMapsListSize++;
 	}
 	fclose(f);
 
-	if(g_iMapsListSize == 0) {
+	if(!ArraySize(g_aMapsList)) {
 		new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
 		set_fail_state(error);
 	}
@@ -324,7 +338,8 @@ prepare_vote(type)
 	arrayset(g_iVoted, NOT_VOTED, sizeof(g_iVoted));
 	arrayset(g_iVotes, 0, sizeof(g_iVotes));
 
-	new vote_max_items = min(VOTELIST_SIZE, g_iMapsListSize);
+	new array_size = ArraySize(g_aMapsList);
+	new vote_max_items = min(VOTELIST_SIZE, array_size);
 
 	new ret;
 	ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret, type);
@@ -334,25 +349,17 @@ prepare_vote(type)
 		g_iMaxItems = 0;
 	}
 
-	// TODO: add min/max sort
 	if(g_iVoteItems < vote_max_items) {
 		new map_info[MapStruct];
 		for(new random_map; g_iVoteItems < vote_max_items; g_iVoteItems++) {
 			do {
-				random_map = random(g_iMapsListSize);
+				random_map = random(array_size);
 				ArrayGetArray(g_aMapsList, random_map, map_info);
 			} while(is_map_in_vote(map_info[MapName]) || !is_map_allowed(map_info[MapName], PUSH_BY_CORE, random_map));
 
 			copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), map_info[MapName]);
 		}
 	}
-
-	/* server_print("Votelist:");
-	for(new i; i < g_iVoteItems; i++) {
-		if(g_sVoteList[i][0]) {
-			server_print("%d - %s", i + 1, g_sVoteList[i]);
-		}
-	} */
 
 	ExecuteForward(g_hForwards[CAN_BE_EXTENDED], ret, type);
 	g_bCanExtend = !ret;
@@ -374,7 +381,6 @@ prepare_vote(type)
 		for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
 			do {
 				g_iRandomNums[i] = random(g_iVoteItems + g_bCanExtend);
-				//g_iRandomNums[i] = random_num(0, 9);
 			} while(in_array(i, g_iRandomNums[i]));
 		}
 	} else {
@@ -581,7 +587,7 @@ stop_vote()
 //-----------------------------------------------------//
 get_map_index(map[])
 {
-	for(new i = 0, map_info[MapStruct]; i < g_iMapsListSize; i++) {
+	for(new i = 0, map_info[MapStruct], size = ArraySize(g_aMapsList); i < size; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);
 		if(equali(map, map_info[MapName])) return i;
 	}

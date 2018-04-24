@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Informer"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -63,6 +63,11 @@ public clcmd_timeleft(id)
 	
 	// TODO: need subtract left_wins/left_rounds if mapm_change_type 0 or 1
 	if((win_limit || max_rounds) && get_num(EXTENDED_TYPE) == EXTEND_ROUNDS) {
+		if(is_vote_finished()) {
+			client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_CHANGELEVEL_NEXTROUND");
+			return;
+		}
+
 		new text[128], len;
 		len = formatex(text, charsmax(text), "%L ", LANG_PLAYER, "MAPM_TIME_TO_END");
 		if(win_limit) {

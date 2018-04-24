@@ -57,9 +57,22 @@ stock intermission()
 	emessage_begin(MSG_ALL, SVC_INTERMISSION);
 	emessage_end();
 }
-stock get_players_num()
+stock get_players_num(ignore = 0)
 {
-	new players[32], pnum; get_players(players, pnum, "ch");
+	static maxplayers;
+	if(!maxplayers) {
+		maxplayers = get_maxplayers();
+	}
+	new pnum;
+	for(new i = 1; i <= maxplayers; i++) {
+		if(ignore && i == ignore
+			|| !is_user_connected(i)
+			|| is_user_bot(i)
+			|| is_user_hltv(i)) {
+			continue;
+		}
+		pnum++;
+	}
 	return pnum;
 }
 stock send_audio(id, audio[], pitch)

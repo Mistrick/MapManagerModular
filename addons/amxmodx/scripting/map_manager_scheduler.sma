@@ -7,21 +7,27 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.7"
+#define VERSION "0.0.8"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
+
+#if !defined client_disconnected
+#define client_disconnected client_disconnect
+#endif
 
 #define get_num(%0) get_pcvar_num(g_pCvars[%0])
 #define set_num(%0,%1) set_pcvar_num(g_pCvars[%0],%1)
 #define get_float(%0) get_pcvar_float(g_pCvars[%0])
 #define set_float(%0,%1) set_pcvar_float(g_pCvars[%0],%1)
+#define get_string(%0,%1,%2) get_pcvar_string(g_pCvars[%0],%1,%2)
 
 #define EVENT_SVC_INTERMISSION "30"
 
 enum (+=100) {
 	TASK_CHECKTIME,
-	TASK_DELAYED_CHANGE
+	TASK_DELAYED_CHANGE,
+	TASK_CHANGE_TO_DEFAULT
 };
 
 enum {
@@ -39,6 +45,8 @@ enum Cvars {
 	LAST_ROUND,
 	SECOND_VOTE,
 	SECOND_VOTE_PERCENT,
+	CHANGE_TO_DEFAULT,
+	DEFAULT_MAP,
 	EXTENDED_TYPE,
 	EXTENDED_MAX,
 	EXTENDED_TIME,
@@ -79,6 +87,9 @@ public plugin_init()
 
 	g_pCvars[SECOND_VOTE] = register_cvar("mapm_second_vote", "0"); // 0 - disable, 1 - enable
 	g_pCvars[SECOND_VOTE_PERCENT] = register_cvar("mapm_second_vote_percent", "50");
+
+	g_pCvars[CHANGE_TO_DEFAULT] = register_cvar("mapm_change_to_default_map", "0"); // minutes, 0 - disable
+	g_pCvars[DEFAULT_MAP] = register_cvar("mapm_default_map", "de_dust2");
 
 	g_pCvars[EXTENDED_TYPE] = register_cvar("mapm_extended_type", "0"); // 0 - minutes, 1 - rounds
 	g_pCvars[EXTENDED_MAX] = register_cvar("mapm_extended_map_max", "3");
@@ -202,6 +213,35 @@ public clcmd_votemap()
 	// Block default vote
 	return PLUGIN_HANDLED;
 }
+public client_putinserver(id)
+{
+	if(!is_user_bot(id) && !is_user_hltv(id)) {
+		remove_task(TASK_CHANGE_TO_DEFAULT);
+	}
+}
+public client_disconnect(id)
+{
+	new Float:change_time = get_float(CHANGE_TO_DEFAULT);
+	if(change_time > 0.0 && !get_players_num(id)) {
+		set_task(change_time * 60, "task_change_to_default", TASK_CHANGE_TO_DEFAULT);
+	}
+}
+public task_change_to_default()
+{
+	if(get_players_num()) {
+		return;
+	}
+
+	new default_map[MAPNAME_LENGTH]; get_string(DEFAULT_MAP, default_map, charsmax(default_map));
+
+	if(!is_map_valid(default_map)) {
+		return;
+	}
+
+	log_amx("map changed to default[%s]", default_map);
+	set_pcvar_string(g_pCvars[NEXTMAP], default_map);
+	intermission();
+}
 public task_checktime()
 {
 	if(is_vote_started() || is_vote_finished() || get_float(TIMELIMIT) <= 0.0) {
@@ -253,7 +293,7 @@ public event_newround()
 	}
 
 	if(is_vote_finished() && (g_bChangeMapNextRound || get_num(LAST_ROUND))) {
-		new nextmap[MAPNAME_LENGTH]; get_pcvar_string(g_pCvars[NEXTMAP], nextmap, charsmax(nextmap));
+		new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
 		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
 		intermission();
 	}
@@ -278,7 +318,7 @@ public event_intermission()
 }
 public delayed_change()
 {
-	new nextmap[MAPNAME_LENGTH]; get_pcvar_string(g_pCvars[NEXTMAP], nextmap, charsmax(nextmap));
+	new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
 	set_float(CHATTIME, get_float(CHATTIME) - 1.0);
 	server_cmd("changelevel %s", nextmap);
 }

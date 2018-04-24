@@ -81,6 +81,7 @@ new g_iVoteType;
 new bool:g_bVoteStarted;
 new bool:g_bVoteFinished;
 
+new g_sCurMap[MAPNAME_LENGTH];
 new g_sPrefix[48];
 
 public plugin_init()
@@ -253,6 +254,8 @@ public plugin_cfg()
 	server_cmd("exec %s/map_manager.cfg", configsdir);
 	server_exec();
 
+	get_mapname(g_sCurMap, charsmax(g_sCurMap));
+	
 	get_pcvar_string(g_pCvars[PREFIX], g_sPrefix, charsmax(g_sPrefix));
 	replace_color_tag(g_sPrefix, charsmax(g_sPrefix));
 
@@ -364,13 +367,13 @@ prepare_vote(type)
 	ExecuteForward(g_hForwards[CAN_BE_EXTENDED], ret, type);
 	g_bCanExtend = !ret;
 
-	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));
 	if(g_bCanExtend) {
-		copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), curmap);
+		copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), g_sCurMap);
 	}
+
 	g_iCurMap = -1;
 	for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
-		if(equali(curmap, g_sVoteList[i])) {
+		if(equali(g_sCurMap, g_sVoteList[i])) {
 			g_iCurMap = i;
 			break;
 		}

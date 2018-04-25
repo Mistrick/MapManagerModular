@@ -25,7 +25,7 @@ enum Cvars {
 new g_pCvars[Cvars];
 
 new g_iTeamScore[2];
-new g_szCurMap[MAPNAME_LENGTH];
+new g_sCurMap[MAPNAME_LENGTH];
 new g_sPrefix[48];
 
 public plugin_init()
@@ -39,7 +39,7 @@ public plugin_init()
 
 	register_event("TeamScore", "event_teamscore", "a");
 
-	get_mapname(g_szCurMap, charsmax(g_szCurMap));
+	get_mapname(g_sCurMap, charsmax(g_sCurMap));
 }
 public plugin_cfg()
 {
@@ -111,5 +111,5 @@ public clcmd_nextmap(id)
 }
 public clcmd_currentmap(id)
 {
-	client_print_color(0, id, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_CURRENT_MAP", g_szCurMap);
+	client_print_color(0, id, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_CURRENT_MAP", g_sCurMap);
 }

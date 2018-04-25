@@ -73,6 +73,7 @@ new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 new bool:g_bChangeMapNextRound;
 
 new g_sPrefix[32];
+new g_sCurMap[MAPNAME_LENGTH];
 
 public plugin_init()
 {
@@ -121,6 +122,7 @@ public plugin_init()
 }
 public plugin_cfg()
 {
+	get_mapname(g_sCurMap, charsmax(g_sCurMap));
 	mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
 }
 public plugin_natives()
@@ -418,8 +420,7 @@ public mapm_vote_finished(map[], type, total_votes)
 	g_bVoteInNewRound = false;
 
 	// map extended
-	new curmap[MAPNAME_LENGTH]; get_mapname(curmap, charsmax(curmap));
-	if(equali(map, curmap)) {
+	if(equali(map, g_sCurMap)) {
 		g_iExtendedNum++;
 
 		new win_limit = get_num(WINLIMIT);

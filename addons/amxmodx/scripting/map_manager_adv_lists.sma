@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Advanced lists"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 new const FILE_MAP_LISTS[] = "maplists.ini";
@@ -15,7 +15,7 @@ enum _:MapListInfo {
 	StartTime,
 	StopTime,
 	ClearOldList,
-	FileList[256]
+	FileList[128]
 };
 
 new Array:g_aLists;
@@ -67,10 +67,11 @@ public plugin_cfg()
 
 	if(!ArraySize(g_aLists)) {
 		// pause plugin?
+		log_amx("nothing loaded.");
+	} else {
+		task_check_list();
+		set_task(60.0, "task_check_list", TASK_CHECK_LIST, .flags = "b");
 	}
-
-	task_check_list();
-	set_task(60.0, "task_check_list", TASK_CHECK_LIST, .flags = "b");
 }
 public task_check_list()
 {

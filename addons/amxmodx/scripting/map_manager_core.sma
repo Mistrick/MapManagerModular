@@ -15,9 +15,7 @@
 //-----------------------------------------------------//
 // Consts
 //-----------------------------------------------------//
-// make this cvar?
-#define VOTELIST_SIZE 5
-
+#define MAX_VOTELIST_SIZE 8
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
 
@@ -49,6 +47,7 @@ enum {
 
 enum Cvars {
 	PREFIX,
+	VOTELIST_SIZE,
 	SHOW_RESULT_TYPE,
 	SHOW_SELECTS,
 	RANDOM_NUMS,
@@ -59,8 +58,8 @@ enum Cvars {
 new g_pCvars[Cvars];
 
 new g_iVoteItems;
-new g_sVoteList[VOTELIST_SIZE + 1][MAPNAME_LENGTH];
-new g_iVotes[VOTELIST_SIZE + 1];
+new g_sVoteList[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH];
+new g_iVotes[MAX_VOTELIST_SIZE + 1];
 new g_iTotalVotes;
 new g_iVoted[33];
 
@@ -75,7 +74,7 @@ new g_bCanExtend;
 new g_iMaxItems;
 new g_iCurMap;
 
-new g_iRandomNums[VOTELIST_SIZE + 1];
+new g_iRandomNums[MAX_VOTELIST_SIZE + 1];
 
 new g_iVoteType;
 new bool:g_bVoteStarted;
@@ -91,6 +90,7 @@ public plugin_init()
 	register_cvar("mapm_version", VERSION, FCVAR_SERVER | FCVAR_SPONLY);
 
 	g_pCvars[PREFIX] = register_cvar("mapm_prefix", "^4[MapManager]");
+	g_pCvars[VOTELIST_SIZE] = register_cvar("mapm_votelist_size", "5");
 	g_pCvars[SHOW_RESULT_TYPE] = register_cvar("mapm_show_result_type", "1"); //0 - disable, 1 - menu, 2 - hud
 	g_pCvars[SHOW_SELECTS] = register_cvar("mapm_show_selects", "1"); // 0 - disable, 1 - all
 	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "0"); // 0 - disable, 1 - enable
@@ -174,7 +174,7 @@ public native_stop_vote(plugin, params)
 }
 public native_get_votelist_size(plugin, params)
 {
-	return VOTELIST_SIZE;
+	return min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE);
 }
 public native_set_votelist_max_items(plugin, params)
 {
@@ -189,7 +189,7 @@ public native_push_map_to_votelist(plugin, params)
 		arg_ignore_check 
 	};
 
-	if(g_iVoteItems >= min(VOTELIST_SIZE, ArraySize(g_aMapsList))) {
+	if(g_iVoteItems >= min(min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE), ArraySize(g_aMapsList))) {
 		return PUSH_CANCELED;
 	}
 
@@ -255,7 +255,7 @@ public plugin_cfg()
 	server_exec();
 
 	get_mapname(g_sCurMap, charsmax(g_sCurMap));
-	
+
 	get_pcvar_string(g_pCvars[PREFIX], g_sPrefix, charsmax(g_sPrefix));
 	replace_color_tag(g_sPrefix, charsmax(g_sPrefix));
 
@@ -278,7 +278,6 @@ load_maplist(const file[])
 	}
 
 	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], first_map[MAPNAME_LENGTH], min[3], max[3], bool:nextmap, bool:found_nextmap;
-	new cur_map[MAPNAME_LENGTH]; get_mapname(cur_map, charsmax(cur_map));
 
 	while(!feof(f)) {
 		fgets(f, text, charsmax(text));
@@ -289,7 +288,7 @@ load_maplist(const file[])
 		if(!first_map[0]) {
 			copy(first_map, charsmax(first_map), map);
 		}
-		if(equali(map, cur_map)) {
+		if(equali(map, g_sCurMap)) {
 			nextmap = true;
 			continue;
 		}
@@ -342,7 +341,7 @@ prepare_vote(type)
 	arrayset(g_iVotes, 0, sizeof(g_iVotes));
 
 	new array_size = ArraySize(g_aMapsList);
-	new vote_max_items = min(VOTELIST_SIZE, array_size);
+	new vote_max_items = min(min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE), array_size);
 
 	new ret;
 	ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret, type);
@@ -455,8 +454,6 @@ public countdown(taskid)
 			finish_vote();
 		}
 	}
-
-	
 }
 start_vote()
 {

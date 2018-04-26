@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: BlockList"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -34,7 +34,10 @@ public plugin_natives()
 public native_get_blocked_count(plugin, params)
 {
 	enum { arg_map = 1 };
-	new map[MAPNAME_LENGTH]; get_string(arg_map, map, charsmax(map));
+
+	new map[MAPNAME_LENGTH];
+	get_string(arg_map, map, charsmax(map));
+	strtolower(map);
 
 	if(!TrieKeyExists(g_tBlockedList, map)) {
 		return 0;
@@ -46,6 +49,12 @@ public native_get_blocked_count(plugin, params)
 }
 public mapm_maplist_loaded(Array:mapslist)
 {
+	static bool:load_once;
+
+	if(load_once) {
+		return;
+	}
+
 	g_tBlockedList = TrieCreate();
 	load_blocklist();
 
@@ -66,6 +75,8 @@ public mapm_maplist_loaded(Array:mapslist)
 	else if(valid_maps < votelist_size) {
 		g_iMaxItems = valid_maps;
 	}
+
+	load_once = true;
 }
 load_blocklist()
 {
@@ -85,7 +96,7 @@ load_blocklist()
 		temp = fopen(temp_file_path, "wt");
 
 		new buffer[40], map[MAPNAME_LENGTH], str_count[6], count;
-		// server_print("Blocked list:^n%s", cur_map);
+		
 		while(!feof(f)) {
 			fgets(f, buffer, charsmax(buffer));
 			parse(buffer, map, charsmax(map), str_count, charsmax(str_count));
@@ -98,8 +109,8 @@ load_blocklist()
 			if(count <= 0) continue;
 
 			fprintf(temp, "^"%s^" ^"%d^"^n", map, count);
+			strtolower(map);
 			TrieSetCell(g_tBlockedList, map, count);
-			// server_print("%s", map);
 		}
 		
 		fprintf(temp, "^"%s^" ^"%d^"^n", cur_map, block_value);
@@ -127,7 +138,10 @@ public mapm_prepare_votelist(type)
 		mapm_set_votelist_max_items(g_iMaxItems);
 	}
 }
-public mapm_can_be_in_votelist(map[])
+public mapm_can_be_in_votelist(const map[])
 {
-	return TrieKeyExists(g_tBlockedList, map) ? MAP_BLOCKED : MAP_ALLOWED;
+	new lower[MAPNAME_LENGTH];
+	copy(lower, charsmax(lower), map);
+	strtolower(lower);
+	return TrieKeyExists(g_tBlockedList, lower) ? MAP_BLOCKED : MAP_ALLOWED;
 }

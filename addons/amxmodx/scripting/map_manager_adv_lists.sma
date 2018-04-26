@@ -60,8 +60,6 @@ public plugin_cfg()
 		copy(list_info[FileList], charsmax(list_info[FileList]), file_list);
 
 		ArrayPushArray(g_aLists, list_info);
-
-		// server_print("%d %d %s %d", list_info[StartTime], list_info[StopTime], list_info[FileList], list_info[ClearOldList]);
 	}
 	fclose(f);
 

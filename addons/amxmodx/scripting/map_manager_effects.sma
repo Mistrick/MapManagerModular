@@ -144,7 +144,7 @@ public mapm_vote_started(type)
 {
 	send_audio(0, "sound/Gman/Gman_Choose2.wav", PITCH_NORM);
 }
-public mapm_vote_finished(map[], type, total_votes)
+public mapm_vote_finished(const map[], type, total_votes)
 {
 	if(get_num(BLACK_SCREEN)) {
 		remove_task(TASK_FULLBLACK);
@@ -180,7 +180,7 @@ stock freeze_unfreeze(type)
 		set_pev(id, pev_flags, type ? (pev(id, pev_flags) & ~FL_FROZEN) : pev(id, pev_flags) | FL_FROZEN);
 	}
 }
-is_map_extended(map[])
+is_map_extended(const map[])
 {
 	static curmap[MAPNAME_LENGTH];
 	if(!curmap[0]) {

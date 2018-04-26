@@ -411,7 +411,7 @@ public mapm_analysis_of_results(type, total_votes)
 
 	return ABORT_VOTE;
 }
-public mapm_vote_finished(map[], type, total_votes)
+public mapm_vote_finished(const map[], type, total_votes)
 {
 	if(g_fOldTimeLimit > 0.0) {
 		set_float(TIMELIMIT, g_fOldTimeLimit);

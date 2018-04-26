@@ -173,7 +173,7 @@ forward mapm_prepare_votelist(type);
  * @return				MAP_ALLOWED
  *						MAP_BLOCKED	
  */
-forward mapm_can_be_in_votelist(map[], type, index);
+forward mapm_can_be_in_votelist(const map[], type, index);
 
 /**
  * Called for permission to extend current map.
@@ -216,4 +216,4 @@ forward mapm_analysis_of_results(type, total_votes);
  * 
  * @noreturn
  */
-forward mapm_vote_finished(map[], type, total_votes);
+forward mapm_vote_finished(const map[], type, total_votes);

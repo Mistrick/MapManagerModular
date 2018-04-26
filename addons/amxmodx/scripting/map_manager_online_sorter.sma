@@ -59,7 +59,7 @@ public mapm_prepare_votelist(type)
 
 	ArrayDestroy(array);
 }
-public mapm_can_be_in_votelist(map[], type, index)
+public mapm_can_be_in_votelist(const map[], type, index)
 {
 	// add online checks for another addons?
 

@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.5"
+#define VERSION "0.0.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -48,6 +48,8 @@ new const g_sSound[][] = {
 	"sound/fvox/six.wav", "sound/fvox/seven.wav", "sound/fvox/eight.wav", "sound/fvox/nine.wav", "sound/fvox/ten.wav"
 };
 
+new g_sCurMap[MAPNAME_LENGTH];
+
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
@@ -63,6 +65,8 @@ public plugin_init()
 }
 public plugin_cfg()
 {
+	get_mapname(g_sCurMap, charsmax(g_sCurMap));
+
 	if(get_num(BLOCK_CHAT)) {
 		register_clcmd("say", "clcmd_say");
 		register_clcmd("say_team", "clcmd_say");
@@ -182,11 +186,7 @@ stock freeze_unfreeze(type)
 }
 is_map_extended(const map[])
 {
-	static curmap[MAPNAME_LENGTH];
-	if(!curmap[0]) {
-		get_mapname(curmap, charsmax(curmap));
-	}
-	return equali(map, curmap);
+	return equali(map, g_sCurMap);
 }
 stock set_black_screenfade(fade)
 {

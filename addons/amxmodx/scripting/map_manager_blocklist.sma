@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: BlockList"
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -49,14 +49,10 @@ public native_get_blocked_count(plugin, params)
 }
 public mapm_maplist_loaded(Array:mapslist)
 {
-	static bool:load_once;
-
-	if(load_once) {
-		return;
+	if(!g_tBlockedList) {
+		g_tBlockedList = TrieCreate();
+		load_blocklist();
 	}
-
-	g_tBlockedList = TrieCreate();
-	load_blocklist();
 
 	new map_info[MapStruct], blocked, size = ArraySize(mapslist);
 	for(new i; i < size; i++) {
@@ -69,14 +65,14 @@ public mapm_maplist_loaded(Array:mapslist)
 	new votelist_size = min(mapm_get_votelist_size(), size);
 	new valid_maps = size - blocked;
 
+	g_iMaxItems = 0;
+
 	if(valid_maps <= 0) {
 		TrieClear(g_tBlockedList);
 	}
 	else if(valid_maps < votelist_size) {
 		g_iMaxItems = valid_maps;
 	}
-
-	load_once = true;
 }
 load_blocklist()
 {

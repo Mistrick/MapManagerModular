@@ -45,13 +45,6 @@ stock trim_bracket(text[])
 		}
 	}
 }
-stock string_with_space(string[])
-{
-	for(new i; string[i]; i++) {
-		if(string[i] == ' ') return 1;
-	}
-	return 0;
-}
 stock intermission()
 {
 	emessage_begin(MSG_ALL, SVC_INTERMISSION);

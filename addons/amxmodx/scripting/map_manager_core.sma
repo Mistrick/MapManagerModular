@@ -15,7 +15,7 @@
 //-----------------------------------------------------//
 // Consts
 //-----------------------------------------------------//
-#define MAX_VOTELIST_SIZE 8
+#define MAX_VOTELIST_SIZE 9
 new const FILE_MAPS[] = "maps.ini";
 //-----------------------------------------------------//
 
@@ -52,11 +52,13 @@ enum Cvars {
 	SHOW_SELECTS,
 	RANDOM_NUMS,
 	PREPARE_TIME,
-	VOTE_TIME
+	VOTE_TIME,
+	VOTE_ITEM_OFFSET
 };
 
 new g_pCvars[Cvars];
 
+new g_iOffset;
 new g_iVoteItems;
 new g_sVoteList[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH];
 new g_iVotes[MAX_VOTELIST_SIZE + 1];
@@ -96,6 +98,7 @@ public plugin_init()
 	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "0"); // 0 - disable, 1 - enable
 	g_pCvars[PREPARE_TIME] = register_cvar("mapm_prepare_time", "5"); // seconds
 	g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
+	g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
 
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
@@ -391,6 +394,12 @@ prepare_vote(type)
 		}
 	}
 
+	g_iOffset = get_num(VOTE_ITEM_OFFSET);
+
+	if(g_iOffset + g_iVoteItems + g_bCanExtend >= MAX_VOTELIST_SIZE + 1) {
+		g_iOffset = MAX_VOTELIST_SIZE + 1 - g_iVoteItems - g_bCanExtend;
+	}
+
 	g_iTimer = get_num(PREPARE_TIME) + 1;
 	countdown(TASK_PREPARE_VOTE);
 
@@ -478,10 +487,10 @@ public show_votemenu(id)
 		len += formatex(menu[len], charsmax(menu) - len, "%s", (item == g_iVoteItems) ? "^n" : "");
 
 		if(g_iVoted[id] == NOT_VOTED) {
-			len += formatex(menu[len], charsmax(menu) - len, "\r%d.\w %s", g_iRandomNums[item] + 1, g_sVoteList[item]);
-			keys |= (1 << g_iRandomNums[item]);
+			len += formatex(menu[len], charsmax(menu) - len, "\r%d.\w %s", (g_iRandomNums[item] + 1 + g_iOffset == 10 ? 0 : g_iRandomNums[item] + 1 + g_iOffset), g_sVoteList[item]);
+			keys |= (1 << (g_iRandomNums[item] + g_iOffset));
 		} else {
-			len += formatex(menu[len], charsmax(menu) - len, "%s%s", (g_iRandomNums[item] == g_iVoted[id]) ? "\r" : "\d", g_sVoteList[item]);
+			len += formatex(menu[len], charsmax(menu) - len, "%s%s", (g_iRandomNums[item] + g_iOffset == g_iVoted[id]) ? "\r" : "\d", g_sVoteList[item]);
 		}
 
 		percent = g_iTotalVotes ? floatround(g_iVotes[item] * 100.0 / g_iTotalVotes) : 0;
@@ -517,7 +526,7 @@ public votemenu_handler(id, key)
 		return PLUGIN_HANDLED;
 	}
 	
-	new original = get_original_num(key);
+	new original = get_original_num(key - g_iOffset);
 	g_iVotes[original]++;
 	g_iTotalVotes++;
 	g_iVoted[id] = key;

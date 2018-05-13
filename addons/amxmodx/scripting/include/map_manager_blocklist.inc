@@ -17,6 +17,6 @@
  *
  * @param map			Map name
  * 
- * @return Blocked count
+ * @return 				Blocked count
  */
 native mapm_get_blocked_count(map[]);

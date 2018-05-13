@@ -119,6 +119,7 @@ public plugin_natives()
 	register_library("map_manager_core");
 
 	register_native("mapm_load_maplist", "native_load_maplist");
+	register_native("mapm_load_maplist_to_array", "native_load_maplist_to_array");
 	register_native("mapm_get_map_index", "native_get_map_index");
 	register_native("mapm_get_prefix", "native_get_prefix");
 	register_native("mapm_set_vote_finished", "native_set_vote_finished");
@@ -145,13 +146,25 @@ public native_load_maplist(plugin, params)
 
 	new filename[256];
 	get_string(arg_filename, filename, charsmax(filename));
-	load_maplist(filename);
+	load_maplist(g_aMapsList, filename);
+}
+public native_load_maplist_to_array(plugin, params)
+{
+	enum {
+		arg_array = 1,
+		arg_filename
+	};
+
+	new filename[256];
+	get_string(arg_filename, filename, charsmax(filename));
+
+	load_maplist(Array:get_param(arg_array), filename, false);
 }
 public native_get_map_index(plugin, params)
 {
 	enum { arg_map = 1 };
 	new map[MAPNAME_LENGTH]; get_string(arg_map, map, charsmax(map));
-	return get_map_index(map);
+	return get_map_index(g_aMapsList, map);
 }
 public native_get_prefix(plugin, params)
 {
@@ -208,7 +221,7 @@ public native_push_map_to_votelist(plugin, params)
 		return PUSH_BLOCKED;
 	}
 
-	if(!(ignore_checks & CHECK_IGNORE_MAP_ALLOWED) && !is_map_allowed(map, get_param(arg_type), get_map_index(map))) {
+	if(!(ignore_checks & CHECK_IGNORE_MAP_ALLOWED) && !is_map_allowed(map, get_param(arg_type), get_map_index(g_aMapsList, map))) {
 		return PUSH_BLOCKED;
 	}
 
@@ -263,21 +276,28 @@ public plugin_cfg()
 	replace_color_tag(g_sPrefix, charsmax(g_sPrefix));
 
 	// add forward for change file?
-	load_maplist(FILE_MAPS);
+	load_maplist(g_aMapsList, FILE_MAPS);
 }
-load_maplist(const file[])
+load_maplist(Array:array, const file[], bool:silent = false)
 {
 	new file_path[256]; get_localinfo("amxx_configsdir", file_path, charsmax(file_path));
 	format(file_path, charsmax(file_path), "%s/%s", file_path, file);
 
 	if(!file_exists(file_path)) {
-		set_fail_state("Maps file doesn't exist.");
+		if(!silent) {
+			new error[192]; formatex(error, charsmax(error), "File doesn't exist ^"%s^".", file_path);
+			set_fail_state(error);
+		}
+		return;
 	}
 
 	new f = fopen(file_path, "rt");
 	
 	if(!f) {
-		set_fail_state("Can't read maps file.");
+		if(!silent) {
+			set_fail_state("Can't read maps file.");
+		}
+		return;
 	}
 
 	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], first_map[MAPNAME_LENGTH], min[3], max[3], bool:nextmap, bool:found_nextmap;
@@ -286,7 +306,7 @@ load_maplist(const file[])
 		fgets(f, text, charsmax(text));
 		parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
 
-		if(!map[0] || map[0] == ';' || !valid_map(map) || get_map_index(map) != INVALID_MAP_INDEX) continue;
+		if(!map[0] || map[0] == ';' || !valid_map(map) || get_map_index(array, map) != INVALID_MAP_INDEX) continue;
 		
 		if(!first_map[0]) {
 			copy(first_map, charsmax(first_map), map);
@@ -305,22 +325,23 @@ load_maplist(const file[])
 		map_info[MinPlayers] = str_to_num(min);
 		map_info[MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
 
-		ArrayPushArray(g_aMapsList, map_info);
+		ArrayPushArray(array, map_info);
 		min = ""; max = "";
 	}
 	fclose(f);
 
-	if(!ArraySize(g_aMapsList)) {
+	if(!ArraySize(array) && !silent) {
 		new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
 		set_fail_state(error);
 	}
 
-	if(!found_nextmap) {
-		set_cvar_string("amx_nextmap", first_map);
+	if(!silent) {
+		if(!found_nextmap) {
+			set_cvar_string("amx_nextmap", first_map);
+		}
+		new ret;
+		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array);
 	}
-
-	new ret;
-	ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, g_aMapsList);
 }
 //-----------------------------------------------------//
 // Vote stuff
@@ -594,10 +615,10 @@ stop_vote()
 //-----------------------------------------------------//
 // Usefull func
 //-----------------------------------------------------//
-get_map_index(map[])
+get_map_index(Array:array, map[])
 {
-	for(new i = 0, map_info[MapStruct], size = ArraySize(g_aMapsList); i < size; i++) {
-		ArrayGetArray(g_aMapsList, i, map_info);
+	for(new i = 0, map_info[MapStruct], size = ArraySize(array); i < size; i++) {
+		ArrayGetArray(array, i, map_info);
 		if(equali(map, map_info[MapName])) return i;
 	}
 	return INVALID_MAP_INDEX;

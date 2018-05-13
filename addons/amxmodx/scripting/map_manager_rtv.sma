@@ -47,7 +47,6 @@ public plugin_init()
 	g_pCvars[PERCENT] = register_cvar("mapm_rtv_percent", "60");
 	g_pCvars[PLAYERS] = register_cvar("mapm_rtv_players", "5");
 	g_pCvars[DELAY] = register_cvar("mapm_rtv_delay", "0"); // minutes
-	// g_pCvars[CHANGE_TYPE] = register_cvar("mapm_rtv_change_type", "1"); // 0 - after vote, 1 - in round end
 	g_pCvars[ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
 
 	register_clcmd("say rtv", "clcmd_rtv");

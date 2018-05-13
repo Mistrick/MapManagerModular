@@ -27,6 +27,17 @@
 native mapm_load_maplist(filename[], clearlist = true);
 
 /**
+ * Load maps from file.
+ * File loads from configs dir. 
+ *
+ * @param array			Array with item size MapStruct. 
+ * @param filename		File name
+ *
+ * @noreturn
+ */
+native mapm_load_maplist_to_array(Array:array, filename[]);
+
+/**
  * Get map index in mapslist array.
  *
  * @param map			Map name

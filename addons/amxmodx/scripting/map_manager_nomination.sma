@@ -1,13 +1,14 @@
 #include <amxmodx>
 #include <map_manager>
 #include <map_manager_blocklist>
+#include <map_manager_adv_lists>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.5"
+#define VERSION "0.0.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -36,7 +37,8 @@ enum Cvars {
 	DONT_CLOSE_MENU,
 	DENOMINATE_TIME,
 	RANDOM_SORT,
-	REMOVE_MAPS
+	REMOVE_MAPS,
+	SHOW_LISTS
 };
 
 new g_pCvars[Cvars];
@@ -60,6 +62,7 @@ public plugin_init()
 	g_pCvars[DENOMINATE_TIME] = register_cvar("mapm_nom_denominate_time", "5"); // seconds
 	g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "0"); // 0 - disable, 1 - enable
 	g_pCvars[REMOVE_MAPS] = register_cvar("mapm_nom_remove_maps", "1"); // 0 - disable, 1 - enable
+	g_pCvars[SHOW_LISTS] = register_cvar("mapm_nom_show_lists", "0"); // 0 - disable, 1 - enable
 
 	register_clcmd("say", "clcmd_say");
 	register_clcmd("say_team", "clcmd_say");
@@ -78,11 +81,23 @@ public module_filter_handler(const library[], LibType:type)
 	if(equal(library, "map_manager_blocklist")) {
 		return PLUGIN_HANDLED;
 	}
+	if(equal(library, "map_manager_adv_lists")) {
+		return PLUGIN_HANDLED;
+	}
 	return PLUGIN_CONTINUE;
 }
 public native_filter_handler(const native_func[], index, trap)
 {
 	if(equal(native_func, "mapm_get_blocked_count")) {
+		return PLUGIN_HANDLED;
+	}
+	if(equal(native_func, "mapm_advl_get_active_lists")) {
+		return PLUGIN_HANDLED;
+	}
+	if(equal(native_func, "mapm_advl_get_list_name")) {
+		return PLUGIN_HANDLED;
+	}
+	if(equal(native_func, "mapm_advl_get_list_array")) {
 		return PLUGIN_HANDLED;
 	}
 	return PLUGIN_CONTINUE;
@@ -266,10 +281,59 @@ public nomlist_handler(id, menu, item)
 }
 public clcmd_mapslist(id)
 {
-	new text[64]; formatex(text, charsmax(text), "%L", LANG_PLAYER, "MAPM_MENU_MAP_LIST");
+	if(get_num(SHOW_LISTS) && mapm_advl_get_active_lists() > 1) {
+		show_lists_menu(id);
+	} else {
+		show_nomination_menu(id, g_aMapsList);
+	}
+}
+show_lists_menu(id)
+{
+	new text[64];
+	new menu = menu_create("Maps lists:", "lists_handler");
+
+	new list[32], size = mapm_advl_get_active_lists();
+	for(new i; i < size; i++) {
+		mapm_advl_get_list_name(i, list, charsmax(list));
+		menu_additem(menu, list);
+	}
+
+	formatex(text, charsmax(text), "%L", id, "MAPM_MENU_BACK");
+	menu_setprop(menu, MPROP_BACKNAME, text);
+	formatex(text, charsmax(text), "%L", id, "MAPM_MENU_NEXT");
+	menu_setprop(menu, MPROP_NEXTNAME, text);
+	formatex(text, charsmax(text), "%L", id, "MAPM_MENU_EXIT");
+	menu_setprop(menu, MPROP_EXITNAME, text);
+	
+	menu_display(id, menu);
+}
+public lists_handler(id, menu, item)
+{
+	if(item == MENU_EXIT) {
+		menu_destroy(menu);
+		return PLUGIN_HANDLED;
+	}
+
+	new item_info[8], item_name[32], access, callback;
+	menu_item_getinfo(menu, item, access, item_info, charsmax(item_info), item_name, charsmax(item_name), callback);
+
+	// TODO: make this safe, callback may call after changes in adv list
+	new Array:maplist = mapm_advl_get_list_array(item);
+	show_nomination_menu(id, maplist, item_name);
+
+	return PLUGIN_HANDLED;
+}
+show_nomination_menu(id, Array:maplist, custom_title[] = "")
+{
+	new text[64];
+	if(!custom_title[0]) {
+		formatex(text, charsmax(text), "%L", LANG_PLAYER, "MAPM_MENU_MAP_LIST");
+	} else {
+		formatex(text, charsmax(text), "%s", custom_title);
+	}
 	new menu = menu_create(text, "mapslist_handler");
 	
-	new map_info[MapStruct], item_info[48], block_count, size = ArraySize(g_aMapsList);
+	new map_info[MapStruct], item_info[48], block_count, size = ArraySize(maplist);
 	new random_sort = get_num(RANDOM_SORT), Array:array = ArrayCreate(1, 1);
 
 	for(new i = 0, index, nom_index; i < size; i++) {
@@ -282,7 +346,7 @@ public clcmd_mapslist(id)
 			index = i;
 		}
 
-		ArrayGetArray(g_aMapsList, index, map_info);
+		ArrayGetArray(maplist, index, map_info);
 		nom_index = map_nominated(map_info[MapName]);
 		block_count = mapm_get_blocked_count(map_info[MapName]);
 		

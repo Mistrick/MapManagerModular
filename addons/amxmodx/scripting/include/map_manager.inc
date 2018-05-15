@@ -33,7 +33,7 @@ native mapm_load_maplist(filename[], clearlist = true);
  * @param array			Array with item size MapStruct. 
  * @param filename		File name
  *
- * @noreturn
+ * @return				1 if success load, 0 otherwise
  */
 native mapm_load_maplist_to_array(Array:array, filename[]);
 

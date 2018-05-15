@@ -158,7 +158,7 @@ public native_load_maplist_to_array(plugin, params)
 	new filename[256];
 	get_string(arg_filename, filename, charsmax(filename));
 
-	load_maplist(Array:get_param(arg_array), filename, false);
+	return load_maplist(Array:get_param(arg_array), filename, true);
 }
 public native_get_map_index(plugin, params)
 {
@@ -288,7 +288,7 @@ load_maplist(Array:array, const file[], bool:silent = false)
 			new error[192]; formatex(error, charsmax(error), "File doesn't exist ^"%s^".", file_path);
 			set_fail_state(error);
 		}
-		return;
+		return 0;
 	}
 
 	new f = fopen(file_path, "rt");
@@ -297,7 +297,7 @@ load_maplist(Array:array, const file[], bool:silent = false)
 		if(!silent) {
 			set_fail_state("Can't read maps file.");
 		}
-		return;
+		return 0;
 	}
 
 	new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], first_map[MAPNAME_LENGTH], min[3], max[3], bool:nextmap, bool:found_nextmap;
@@ -330,9 +330,12 @@ load_maplist(Array:array, const file[], bool:silent = false)
 	}
 	fclose(f);
 
-	if(!ArraySize(array) && !silent) {
-		new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
-		set_fail_state(error);
+	if(!ArraySize(array)) {
+		if(!silent) {
+			new error[192]; formatex(error, charsmax(error), "Nothing loaded from ^"%s^".", file_path);
+			set_fail_state(error);
+		}
+		return 0;
 	}
 
 	if(!silent) {
@@ -342,6 +345,8 @@ load_maplist(Array:array, const file[], bool:silent = false)
 		new ret;
 		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array);
 	}
+
+	return 1;
 }
 //-----------------------------------------------------//
 // Vote stuff

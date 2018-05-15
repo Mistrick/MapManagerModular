@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Advanced lists"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -57,14 +57,14 @@ public native_get_list_name(plugin, params)
 	ArrayGetArray(g_aLists, item, list_info);
 	set_string(arg_list_name, list_info[ListName], get_param(arg_size));
 }
-public native_get_list_array(plugin, params)
+public Array:native_get_list_array(plugin, params)
 {
 	enum {
 		arg_item = 1
 	};
 	
 	new item = ArrayGetCell(g_aActiveLists, get_param(arg_item));
-	return _:g_aMapLists[item];
+	return g_aMapLists[item];
 }
 public plugin_cfg()
 {
@@ -107,12 +107,17 @@ public plugin_cfg()
 			list_info[StopTime] = get_int_time(stop);
 		}
 
-		ArrayPushArray(g_aLists, list_info);
-
 		// load maps from file to local list
 		g_aMapLists[i] = ArrayCreate(MapStruct, 1);
-		mapm_load_maplist_to_array(g_aMapLists[i], list_info[FileList]);
+		
+		if(!mapm_load_maplist_to_array(g_aMapLists[i], list_info[FileList])) {
+			ArrayDestroy(g_aMapLists[i]);
+			continue;
+		}
+
 		i++;
+
+		ArrayPushArray(g_aLists, list_info);
 
 		list_info[AnyTime] = false;
 		list_info[StartTime] = 25 * 60;
@@ -161,7 +166,7 @@ public task_check_list()
 		}
 	}
 
-	new reload = false;
+	new bool:reload = false;
 
 	if(ArraySize(g_aActiveLists) != ArraySize(temp)) {
 		reload = true;

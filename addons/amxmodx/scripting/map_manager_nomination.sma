@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.6"
+#define VERSION "0.0.7"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -314,12 +314,17 @@ public lists_handler(id, menu, item)
 		return PLUGIN_HANDLED;
 	}
 
-	new item_info[8], item_name[32], access, callback;
-	menu_item_getinfo(menu, item, access, item_info, charsmax(item_info), item_name, charsmax(item_name), callback);
+	menu_destroy(menu);
 
-	// TODO: make this safe, callback may call after changes in adv list
+	if(item >= mapm_advl_get_active_lists()) {
+		clcmd_mapslist(id);
+		return PLUGIN_HANDLED;
+	}
+	
+	new list_name[32];
+	mapm_advl_get_list_name(item, list_name, charsmax(list_name));
 	new Array:maplist = mapm_advl_get_list_array(item);
-	show_nomination_menu(id, maplist, item_name);
+	show_nomination_menu(id, maplist, list_name);
 
 	return PLUGIN_HANDLED;
 }

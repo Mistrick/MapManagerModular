@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.6"
+#define VERSION "0.0.7"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -133,7 +133,7 @@ public mapm_prepare_votelist(type)
 	}
 	if(get_num(FREEZE_IN_VOTE)) {
 		if(get_num(FREEZE_IN_VOTE) == FREEZE_TIME_ENABLED 
-			&& (type == VOTE_BY_SCHEDULER || type == VOTE_BY_RTV)
+			&& (type == VOTE_BY_SCHEDULER || type == VOTE_BY_RTV || type == VOTE_BY_CMD)
 			&& get_num(VOTE_IN_NEW_ROUND)) {
 			// increase freezetime
 			g_bFreezetimeChanged = true;

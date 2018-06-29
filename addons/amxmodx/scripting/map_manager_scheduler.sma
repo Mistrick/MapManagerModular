@@ -221,7 +221,7 @@ public client_putinserver(id)
 		remove_task(TASK_CHANGE_TO_DEFAULT);
 	}
 }
-public client_disconnect(id)
+public client_disconnected(id)
 {
 	new Float:change_time = get_float(CHANGE_TO_DEFAULT);
 	if(change_time > 0.0 && !get_players_num(id)) {

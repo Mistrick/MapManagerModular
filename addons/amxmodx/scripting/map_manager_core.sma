@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.0-Beta-4"
+#define VERSION "3.0.0-Beta-5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -34,6 +34,7 @@ enum Forwards {
 	CAN_BE_EXTENDED,
 	PREPARE_VOTELIST,
 	VOTE_STARTED,
+	VOTE_CANCELED,
 	ANALYSIS_OF_RESULTS,
 	VOTE_FINISHED,
 	COUNTDOWN
@@ -103,6 +104,7 @@ public plugin_init()
 	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
 	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
+	g_hForwards[VOTE_CANCELED] = CreateMultiForward("mapm_vote_canceled", ET_IGNORE, FP_CELL);
 	g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE, FP_CELL, FP_CELL);
 	g_hForwards[VOTE_FINISHED] = CreateMultiForward("mapm_vote_finished", ET_IGNORE, FP_STRING, FP_CELL, FP_CELL);
 	g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING, FP_CELL, FP_CELL);
@@ -615,6 +617,9 @@ stop_vote()
 	
 	g_bVoteStarted = false;
 	g_bVoteFinished = false;
+
+	new ret;
+	ExecuteForward(g_hForwards[VOTE_CANCELED], ret, g_iVoteType);
 }
 
 //-----------------------------------------------------//

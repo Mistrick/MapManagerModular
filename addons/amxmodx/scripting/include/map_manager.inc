@@ -206,6 +206,15 @@ forward mapm_can_be_extended(type);
 forward mapm_vote_started(type);
 
 /**
+ * Called when core canceled vote.
+ *
+ * @param type			Type of vote, used const VOTE_BY_*
+ * 
+ * @noreturn
+ */
+forward mapm_vote_canceled(type);
+
+/**
  * Called before vote finish.
  *
  * @param type			Type of vote, used const VOTE_BY_*

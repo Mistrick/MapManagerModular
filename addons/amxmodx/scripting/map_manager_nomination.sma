@@ -290,6 +290,7 @@ public clcmd_mapslist(id)
 show_lists_menu(id)
 {
 	new text[64];
+	// TODO: add ML
 	new menu = menu_create("Maps lists:", "lists_handler");
 
 	new list[32], size = mapm_advl_get_active_lists();

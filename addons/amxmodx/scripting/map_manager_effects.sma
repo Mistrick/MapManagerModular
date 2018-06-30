@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.7"
+#define VERSION "0.0.8"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -149,6 +149,14 @@ public mapm_vote_started(type)
 	send_audio(0, "sound/Gman/Gman_Choose2.wav", PITCH_NORM);
 }
 public mapm_vote_finished(const map[], type, total_votes)
+{
+	disable_effects(map);
+}
+public mapm_vote_canceled(type)
+{
+	disable_effects("");
+}
+disable_effects(const map[])
 {
 	if(get_num(BLACK_SCREEN)) {
 		remove_task(TASK_FULLBLACK);

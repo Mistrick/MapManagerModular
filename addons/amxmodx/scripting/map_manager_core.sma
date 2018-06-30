@@ -586,6 +586,9 @@ finish_vote()
 	ExecuteForward(g_hForwards[ANALYSIS_OF_RESULTS], ret, g_iVoteType, g_iTotalVotes);
 
 	if(ret) {
+		if(ret == ABORT_VOTE_WITH_FORWARD) {
+			ExecuteForward(g_hForwards[VOTE_CANCELED], ret, g_iVoteType);
+		}
 		return;
 	}
 

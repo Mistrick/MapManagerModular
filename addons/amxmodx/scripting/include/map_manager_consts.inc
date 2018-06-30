@@ -50,7 +50,8 @@ enum {
 
 enum {
 	ALLOW_VOTE,
-	ABORT_VOTE
+	ABORT_VOTE,
+	ABORT_VOTE_WITH_FORWARD
 };
 
 enum {

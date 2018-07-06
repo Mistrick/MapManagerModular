@@ -92,7 +92,7 @@ public clcmd_say(id)
 
 	new args[2]; read_args(args, charsmax(args));
 
-	return (args[0] == '/') ? PLUGIN_HANDLED_MAIN : PLUGIN_HANDLED;
+	return (args[0] == '/') ? PLUGIN_HANDLED : PLUGIN_HANDLED_MAIN;
 }
 public player_spawn_post(id)
 {

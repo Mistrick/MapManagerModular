@@ -13,25 +13,25 @@
 #endif
 
 /**
- * TODO: write this
+ * Array size of advanced list.
  * 
  * @return				Number of active lists
  */
 native mapm_advl_get_active_lists();
 
 /**
- * TODO: write this
+ * Get list name.
  *
  * @param item			Number of active list
  * @param list_name		String for list name
  * @param size			String size
  * 
- * @return 				Array pointer
+ * @noreturn
  */
 native mapm_advl_get_list_name(item, list_name[], size);
 
 /**
- * TODO: write this
+ * Get Array pointer by index
  *
  * @param item			Number of active list
  * 

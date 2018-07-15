@@ -218,7 +218,7 @@ forward mapm_vote_canceled(type);
  * Called before vote finish.
  *
  * @param type			Type of vote, used const VOTE_BY_*
- * @param total_votes	Type of vote, used const VOTE_BY_*
+ * @param total_votes	Count of players votes
  * 
  * @return				ALLOW_VOTE to allow finish vote
  *						ABORT_VOTE to block finish vote, forward mapm_vote_finished() will not be called
@@ -230,9 +230,9 @@ forward mapm_analysis_of_results(type, total_votes);
  *
  * @note Can be blocked in forward mapm_analysis_of_results()
  *
- * @param map			Type of vote, used const VOTE_BY_*
+ * @param map			Nextmap
  * @param type			Type of vote, used const VOTE_BY_*
- * @param total_votes	Type of vote, used const VOTE_BY_*
+ * @param total_votes	Count of players votes
  * 
  * @noreturn
  */

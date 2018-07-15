@@ -21,10 +21,10 @@ enum {
 	MAP_BLOCKED
 };
 
-enum {
+enum (<<=1) {
 	CHECK_NOT_IGNORED = 0,
 	CHECK_IGNORE_MAP_ALLOWED = 1 << 0,
-	CHECK_IGNORE_VALID_MAP = 1 << 1
+	CHECK_IGNORE_VALID_MAP
 };
 
 enum {

@@ -5,6 +5,8 @@
 
 const MAPNAME_LENGTH = 32;
 
+const MAX_VOTELIST_SIZE = 9;
+
 enum _:MapStruct {
 	MapName[MAPNAME_LENGTH],
 	MinPlayers,

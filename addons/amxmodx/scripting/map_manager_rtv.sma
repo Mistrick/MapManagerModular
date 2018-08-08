@@ -68,13 +68,9 @@ public client_disconnected(id)
 }
 public clcmd_rtv(id)
 {
-	if(is_vote_started() || is_vote_finished() || is_vote_will_in_next_round()) {
+	if(is_vote_started() || is_vote_created() || is_vote_finished() || is_vote_will_in_next_round()) {
 		// add msg?
 		return PLUGIN_HANDLED;
-	}
-
-	if(is_vote_created()) {
-		return PLUGIN_HANDLED;	
 	}
 
 	new delay = get_num(DELAY) * 60 - (get_systime() - g_iMapStartTime);

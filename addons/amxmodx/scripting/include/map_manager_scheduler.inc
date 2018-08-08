@@ -27,3 +27,10 @@ native map_scheduler_start_vote(type);
  * @return				true/false
  */
 native bool:is_vote_will_in_next_round();
+
+/**
+ * Returns true if now is vote created.
+ *
+ * @return				true/false
+ */
+native bool:is_vote_created();

@@ -2,6 +2,7 @@
 #include <map_manager>
 #include <map_manager_blocklist>
 #include <map_manager_adv_lists>
+#include <map_manager_scheduler>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
@@ -131,7 +132,7 @@ public clcmd_say(id)
 	new text[MAPNAME_LENGTH]; read_args(text, charsmax(text));
 	remove_quotes(text); trim(text); strtolower(text);
 	
-	if(is_string_with_space(text)) return PLUGIN_CONTINUE;
+	if(is_string_with_space(text) || is_vote_created()) return PLUGIN_CONTINUE;
 	
 	new map_index = mapm_get_map_index(text);
 

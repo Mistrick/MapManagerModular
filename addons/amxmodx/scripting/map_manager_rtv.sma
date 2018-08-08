@@ -73,6 +73,10 @@ public clcmd_rtv(id)
 		return PLUGIN_HANDLED;
 	}
 
+	if(is_vote_created()) {
+		return PLUGIN_HANDLED;	
+	}
+
 	new delay = get_num(DELAY) * 60 - (get_systime() - g_iMapStartTime);
 	if(delay > 0) {
 		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_RTV_DELAY", delay / 60, delay % 60);

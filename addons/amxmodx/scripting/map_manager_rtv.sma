@@ -69,7 +69,7 @@ public client_disconnected(id)
 public clcmd_rtv(id)
 {
 	if(is_vote_started() || is_vote_created() || is_vote_finished() || is_vote_will_in_next_round()) {
-		// add msg?
+		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_CMD_NOT_AVAILABLE");
 		return PLUGIN_HANDLED;
 	}
 

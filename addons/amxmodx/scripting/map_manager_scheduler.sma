@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.8"
+#define VERSION "0.0.9"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -133,7 +133,8 @@ public plugin_natives()
 
 	register_native("map_scheduler_start_vote", "native_start_vote");
 	register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
-	register_native("is_vote_created", "native_is_vote_created");
+	register_native("is_last_round", "native_is_last_round");
+  register_native("is_vote_created", "native_is_vote_created");
 }
 public native_start_vote(plugin, params)
 {
@@ -149,6 +150,10 @@ public native_start_vote(plugin, params)
 public native_vote_will_in_next_round(plugin, params)
 {
 	return g_bVoteInNewRound;
+}
+public native_is_last_round(plugin, params)
+{
+	return g_bChangeMapNextRound;
 }
 public native_is_vote_created(plugin, params)
 {
@@ -304,7 +309,7 @@ public event_newround()
 		g_bVoteCreated = false;
 	}
 
-	if(is_vote_finished() && (g_bChangeMapNextRound || get_num(LAST_ROUND))) {
+	if(is_vote_finished() && g_bChangeMapNextRound) {
 		new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
 		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
 		intermission();
@@ -478,6 +483,8 @@ public mapm_vote_finished(const map[], type, total_votes)
 		// What if timelimit 0?
 		g_fOldTimeLimit = get_float(TIMELIMIT);
 		set_float(TIMELIMIT, 0.0);
+		g_bChangeMapNextRound = true;
+
 		client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_LASTROUND");
 		
 		log_amx("[vote_finished]: last round - saved timelimit is %f", g_fOldTimeLimit);

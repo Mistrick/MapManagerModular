@@ -120,6 +120,11 @@ public plugin_init()
 	register_event(EVENT_SVC_INTERMISSION, "event_intermission", "a");
 
 	set_task(10.0, "task_checktime", TASK_CHECKTIME, .flags = "b");
+	
+	new Float:change_time = get_float(CHANGE_TO_DEFAULT);
+	if(change_time > 0.0 && !get_players_num()) {
+		set_task(change_time * 60, "task_change_to_default", TASK_CHANGE_TO_DEFAULT);
+	}		
 }
 public plugin_cfg()
 {
@@ -240,6 +245,10 @@ public task_change_to_default()
 	if(!is_map_valid(default_map)) {
 		return;
 	}
+	
+	if(equali(g_sCurMap, default_map)) {
+		return;
+	}	
 
 	log_amx("map changed to default[%s]", default_map);
 	set_pcvar_string(g_pCvars[NEXTMAP], default_map);

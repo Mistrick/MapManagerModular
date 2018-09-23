@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.0.9"
+#define VERSION "0.1.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -112,7 +112,9 @@ public plugin_init()
 
 	register_clcmd("votemap", "clcmd_votemap");
 
-	register_event("DeathMsg", "event_deathmsg", "a");
+	if(g_pCvars[FRAGLIMIT]) {
+		register_event("DeathMsg", "event_deathmsg", "a");
+	}
 	register_event("TeamScore", "event_teamscore", "a");
 	register_event("HLTV", "event_newround", "a", "1=0", "2=0");
 	// register_event("TextMsg", "event_restart", "a", "2=#Game_Commencing", "2=#Game_will_restart_in");

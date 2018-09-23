@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.7"
+#define VERSION "0.0.8"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -345,7 +345,7 @@ show_nomination_menu(id, Array:maplist, custom_title[] = "")
 	for(new i = 0, index, nom_index; i < size; i++) {
 		if(random_sort) {
 			do {
-				index = random(size);
+				index = random_num(0, size - 1);
 			} while(in_array(array, index));
 			ArrayPushCell(array, index);
 		} else {
@@ -428,7 +428,7 @@ public mapm_prepare_votelist(type)
 	}
 	new nom_info[NomStruct];
 	for(new i, index; i < get_num(MAPS_IN_VOTE) && ArraySize(g_aNomList); i++) {
-		index = random(ArraySize(g_aNomList));
+		index = random_num(0, ArraySize(g_aNomList) - 1);
 		ArrayGetArray(g_aNomList, index, nom_info);
 		ArrayDeleteItem(g_aNomList, index);
 		g_iNomMaps[nom_info[NomPlayer]]--;

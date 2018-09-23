@@ -47,7 +47,7 @@ native mapm_load_maplist_to_array(Array:array, filename[]);
 native mapm_get_map_index(map[]);
 
 /**
- * Get prefix const from core.
+ * Get prefix from core.
  * 
  * @param prefix		Prefix string
  * @param len			String lenght

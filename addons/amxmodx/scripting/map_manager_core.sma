@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.0-Beta-5"
+#define VERSION "3.0.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -359,8 +359,6 @@ prepare_vote(type)
 		return 0;
 	}
 
-	// server_print("--prepare vote--");
-
 	g_bVoteStarted = true;
 	g_bVoteFinished = false;
 
@@ -386,7 +384,7 @@ prepare_vote(type)
 		new map_info[MapStruct];
 		for(new random_map; g_iVoteItems < vote_max_items; g_iVoteItems++) {
 			do {
-				random_map = random(array_size);
+				random_map = random_num(0, array_size - 1);
 				ArrayGetArray(g_aMapsList, random_map, map_info);
 			} while(is_map_in_vote(map_info[MapName]) || !is_map_allowed(map_info[MapName], PUSH_BY_CORE, random_map));
 
@@ -413,7 +411,7 @@ prepare_vote(type)
 		arrayset(g_iRandomNums, -1, sizeof(g_iRandomNums));
 		for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
 			do {
-				g_iRandomNums[i] = random(g_iVoteItems + g_bCanExtend);
+				g_iRandomNums[i] = random_num(0, g_iVoteItems + g_bCanExtend - 1);
 			} while(in_array(i, g_iRandomNums[i]));
 		}
 	} else {
@@ -579,7 +577,6 @@ finish_vote()
 	g_bVoteStarted = false;
 
 	// vote results
-	// server_print("--finish vote--");
 
 	// pre forward
 	new ret;
@@ -601,7 +598,7 @@ finish_vote()
 		}
 	}
 	else {
-		max_vote = random(g_iVoteItems);
+		max_vote = random_num(0, g_iVoteItems - 1);
 	}
 
 	// post forward

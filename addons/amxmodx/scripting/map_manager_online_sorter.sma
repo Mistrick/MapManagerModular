@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Online sorter"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -38,18 +38,16 @@ public mapm_prepare_votelist(type)
 	new Array:array = ArrayCreate(MAPNAME_LENGTH, 1);
 	new map_info[MapStruct], size = ArraySize(g_aMapsList);
 
-	// server_print("Found maps for current online:");
 	for(new i; i < size; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);
 		if(map_info[MinPlayers] <= players_num <= map_info[MaxPlayers]) {
 			ArrayPushString(array, map_info[MapName]);
-			// server_print("%d - %s", ArraySize(array), map_info[MapName]);
 		}
 	}
 
 	new map[MAPNAME_LENGTH], max_items = mapm_get_votelist_size();
 	for(new i, index; i < max_items && ArraySize(array); i++) {
-		index = random(ArraySize(array));
+		index = random_num(0, ArraySize(array) - 1);
 		ArrayGetString(array, index, map, charsmax(map));
 		ArrayDeleteItem(array, index);
 		if(mapm_push_map_to_votelist(map, PUSH_BY_ONLINE_SORTER) == PUSH_BLOCKED) {

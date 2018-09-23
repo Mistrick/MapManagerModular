@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -85,7 +85,7 @@ public clcmd_rtv(id)
 
 	new need_votes;
 	if(get_num(MODE) == MODE_PERCENTS) {
-		need_votes = floatround(get_players_num() * get_num(PERCENT) / 100.0) - g_iVotes;
+		need_votes = floatround(get_players_num() * get_num(PERCENT) / 100.0, floatround_ceil) - g_iVotes;
 	} else {
 		need_votes = get_num(PLAYERS) - g_iVotes;
 	}

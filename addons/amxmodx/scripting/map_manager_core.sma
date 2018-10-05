@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.0"
+#define VERSION "3.0.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -68,7 +68,7 @@ new g_iVoted[33];
 
 new g_hForwards[Forwards];
 
-new Array:g_aMapsList;
+new Array:g_aMapsList = Invalid_Array;
 
 new g_iShowType;
 new g_bShowSelects;
@@ -143,6 +143,10 @@ public native_load_maplist(plugin, params)
 	};
 
 	if(get_param(arg_clearlist)) {
+		if(g_aMapsList == Invalid_Array) {
+			set_fail_state("Clear empty Array. Don't use this navite before core load maplist.");
+			return;
+		}
 		ArrayClear(g_aMapsList);
 	}
 

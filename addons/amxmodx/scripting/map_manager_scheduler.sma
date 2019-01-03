@@ -1,6 +1,7 @@
 #include <amxmodx>
 #include <amxmisc>
 #include <map_manager>
+#include <map_manager_nomination>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
@@ -8,6 +9,7 @@
 
 #define PLUGIN "Map Manager: Scheduler"
 #define VERSION "0.1.0"
+#define VERSION "0.1.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -414,12 +416,16 @@ public mapm_analysis_of_results(type, total_votes)
 	log_amx("[analysis]: second vote started. (%s, %s)", g_sSecondVoteMaps[0], g_sSecondVoteMaps[1]);
 
 	client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_SECOND_VOTE");
+	map_nomination_set_ignore(true);
 	mapm_start_vote(VOTE_BY_SCHEDULER_SECOND);
 
 	return ABORT_VOTE;
 }
 public mapm_vote_finished(const map[], type, total_votes)
 {
+	if(type == VOTE_BY_SCHEDULER_SECOND) {
+		map_nomination_set_ignore(false);
+	}
 	if(g_fOldTimeLimit > 0.0) {
 		set_float(TIMELIMIT, g_fOldTimeLimit);
 		g_fOldTimeLimit = 0.0;

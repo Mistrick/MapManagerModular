@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.1"
+#define VERSION "3.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -30,6 +30,7 @@ enum (+=100) {
 
 enum Forwards {
 	MAPLIST_LOADED,
+	MAPLIST_UNLOADED,
 	CAN_BE_IN_VOTELIST,
 	CAN_BE_EXTENDED,
 	PREPARE_VOTELIST,
@@ -101,7 +102,8 @@ public plugin_init()
 	g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
 	g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
 
-	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
+	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
+	g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
 	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
 	g_hForwards[VOTE_CANCELED] = CreateMultiForward("mapm_vote_canceled", ET_IGNORE, FP_CELL);
@@ -122,6 +124,7 @@ public plugin_natives()
 
 	register_native("mapm_load_maplist", "native_load_maplist");
 	register_native("mapm_load_maplist_to_array", "native_load_maplist_to_array");
+	register_native("mapm_add_map_to_list", "native_add_map_to_list");
 	register_native("mapm_get_map_index", "native_get_map_index");
 	register_native("mapm_get_prefix", "native_get_prefix");
 	register_native("mapm_set_vote_finished", "native_set_vote_finished");
@@ -132,6 +135,7 @@ public plugin_natives()
 	register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
 	register_native("mapm_get_count_maps_in_vote", "native_get_count_maps_in_vote");
 	register_native("mapm_get_voteitem_info", "native_get_voteitem_info");
+	register_native("mapm_get_vote_type", "native_get_vote_type");
 	register_native("is_vote_started", "native_is_vote_started");
 	register_native("is_vote_finished", "native_is_vote_finished");
 }
@@ -148,6 +152,8 @@ public native_load_maplist(plugin, params)
 			return;
 		}
 		ArrayClear(g_aMapsList);
+		new ret;
+		ExecuteForward(g_hForwards[MAPLIST_UNLOADED], ret);
 	}
 
 	new filename[256];
@@ -165,6 +171,27 @@ public native_load_maplist_to_array(plugin, params)
 	get_string(arg_filename, filename, charsmax(filename));
 
 	return load_maplist(Array:get_param(arg_array), filename, true);
+}
+public native_add_map_to_list(plugin, params)
+{
+	enum {
+		arg_name = 1,
+		arg_minplayers,
+		arg_maxplayers
+	};
+
+	new map_info[MapStruct];
+	get_string(arg_name, map_info[MapName], charsmax(map_info[MapName]));
+
+	if(!valid_map(map_info[MapName]) || get_map_index(g_aMapsList, map_info[MapName]) != INVALID_MAP_INDEX) {
+		return 0;
+	}
+	
+	map_info[MinPlayers] = get_param(arg_minplayers);
+	map_info[MaxPlayers] = get_param(arg_maxplayers);
+	ArrayPushArray(g_aMapsList, map_info);
+	
+	return 1;
 }
 public native_get_map_index(plugin, params)
 {
@@ -256,6 +283,10 @@ public native_get_voteitem_info(plugin, params)
 	set_string(arg_map, g_sVoteList[item], get_param(arg_len));
 
 	return g_iVotes[item];
+}
+public native_get_vote_type(plugin, params)
+{
+	return g_iVoteType;
 }
 public native_is_vote_started(plugin, params)
 {
@@ -349,7 +380,7 @@ load_maplist(Array:array, const file[], bool:silent = false)
 			set_cvar_string("amx_nextmap", first_map);
 		}
 		new ret;
-		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array);
+		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array, file);
 	}
 
 	return 1;

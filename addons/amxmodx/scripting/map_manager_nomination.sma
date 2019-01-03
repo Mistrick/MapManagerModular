@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.0.8"
+#define VERSION "0.1.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -48,6 +48,7 @@ new Array:g_aMapsList;
 new g_hCallbackDisabled;
 new g_iNomMaps[33];
 new g_iLastDenominate[33];
+new bool:g_bIgnoreVote = false;
 
 new g_sPrefix[48];
 
@@ -75,6 +76,10 @@ public plugin_natives()
 {
 	set_module_filter("module_filter_handler");
 	set_native_filter("native_filter_handler");
+
+	register_library("map_manager_nomination");
+	register_native("is_nomination_ignore_vote", "native_get_ignore");
+	register_native("map_nomination_set_ignore", "native_set_ignore");
 }
 public module_filter_handler(const library[], LibType:type)
 {
@@ -101,6 +106,15 @@ public native_filter_handler(const native_func[], index, trap)
 		return PLUGIN_HANDLED;
 	}
 	return PLUGIN_CONTINUE;
+}
+public native_get_ignore(plugin, params)
+{
+	return g_bIgnoreVote;
+}
+public native_set_ignore(plugin, params)
+{
+	enum { arg_ignore = 1 };
+	g_bIgnoreVote = bool:get_param(arg_ignore);
 }
 public callback_disable_item()
 {
@@ -216,7 +230,7 @@ show_nomlist(id, Array: array, size)
 {
 	new text[64]; formatex(text, charsmax(text), "%L", LANG_PLAYER, "MAPM_MENU_FAST_NOM");
 	new menu = menu_create(text, "nomlist_handler");
-	new map_info[MapStruct], item_info[48], map_index, nom_index, block_count;
+	new map_info[MapStruct], item_name[MAPNAME_LENGTH + 16], map_index, nom_index, block_count;
 	
 	for(new i, str_num[6]; i < size; i++) {
 		map_index = ArrayGetCell(array, i);
@@ -227,16 +241,16 @@ show_nomlist(id, Array: array, size)
 		block_count = mapm_get_blocked_count(map_info[MapName]);
 
 		if(block_count) {
-			formatex(item_info, charsmax(item_info), "%s[\r%d\d]", map_info[MapName], block_count);
-			menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
+			formatex(item_name, charsmax(item_name), "%s[\r%d\d]", map_info[MapName], block_count);
+			menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 		} else if(nom_index != INVALID_MAP_INDEX) {
 			new nom_info[NomStruct]; ArrayGetArray(g_aNomList, nom_index, nom_info);
 			if(id == nom_info[NomPlayer]) {
-				formatex(item_info, charsmax(item_info), "%s[\y*\w]", map_info[MapName]);
-				menu_additem(menu, item_info);
+				formatex(item_name, charsmax(item_name), "%s[\y*\w]", map_info[MapName]);
+				menu_additem(menu, item_name);
 			} else {
-				formatex(item_info, charsmax(item_info), "%s[\y*\d]", map_info[MapName]);
-				menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
+				formatex(item_name, charsmax(item_name), "%s[\y*\d]", map_info[MapName]);
+				menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 			}
 		} else {
 			menu_additem(menu, map_info[MapName]);
@@ -339,7 +353,7 @@ show_nomination_menu(id, Array:maplist, custom_title[] = "")
 	}
 	new menu = menu_create(text, "mapslist_handler");
 	
-	new map_info[MapStruct], item_info[48], block_count, size = ArraySize(maplist);
+	new map_info[MapStruct], item_name[MAPNAME_LENGTH + 16], block_count, size = ArraySize(maplist);
 	new random_sort = get_num(RANDOM_SORT), Array:array = ArrayCreate(1, 1);
 
 	for(new i = 0, index, nom_index; i < size; i++) {
@@ -357,16 +371,16 @@ show_nomination_menu(id, Array:maplist, custom_title[] = "")
 		block_count = mapm_get_blocked_count(map_info[MapName]);
 		
 		if(block_count) {
-			formatex(item_info, charsmax(item_info), "%s[\r%d\d]", map_info[MapName], block_count);
-			menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
+			formatex(item_name, charsmax(item_name), "%s[\r%d\d]", map_info[MapName], block_count);
+			menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 		} else if(nom_index != INVALID_MAP_INDEX) {
 			new nom_info[NomStruct]; ArrayGetArray(g_aNomList, nom_index, nom_info);
 			if(id == nom_info[NomPlayer]) {
-				formatex(item_info, charsmax(item_info), "%s[\y*\w]", map_info[MapName]);
-				menu_additem(menu, item_info);
+				formatex(item_name, charsmax(item_name), "%s[\y*\w]", map_info[MapName]);
+				menu_additem(menu, item_name);
 			} else {
-				formatex(item_info, charsmax(item_info), "%s[\y*\d]", map_info[MapName]);
-				menu_additem(menu, item_info, .callback = g_hCallbackDisabled);
+				formatex(item_name, charsmax(item_name), "%s[\y*\d]", map_info[MapName]);
+				menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 			}
 		} else {
 			menu_additem(menu, map_info[MapName]);
@@ -423,7 +437,7 @@ public mapslist_handler(id, menu, item)
 
 public mapm_prepare_votelist(type)
 {
-	if(type == VOTE_BY_SCHEDULER_SECOND) {
+	if(g_bIgnoreVote) {
 		return;
 	}
 	new nom_info[NomStruct];

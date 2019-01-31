@@ -20,11 +20,12 @@
  * File loads from configs dir. 
  *
  * @param filename           File name
- * @param clearlist          Clear old maplist before new load. 
+ * @param clearlist          Clear old maplist before new load.
+ * @param silent             If false then will be call forward mapm_maplist_loaded.
  *
  * @noreturn
  */
-native mapm_load_maplist(filename[], clearlist = true);
+native mapm_load_maplist(filename[], bool:clearlist = true, bool:silent = false);
 
 /**
  * Load maps from file.
@@ -36,6 +37,14 @@ native mapm_load_maplist(filename[], clearlist = true);
  * @return                   1 if success load, 0 otherwise
  */
 native mapm_load_maplist_to_array(Array:array, filename[]);
+
+/**
+ * Block default load maplist.
+ * Use before call plugin_cfg().
+ *
+ * @noreturn
+ */
+native mapm_block_load_maplist();
 
 /**
  * Add map to maplist
@@ -169,10 +178,11 @@ native bool:is_vote_finished();
  * 
  * @param maplist            Array with loaded maps
  * @param file               Load file
+ * @param cleared            True if cleared old list before load
  *
  * @noreturn
  */
-forward mapm_maplist_loaded(Array:maplist, const file[]);
+forward mapm_maplist_loaded(Array:maplist);
 
 /**
  * Called after clear maplist.

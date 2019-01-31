@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.2"
+#define VERSION "3.0.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -41,17 +41,12 @@ enum Forwards {
 	COUNTDOWN
 };
 
-enum {
-	SHOW_DISABLED,
-	SHOW_MENU,
-	SHOW_HUD
-};
-
 enum Cvars {
 	PREFIX,
 	VOTELIST_SIZE,
 	SHOW_RESULT_TYPE,
 	SHOW_SELECTS,
+	SHOW_PERCENT,
 	RANDOM_NUMS,
 	PREPARE_TIME,
 	VOTE_TIME,
@@ -71,7 +66,9 @@ new g_hForwards[Forwards];
 
 new Array:g_aMapsList = Invalid_Array;
 
+new bool:g_bBlockLoad = false;
 new g_iShowType;
+new g_iShowPercent;
 new g_bShowSelects;
 new g_iTimer;
 new g_bCanExtend;
@@ -97,12 +94,13 @@ public plugin_init()
 	g_pCvars[VOTELIST_SIZE] = register_cvar("mapm_votelist_size", "5");
 	g_pCvars[SHOW_RESULT_TYPE] = register_cvar("mapm_show_result_type", "1"); //0 - disable, 1 - menu, 2 - hud
 	g_pCvars[SHOW_SELECTS] = register_cvar("mapm_show_selects", "1"); // 0 - disable, 1 - all
+	g_pCvars[SHOW_PERCENT] = register_cvar("mapm_show_percent", "1"); // 0 - disable, 1 - always, 2 - after vote
 	g_pCvars[RANDOM_NUMS] = register_cvar("mapm_random_nums", "0"); // 0 - disable, 1 - enable
 	g_pCvars[PREPARE_TIME] = register_cvar("mapm_prepare_time", "5"); // seconds
 	g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
 	g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
 
-	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
+	g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
 	g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
 	g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
 	g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
@@ -124,6 +122,7 @@ public plugin_natives()
 
 	register_native("mapm_load_maplist", "native_load_maplist");
 	register_native("mapm_load_maplist_to_array", "native_load_maplist_to_array");
+	register_native("mapm_block_load_maplist", "native_block_load_maplist");
 	register_native("mapm_add_map_to_list", "native_add_map_to_list");
 	register_native("mapm_get_map_index", "native_get_map_index");
 	register_native("mapm_get_prefix", "native_get_prefix");
@@ -143,7 +142,8 @@ public native_load_maplist(plugin, params)
 {
 	enum {
 		arg_filename = 1,
-		arg_clearlist
+		arg_clearlist,
+		arg_silent
 	};
 
 	if(get_param(arg_clearlist)) {
@@ -158,7 +158,7 @@ public native_load_maplist(plugin, params)
 
 	new filename[256];
 	get_string(arg_filename, filename, charsmax(filename));
-	load_maplist(g_aMapsList, filename);
+	load_maplist(g_aMapsList, filename, bool:get_param(arg_silent));
 }
 public native_load_maplist_to_array(plugin, params)
 {
@@ -171,6 +171,10 @@ public native_load_maplist_to_array(plugin, params)
 	get_string(arg_filename, filename, charsmax(filename));
 
 	return load_maplist(Array:get_param(arg_array), filename, true);
+}
+public native_block_load_maplist(plugin, params)
+{
+	g_bBlockLoad = true;
 }
 public native_add_map_to_list(plugin, params)
 {
@@ -313,7 +317,9 @@ public plugin_cfg()
 	replace_color_tag(g_sPrefix, charsmax(g_sPrefix));
 
 	// add forward for change file?
-	load_maplist(g_aMapsList, FILE_MAPS);
+	if(!g_bBlockLoad) {
+		load_maplist(g_aMapsList, FILE_MAPS);
+	}
 }
 load_maplist(Array:array, const file[], bool:silent = false)
 {
@@ -380,7 +386,7 @@ load_maplist(Array:array, const file[], bool:silent = false)
 			set_cvar_string("amx_nextmap", first_map);
 		}
 		new ret;
-		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array, file);
+		ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array);
 	}
 
 	return 1;
@@ -496,6 +502,7 @@ public countdown(taskid)
 		if(taskid == TASK_VOTE_TIME) {
 			new dont_show_result = get_num(SHOW_RESULT_TYPE) == SHOW_DISABLED;
 			g_iShowType = get_num(SHOW_RESULT_TYPE);
+			g_iShowPercent = get_num(SHOW_PERCENT);
 			g_bShowSelects = get_num(SHOW_SELECTS);
 			
 			new players[32], pnum; get_players(players, pnum, "ch");
@@ -554,8 +561,10 @@ public show_votemenu(id)
 			len += formatex(menu[len], charsmax(menu) - len, "%s%s", (g_iRandomNums[item] + g_iOffset == g_iVoted[id]) ? "\r" : "\d", g_sVoteList[item]);
 		}
 
-		percent = g_iTotalVotes ? floatround(g_iVotes[item] * 100.0 / g_iTotalVotes) : 0;
-		len += formatex(menu[len], charsmax(menu) - len, "\d[\r%d%%\d]", percent);
+		if(g_iShowPercent == PERCENT_ALWAYS || g_iVoted[id] != NOT_VOTED && g_iShowPercent == PERCENT_AFTER_VOTE) {
+			percent = g_iTotalVotes ? floatround(g_iVotes[item] * 100.0 / g_iTotalVotes) : 0;
+			len += formatex(menu[len], charsmax(menu) - len, "\d[\r%d%%\d]", percent);
+		}
 
 		if(item == g_iCurMap) {
 			len += formatex(menu[len], charsmax(menu) - len, "\y[%L]", id, "MAPM_MENU_EXTEND");

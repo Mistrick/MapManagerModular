@@ -16,6 +16,7 @@ enum _:NomStruct {
 	NomPlayer
 };
 
+// used as return value in forward "mapm_can_be_in_votelist"
 enum {
 	MAP_ALLOWED,
 	MAP_BLOCKED
@@ -27,12 +28,14 @@ enum (<<=1) {
 	CHECK_IGNORE_VALID_MAP
 };
 
+// used as return value in native "mapm_push_map_to_votelist"
 enum {
 	PUSH_BLOCKED = -1,
 	PUSH_CANCELED,
 	PUSH_SUCCESS
 };
 
+// used for type param in native "mapm_push_map_to_votelist"
 enum {
 	PUSH_BY_CORE,
 	PUSH_BY_NATIVE,
@@ -48,17 +51,20 @@ enum {
 	VOTE_BY_SCHEDULER_SECOND
 };
 
+// used as return value in forward "mapm_analysis_of_results"
 enum {
 	ALLOW_VOTE,
 	ABORT_VOTE,
 	ABORT_VOTE_WITH_FORWARD
 };
 
+// used for cvar "mapm_extended_type"
 enum {
 	EXTEND_MINUTES,
 	EXTEND_ROUNDS
 };
 
+// used as return value in forward "mapm_can_be_extended"
 enum {
 	EXTEND_ALLOWED,
 	EXTEND_BLOCKED
@@ -66,8 +72,23 @@ enum {
 
 const INVALID_MAP_INDEX = -1;
 
+// used for type param in forward "mapm_countdown"
 enum {
 	COUNTDOWN_UNKNOWN = -1,
 	COUNTDOWN_PREPARE,
 	COUNTDOWN_VOTETIME
 }
+
+// used for cvar "mapm_show_result_type"
+enum {
+	SHOW_DISABLED,
+	SHOW_MENU,
+	SHOW_HUD
+};
+
+// used for cvar "mapm_show_percent"
+enum {
+	PERCENT_DISABLED,
+	PERCENT_ALWAYS,
+	PERCENT_AFTER_VOTE
+};

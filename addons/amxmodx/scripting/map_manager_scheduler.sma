@@ -8,8 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.0"
-#define VERSION "0.1.1"
+#define VERSION "0.1.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -208,6 +207,10 @@ public concmd_stopvote(id, level, cid)
 	log_amx("%s stopped vote", id ? name : "Server");
 	
 	mapm_stop_vote();
+
+	if(mapm_get_vote_type() == VOTE_BY_SCHEDULER_SECOND) {
+		map_nomination_set_ignore(false);
+	}
 
 	if(g_bVoteInNewRound) {
 		g_bVoteInNewRound = false;

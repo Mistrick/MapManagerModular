@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.0.4"
+#define VERSION "0.1.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -23,6 +23,7 @@ enum Cvars {
 	PERCENT,
 	PLAYERS,
 	DELAY,
+	CHANGE_AFTER_VOTE,
 	CHANGE_TYPE,
 	ALLOW_EXTEND
 };
@@ -44,6 +45,7 @@ public plugin_init()
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
 	g_pCvars[MODE] = register_cvar("mapm_rtv_mode", "0"); // 0 - percents, 1 - players
+	g_pCvars[CHANGE_AFTER_VOTE] = register_cvar("mapm_rtv_change_after_vote", "0"); // 0 - disable, 1 - enable
 	g_pCvars[PERCENT] = register_cvar("mapm_rtv_percent", "60");
 	g_pCvars[PLAYERS] = register_cvar("mapm_rtv_players", "5");
 	g_pCvars[DELAY] = register_cvar("mapm_rtv_delay", "0"); // minutes
@@ -58,6 +60,7 @@ public plugin_init()
 public plugin_cfg()
 {
 	mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
+	g_pCvars[CHANGE_TYPE] = get_cvar_pointer("mapm_change_type");
 }
 public client_disconnected(id)
 {
@@ -116,4 +119,10 @@ public mapm_vote_started(type)
 {
 	g_iVotes = 0;
 	arrayset(g_bVoted, false, sizeof(g_bVoted));
+}
+public mapm_vote_finished(const map[], type, total_votes)
+{
+	if(type == VOTE_BY_RTV && !get_num(CHANGE_TYPE) && get_num(CHANGE_AFTER_VOTE)) {
+		intermission();
+	}
 }

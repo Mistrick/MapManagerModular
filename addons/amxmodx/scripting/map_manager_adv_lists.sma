@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Advanced lists"
-#define VERSION "0.0.4"
+#define VERSION "0.0.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -19,7 +19,7 @@ enum _:MapListInfo {
 	AnyTime,
 	StartTime,
 	StopTime,
-	ClearOldList,
+	bool:ClearOldList,
 	ListName[32],
 	FileList[128]
 };
@@ -31,6 +31,7 @@ new Array:g_aMapLists[MAX_MAPLISTS];
 public plugin_init()
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR);
+	mapm_block_load_maplist();
 }
 public plugin_natives()
 {
@@ -185,8 +186,8 @@ public task_check_list()
 		for(new i, item, size = ArraySize(g_aActiveLists); i < size; i++) {
 			item = ArrayGetCell(g_aActiveLists, i);
 			ArrayGetArray(g_aLists, item, list_info);
-			mapm_load_maplist(list_info[FileList], list_info[ClearOldList]);
 			log_amx("loaded new maplist[%s]", list_info[FileList]);
+			mapm_load_maplist(list_info[FileList], list_info[ClearOldList], i != size - 1);
 		}
 	}
 }

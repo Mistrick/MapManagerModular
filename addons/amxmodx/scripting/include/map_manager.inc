@@ -102,6 +102,13 @@ native mapm_start_vote(type);
 native mapm_stop_vote();
 
 /**
+ * Blocks show vote menu from core.
+ * 
+ * @noreturn
+ */
+native mapm_block_show_vote();
+
+/**
  * Get votelist size const from core.
  * 
  * @return Votelist size
@@ -158,6 +165,18 @@ native mapm_get_voteitem_info(item, map[], len);
  * @return                    Type of vote, used const VOTE_BY_*
  */
 native mapm_get_vote_type();
+
+/**
+ * Adds votes to vote item.
+ *
+ * @note Use while vote continues.
+ *
+ * @param item               Index in votelist
+ * @param value              Map name
+ * 
+ * @return                   1 if success
+ */
+native mapm_add_vote_to_item(item, value);
 
 /**
  * Returns if vote started.

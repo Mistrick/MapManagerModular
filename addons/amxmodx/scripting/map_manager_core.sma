@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.3"
+#define VERSION "3.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -77,6 +77,7 @@ new g_iCurMap;
 
 new g_iRandomNums[MAX_VOTELIST_SIZE + 1];
 
+new bool:g_bBlockShowVote = false;
 new g_iVoteType;
 new bool:g_bVoteStarted;
 new bool:g_bVoteFinished;
@@ -129,12 +130,14 @@ public plugin_natives()
 	register_native("mapm_set_vote_finished", "native_set_vote_finished");
 	register_native("mapm_start_vote", "native_start_vote");
 	register_native("mapm_stop_vote", "native_stop_vote");
+	register_native("mapm_block_show_vote", "native_block_show_vote");
 	register_native("mapm_get_votelist_size", "native_get_votelist_size");
 	register_native("mapm_set_votelist_max_items", "native_set_votelist_max_items");
 	register_native("mapm_push_map_to_votelist", "native_push_map_to_votelist");
 	register_native("mapm_get_count_maps_in_vote", "native_get_count_maps_in_vote");
 	register_native("mapm_get_voteitem_info", "native_get_voteitem_info");
 	register_native("mapm_get_vote_type", "native_get_vote_type");
+	register_native("mapm_add_vote_to_item", "native_add_vote_to_item");
 	register_native("is_vote_started", "native_is_vote_started");
 	register_native("is_vote_finished", "native_is_vote_finished");
 }
@@ -225,6 +228,10 @@ public native_stop_vote(plugin, params)
 {
 	stop_vote();
 }
+public native_block_show_vote(plugin, params)
+{
+	g_bBlockShowVote = true;
+}
 public native_get_votelist_size(plugin, params)
 {
 	return min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE);
@@ -291,6 +298,24 @@ public native_get_voteitem_info(plugin, params)
 public native_get_vote_type(plugin, params)
 {
 	return g_iVoteType;
+}
+public native_add_vote_to_item(plugin, params)
+{
+	enum {
+		arg_item = 1,
+		arg_value
+	};
+	
+	new item = get_param(arg_item);
+	if(item < 0 || item >= g_iVoteItems + g_bCanExtend) {
+		return 0;
+	}
+
+	new value = get_param(arg_value);
+	g_iVotes[item] += value;
+	g_iTotalVotes += value;
+
+	return 1;
 }
 public native_is_vote_started(plugin, params)
 {
@@ -499,7 +524,7 @@ get_original_num(num)
 public countdown(taskid)
 {
 	if(--g_iTimer > 0) {
-		if(taskid == TASK_VOTE_TIME) {
+		if(taskid == TASK_VOTE_TIME && !g_bBlockShowVote) {
 			new dont_show_result = get_num(SHOW_RESULT_TYPE) == SHOW_DISABLED;
 			g_iShowType = get_num(SHOW_RESULT_TYPE);
 			g_iShowPercent = get_num(SHOW_PERCENT);
@@ -601,9 +626,11 @@ public votemenu_handler(id, key)
 	g_iTotalVotes++;
 	g_iVoted[id] = key;
 
+	// TODO: add forward if someone want add more votes for admin, etc.
+
 	if(g_bShowSelects) {
 		new name[32]; get_user_name(id, name, charsmax(name));
-		if(original == g_iVoteItems) {
+		if(original == g_iCurMap) {
 			client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_CHOSE_EXTEND", name);
 		} else {
 			client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_CHOSE_MAP", name, g_sVoteList[original]);
@@ -619,6 +646,7 @@ public votemenu_handler(id, key)
 finish_vote()
 {
 	g_bVoteStarted = false;
+	g_bBlockShowVote = false;
 
 	// vote results
 

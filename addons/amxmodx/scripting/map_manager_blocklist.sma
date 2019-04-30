@@ -57,7 +57,7 @@ public mapm_maplist_loaded(Array:mapslist)
 	new map_info[MapStruct], blocked, size = ArraySize(mapslist);
 	for(new i; i < size; i++) {
 		ArrayGetArray(mapslist, i, map_info);
-		if(TrieKeyExists(g_tBlockedList, map_info[MapName])) {
+		if(TrieKeyExists(g_tBlockedList, map_info[Map])) {
 			blocked++;
 		}
 	}

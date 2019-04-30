@@ -99,7 +99,7 @@ public plugin_cfg()
 
 		copy(list_info[ListName], charsmax(list_info[ListName]), name);
 		copy(list_info[FileList], charsmax(list_info[FileList]), file_list);
-		list_info[ClearOldList] = str_to_num(clr);
+		list_info[ClearOldList] = bool:str_to_num(clr);
 
 		if(!start[0] || equal(start, "anytime")) {
 			list_info[AnyTime] = true;

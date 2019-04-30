@@ -188,9 +188,9 @@ public native_add_map_to_list(plugin, params)
 	};
 
 	new map_info[MapStruct];
-	get_string(arg_name, map_info[MapName], charsmax(map_info[MapName]));
+	get_string(arg_name, map_info[Map], charsmax(map_info[Map]));
 
-	if(!valid_map(map_info[MapName]) || get_map_index(g_aMapsList, map_info[MapName]) != INVALID_MAP_INDEX) {
+	if(!valid_map(map_info[Map]) || get_map_index(g_aMapsList, map_info[Map]) != INVALID_MAP_INDEX) {
 		return 0;
 	}
 	
@@ -389,7 +389,7 @@ load_maplist(Array:array, const file[], bool:silent = false)
 			set_cvar_string("amx_nextmap", map);
 		}
 		
-		map_info[MapName] = map;
+		map_info[Map] = map;
 		map_info[MinPlayers] = str_to_num(min);
 		map_info[MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
 
@@ -452,9 +452,9 @@ prepare_vote(type)
 			do {
 				random_map = random_num(0, array_size - 1);
 				ArrayGetArray(g_aMapsList, random_map, map_info);
-			} while(is_map_in_vote(map_info[MapName]) || !is_map_allowed(map_info[MapName], PUSH_BY_CORE, random_map));
+			} while(is_map_in_vote(map_info[Map]) || !is_map_allowed(map_info[Map], PUSH_BY_CORE, random_map));
 
-			copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), map_info[MapName]);
+			copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), map_info[Map]);
 		}
 	}
 
@@ -701,7 +701,7 @@ get_map_index(Array:array, map[])
 {
 	for(new i = 0, map_info[MapStruct], size = ArraySize(array); i < size; i++) {
 		ArrayGetArray(array, i, map_info);
-		if(equali(map, map_info[MapName])) return i;
+		if(equali(map, map_info[Map])) return i;
 	}
 	return INVALID_MAP_INDEX;
 }

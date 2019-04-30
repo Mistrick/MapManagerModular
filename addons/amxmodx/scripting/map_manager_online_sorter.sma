@@ -41,7 +41,7 @@ public mapm_prepare_votelist(type)
 	for(new i; i < size; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);
 		if(map_info[MinPlayers] <= players_num <= map_info[MaxPlayers]) {
-			ArrayPushString(array, map_info[MapName]);
+			ArrayPushString(array, map_info[Map]);
 		}
 	}
 

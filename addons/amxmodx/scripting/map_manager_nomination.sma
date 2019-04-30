@@ -164,7 +164,7 @@ public clcmd_say(id)
 		if(array_size == 1) {
 			map_index = ArrayGetCell(nominate_list, 0);
 			new map_info[MapStruct]; ArrayGetArray(g_aMapsList, map_index, map_info);
-			nominate_map(id, map_info[MapName]);
+			nominate_map(id, map_info[Map]);
 		} else if(array_size > 1) {
 			show_nomlist(id, nominate_list, array_size);
 		}
@@ -216,7 +216,7 @@ nominate_map(id, map[])
 		return NOMINATION_FAIL;
 	}
 	
-	copy(nom_info[NomMapName], charsmax(nom_info[NomMapName]), map);
+	copy(nom_info[NomMap], charsmax(nom_info[NomMap]), map);
 	nom_info[NomPlayer] = id;
 	ArrayPushArray(g_aNomList, nom_info);
 	
@@ -237,23 +237,23 @@ show_nomlist(id, Array: array, size)
 		ArrayGetArray(g_aMapsList, map_index, map_info);
 		
 		num_to_str(map_index, str_num, charsmax(str_num));
-		nom_index = map_nominated(map_info[MapName]);
-		block_count = mapm_get_blocked_count(map_info[MapName]);
+		nom_index = map_nominated(map_info[Map]);
+		block_count = mapm_get_blocked_count(map_info[Map]);
 
 		if(block_count) {
-			formatex(item_name, charsmax(item_name), "%s[\r%d\d]", map_info[MapName], block_count);
+			formatex(item_name, charsmax(item_name), "%s[\r%d\d]", map_info[Map], block_count);
 			menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 		} else if(nom_index != INVALID_MAP_INDEX) {
 			new nom_info[NomStruct]; ArrayGetArray(g_aNomList, nom_index, nom_info);
 			if(id == nom_info[NomPlayer]) {
-				formatex(item_name, charsmax(item_name), "%s[\y*\w]", map_info[MapName]);
+				formatex(item_name, charsmax(item_name), "%s[\y*\w]", map_info[Map]);
 				menu_additem(menu, item_name);
 			} else {
-				formatex(item_name, charsmax(item_name), "%s[\y*\d]", map_info[MapName]);
+				formatex(item_name, charsmax(item_name), "%s[\y*\d]", map_info[Map]);
 				menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 			}
 		} else {
-			menu_additem(menu, map_info[MapName]);
+			menu_additem(menu, map_info[Map]);
 		}
 	}
 	
@@ -367,23 +367,23 @@ show_nomination_menu(id, Array:maplist, custom_title[] = "")
 		}
 
 		ArrayGetArray(maplist, index, map_info);
-		nom_index = map_nominated(map_info[MapName]);
-		block_count = mapm_get_blocked_count(map_info[MapName]);
+		nom_index = map_nominated(map_info[Map]);
+		block_count = mapm_get_blocked_count(map_info[Map]);
 		
 		if(block_count) {
-			formatex(item_name, charsmax(item_name), "%s[\r%d\d]", map_info[MapName], block_count);
+			formatex(item_name, charsmax(item_name), "%s[\r%d\d]", map_info[Map], block_count);
 			menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 		} else if(nom_index != INVALID_MAP_INDEX) {
 			new nom_info[NomStruct]; ArrayGetArray(g_aNomList, nom_index, nom_info);
 			if(id == nom_info[NomPlayer]) {
-				formatex(item_name, charsmax(item_name), "%s[\y*\w]", map_info[MapName]);
+				formatex(item_name, charsmax(item_name), "%s[\y*\w]", map_info[Map]);
 				menu_additem(menu, item_name);
 			} else {
-				formatex(item_name, charsmax(item_name), "%s[\y*\d]", map_info[MapName]);
+				formatex(item_name, charsmax(item_name), "%s[\y*\d]", map_info[Map]);
 				menu_additem(menu, item_name, .callback = g_hCallbackDisabled);
 			}
 		} else {
-			menu_additem(menu, map_info[MapName]);
+			menu_additem(menu, map_info[Map]);
 		}
 	}
 
@@ -447,7 +447,7 @@ public mapm_prepare_votelist(type)
 		ArrayDeleteItem(g_aNomList, index);
 		g_iNomMaps[nom_info[NomPlayer]]--;
 
-		if(mapm_push_map_to_votelist(nom_info[NomMapName], PUSH_BY_NOMINATION) == PUSH_BLOCKED) {
+		if(mapm_push_map_to_votelist(nom_info[NomMap], PUSH_BY_NOMINATION) == PUSH_BLOCKED) {
 			i--;
 		}
 	}
@@ -458,7 +458,7 @@ map_nominated(map[])
 	new nom_info[NomStruct], size = ArraySize(g_aNomList);
 	for(new i; i < size; i++) {
 		ArrayGetArray(g_aNomList, i, nom_info);
-		if(equali(map, nom_info[NomMapName])) {
+		if(equali(map, nom_info[NomMap])) {
 			return i;
 		}
 	}
@@ -482,7 +482,7 @@ find_similar_map(map_index, string[MAPNAME_LENGTH])
 	new map_info[MapStruct], end = ArraySize(g_aMapsList);
 	for(new i = map_index; i < end; i++) {
 		ArrayGetArray(g_aMapsList, i, map_info);
-		if(containi(map_info[MapName], string) != -1) {
+		if(containi(map_info[Map], string) != -1) {
 			return i;
 		}
 	}
@@ -493,7 +493,7 @@ remove_maps()
 	new nom_info[NomStruct];
 	for(new i; i < ArraySize(g_aNomList); i++) {
 		ArrayGetArray(g_aNomList, i, nom_info);
-		if(mapm_get_map_index(nom_info[NomMapName]) == INVALID_MAP_INDEX) {
+		if(mapm_get_map_index(nom_info[NomMap]) == INVALID_MAP_INDEX) {
 			g_iNomMaps[nom_info[NomPlayer]]--;
 			ArrayDeleteItem(g_aNomList, i--);
 		}

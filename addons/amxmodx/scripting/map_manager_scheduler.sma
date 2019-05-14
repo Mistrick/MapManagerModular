@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -132,9 +132,26 @@ public plugin_natives()
 {
 	register_library("map_manager_scheduler");
 
+	set_module_filter("module_filter_handler");
+	set_native_filter("native_filter_handler");
+
 	register_native("map_scheduler_start_vote", "native_start_vote");
 	register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
 	register_native("is_last_round", "native_is_last_round");
+}
+public module_filter_handler(const library[], LibType:type)
+{
+	if(equal(library, "map_manager_nomination")) {
+		return PLUGIN_HANDLED;
+	}
+	return PLUGIN_CONTINUE;
+}
+public native_filter_handler(const native_func[], index, trap)
+{
+	if(equal(native_func, "map_nomination_set_ignore")) {
+		return PLUGIN_HANDLED;
+	}
+	return PLUGIN_CONTINUE;
 }
 public native_start_vote(plugin, params)
 {

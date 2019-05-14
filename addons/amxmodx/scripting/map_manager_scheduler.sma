@@ -112,6 +112,7 @@ public plugin_init()
 	register_concmd("mapm_stop_vote", "concmd_stopvote", ADMIN_MAP);
 
 	register_clcmd("votemap", "clcmd_votemap");
+	register_clcmd("vote", "clcmd_votemap");
 
 	if(g_pCvars[FRAGLIMIT]) {
 		register_event("DeathMsg", "event_deathmsg", "a");

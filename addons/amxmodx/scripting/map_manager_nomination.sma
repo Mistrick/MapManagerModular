@@ -2,6 +2,7 @@
 #include <map_manager>
 #include <map_manager_blocklist>
 #include <map_manager_adv_lists>
+#include <map_manager_scheduler>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
@@ -145,7 +146,7 @@ public clcmd_say(id)
 	new text[MAPNAME_LENGTH]; read_args(text, charsmax(text));
 	remove_quotes(text); trim(text); strtolower(text);
 	
-	if(is_string_with_space(text)) return PLUGIN_CONTINUE;
+	if(is_string_with_space(text) || is_vote_created()) return PLUGIN_CONTINUE;
 	
 	new map_index = mapm_get_map_index(text);
 
@@ -295,6 +296,11 @@ public nomlist_handler(id, menu, item)
 }
 public clcmd_mapslist(id)
 {
+	if(is_vote_started() || is_vote_created() || is_vote_finished() || is_vote_will_in_next_round()) {
+		client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_CMD_NOT_AVAILABLE");
+		return PLUGIN_HANDLED;
+	}
+
 	if(get_num(SHOW_LISTS) && mapm_advl_get_active_lists() > 1) {
 		show_lists_menu(id);
 	} else {

@@ -63,6 +63,7 @@ enum Cvars {
 
 new g_pCvars[Cvars];
 
+new bool:g_bVoteCreated;
 new bool:g_bVoteInNewRound;
 new g_iTeamScore[2];
 new Float:g_fOldTimeLimit;
@@ -112,6 +113,7 @@ public plugin_init()
 	register_concmd("mapm_stop_vote", "concmd_stopvote", ADMIN_MAP);
 
 	register_clcmd("votemap", "clcmd_votemap");
+	register_clcmd("vote", "clcmd_votemap");
 
 	if(g_pCvars[FRAGLIMIT]) {
 		register_event("DeathMsg", "event_deathmsg", "a");
@@ -138,6 +140,7 @@ public plugin_natives()
 	register_native("map_scheduler_start_vote", "native_start_vote");
 	register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
 	register_native("is_last_round", "native_is_last_round");
+  register_native("is_vote_created", "native_is_vote_created");
 }
 public module_filter_handler(const library[], LibType:type)
 {
@@ -171,6 +174,10 @@ public native_vote_will_in_next_round(plugin, params)
 public native_is_last_round(plugin, params)
 {
 	return g_bChangeMapNextRound;
+}
+public native_is_vote_created(plugin, params)
+{
+	return g_bVoteCreated;
 }
 public plugin_end()
 {
@@ -310,23 +317,27 @@ public event_newround()
 	if(!is_vote_finished() && max_rounds && (g_iTeamScore[0] + g_iTeamScore[1]) >= max_rounds - get_num(ROUNDS_TO_VOTE)) {
 		log_amx("[newround]: start vote, maxrounds %d [%d]", max_rounds, g_iTeamScore[0] + g_iTeamScore[1]);
 		mapm_start_vote(VOTE_BY_SCHEDULER);
+		g_bVoteCreated = false;
 	}
 	
 	new win_limit = get_num(WINLIMIT) - get_num(ROUNDS_TO_VOTE);
 	if(!is_vote_finished() && win_limit > 0 && (g_iTeamScore[0] >= win_limit || g_iTeamScore[1] >= win_limit)) {
 		log_amx("[newround]: start vote, winlimit %d [CT: %d, T: %d]", win_limit, g_iTeamScore[0], g_iTeamScore[1]);
 		mapm_start_vote(VOTE_BY_SCHEDULER);
+		g_bVoteCreated = false;
 	}
 
 	if(g_bVoteInNewRound && !is_vote_started()) {
 		log_amx("[newround]: start vote, timeleft %d, new round", get_timeleft());
 		mapm_start_vote(g_iVoteType);
+		g_bVoteCreated = false;
 	}
 
 	if(is_vote_finished() && g_bChangeMapNextRound) {
 		new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
 		client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
 		intermission();
+		g_bVoteCreated = false;
 	}
 }
 /*
@@ -358,6 +369,7 @@ planning_vote(type)
 	g_iVoteType = type;
 	if(get_num(VOTE_IN_NEW_ROUND)) {
 		g_bVoteInNewRound = true;
+		g_bVoteCreated = true;
 
 		g_fOldTimeLimit = get_float(TIMELIMIT);
 		if(g_fOldTimeLimit > 0.0) {
@@ -368,6 +380,7 @@ planning_vote(type)
 		log_amx("[planning_vote]: vote in new round.");
 	} else {
 		mapm_start_vote(type);
+		g_bVoteCreated = false;
 	}
 }
 public mapm_can_be_extended(type)

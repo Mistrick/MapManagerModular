@@ -1,15 +1,15 @@
 #if defined _map_manager_nom_included
-  #endinput
+    #endinput
 #endif
 #define _map_manager_nom_included
 
 #if AMXX_VERSION_NUM >= 175
-	#pragma reqlib map_manager_nomination
-	#if !defined AMXMODX_NOAUTOLOAD
-		#pragma loadlib map_manager_nomination
-	#endif
+    #pragma reqlib map_manager_nomination
+    #if !defined AMXMODX_NOAUTOLOAD
+        #pragma loadlib map_manager_nomination
+    #endif
 #else
-	#pragma library map_manager_nomination
+    #pragma library map_manager_nomination
 #endif
 
 /**

@@ -92,3 +92,9 @@ enum {
     PERCENT_ALWAYS,
     PERCENT_AFTER_VOTE
 };
+
+// used for forward "mapm_can_be_nominated"
+enum {
+    NOMINATION_ALLOWED,
+    NOMINATION_BLOCKED
+};

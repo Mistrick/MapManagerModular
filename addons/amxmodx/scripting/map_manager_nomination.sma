@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.1.0"
+#define VERSION "0.1.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -43,6 +43,12 @@ enum Cvars {
 
 new g_pCvars[Cvars];
 
+enum Forwards {
+    CAN_BE_NOMINATED
+};
+
+new g_hForwards[Forwards];
+
 new Array:g_aNomList;
 new Array:g_aMapsList;
 new g_hCallbackDisabled;
@@ -64,6 +70,8 @@ public plugin_init()
     g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "0"); // 0 - disable, 1 - enable
     g_pCvars[REMOVE_MAPS] = register_cvar("mapm_nom_remove_maps", "1"); // 0 - disable, 1 - enable
     g_pCvars[SHOW_LISTS] = register_cvar("mapm_nom_show_lists", "0"); // 0 - disable, 1 - enable
+
+    g_hForwards[CAN_BE_NOMINATED] = CreateMultiForward("mapm_can_be_nominated", ET_CONTINUE, FP_CELL, FP_STRING);
 
     register_clcmd("say", "clcmd_say");
     register_clcmd("say_team", "clcmd_say");
@@ -213,6 +221,13 @@ nominate_map(id, map[])
     
     if(g_iNomMaps[id] >= get_num(MAPS_PER_PLAYER)) {
         client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM");
+        return NOMINATION_FAIL;
+    }
+
+    new ret;
+    ExecuteForward(g_hForwards[CAN_BE_NOMINATED], ret, id, map);
+
+    if(ret == NOMINATION_BLOCKED) {
         return NOMINATION_FAIL;
     }
     

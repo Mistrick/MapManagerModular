@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.4"
+#define VERSION "3.0.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -234,7 +234,10 @@ public native_block_show_vote(plugin, params)
 }
 public native_get_votelist_size(plugin, params)
 {
-    return min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE);
+    if(g_iMaxItems) {
+        return g_iMaxItems;
+    }
+    return min(min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE), ArraySize(g_aMapsList));
 }
 public native_set_votelist_max_items(plugin, params)
 {
@@ -248,6 +251,10 @@ public native_push_map_to_votelist(plugin, params)
         arg_type,
         arg_ignore_check 
     };
+
+    if(g_iMaxItems && g_iVoteItems >= g_iMaxItems) {
+        return PUSH_CANCELED;
+    }
 
     if(g_iVoteItems >= min(min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE), ArraySize(g_aMapsList))) {
         return PUSH_CANCELED;

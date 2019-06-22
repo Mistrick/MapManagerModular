@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.1.1"
+#define VERSION "0.1.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -456,13 +456,14 @@ public mapm_prepare_votelist(type)
         return;
     }
     new nom_info[NomStruct];
-    for(new i, index; i < get_num(MAPS_IN_VOTE) && ArraySize(g_aNomList); i++) {
+    new max_items = mapm_get_votelist_size();
+    for(new i = mapm_get_count_maps_in_vote(), index; i < max_items && ArraySize(g_aNomList); i++) {
         index = random_num(0, ArraySize(g_aNomList) - 1);
         ArrayGetArray(g_aNomList, index, nom_info);
         ArrayDeleteItem(g_aNomList, index);
         g_iNomMaps[nom_info[NomPlayer]]--;
 
-        if(mapm_push_map_to_votelist(nom_info[NomMap], PUSH_BY_NOMINATION) == PUSH_BLOCKED) {
+        if(mapm_push_map_to_votelist(nom_info[NomMap], PUSH_BY_NOMINATION) != PUSH_SUCCESS) {
             i--;
         }
     }

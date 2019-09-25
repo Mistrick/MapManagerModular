@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.1.0"
+#define VERSION "0.1.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -122,7 +122,7 @@ public mapm_vote_started(type)
 }
 public mapm_vote_finished(const map[], type, total_votes)
 {
-    if(type == VOTE_BY_RTV && !get_num(CHANGE_TYPE) && get_num(CHANGE_AFTER_VOTE)) {
+    if(type == VOTE_BY_RTV && get_num(CHANGE_TYPE) && get_num(CHANGE_AFTER_VOTE)) {
         intermission();
     }
 }

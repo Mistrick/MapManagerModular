@@ -174,7 +174,7 @@ disable_effects(const map[])
             g_bFreezetimeChanged = false;
             set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
         }
-        if(get_num(CHANGE_TYPE) || get_num(LAST_ROUND) || is_map_extended(map)) {
+        if(!map[0] || get_num(CHANGE_TYPE) || get_num(LAST_ROUND) || is_map_extended(map)) {
             freeze_unfreeze(1);
         }
     }

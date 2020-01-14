@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.8"
+#define VERSION "0.0.9"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -40,15 +40,14 @@ enum {
 
 new g_pCvars[Cvars];
 new bool:g_bBlockChat;
-new bool:g_bFreezetimeChanged;
+new bool:g_bFreezeTimeChanged;
+new bool:g_bFreezeFlagsChanged;
 new HamHook:g_hHamSpawn;
 
 new const g_sSound[][] = {
     "sound/fvox/one.wav", "sound/fvox/two.wav", "sound/fvox/three.wav", "sound/fvox/four.wav", "sound/fvox/five.wav",
     "sound/fvox/six.wav", "sound/fvox/seven.wav", "sound/fvox/eight.wav", "sound/fvox/nine.wav", "sound/fvox/ten.wav"
 };
-
-new g_sCurMap[MAPNAME_LENGTH];
 
 public plugin_init()
 {
@@ -65,8 +64,6 @@ public plugin_init()
 }
 public plugin_cfg()
 {
-    get_mapname(g_sCurMap, charsmax(g_sCurMap));
-
     if(get_num(BLOCK_CHAT)) {
         register_clcmd("say", "clcmd_say");
         register_clcmd("say_team", "clcmd_say");
@@ -82,7 +79,7 @@ public plugin_cfg()
 }
 public plugin_end()
 {
-    if(g_bFreezetimeChanged) {
+    if(g_bFreezeTimeChanged) {
         set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
     }
 }
@@ -136,9 +133,10 @@ public mapm_prepare_votelist(type)
             && (type == VOTE_BY_SCHEDULER || type == VOTE_BY_RTV || type == VOTE_BY_CMD)
             && get_num(VOTE_IN_NEW_ROUND)) {
             // increase freezetime
-            g_bFreezetimeChanged = true;
+            g_bFreezeTimeChanged = true;
             set_float(FREEZETIME, get_float(FREEZETIME) + get_float(PREPARE_TIME) + get_float(VOTE_TIME) + 1);
         } else {
+            g_bFreezeFlagsChanged = true;
             freeze_unfreeze(0);
         }
     }
@@ -150,13 +148,13 @@ public mapm_vote_started(type)
 }
 public mapm_vote_finished(const map[], type, total_votes)
 {
-    disable_effects(map);
+    disable_effects();
 }
 public mapm_vote_canceled(type)
 {
-    disable_effects("");
+    disable_effects();
 }
-disable_effects(const map[])
+disable_effects()
 {
     if(get_num(BLACK_SCREEN)) {
         remove_task(TASK_FULLBLACK);
@@ -169,12 +167,13 @@ disable_effects(const map[])
         set_num(VOICE_ENABLED, 1);
     }
     if(get_num(FREEZE_IN_VOTE) != FREEZE_DISABLED) {
-        if(g_bFreezetimeChanged) {
+        if(g_bFreezeTimeChanged) {
             // decrease freezetime
-            g_bFreezetimeChanged = false;
+            g_bFreezeTimeChanged = false;
             set_float(FREEZETIME, get_float(FREEZETIME) - get_float(PREPARE_TIME) - get_float(VOTE_TIME) - 1);
         }
-        if(get_num(CHANGE_TYPE) || get_num(LAST_ROUND) || is_map_extended(map)) {
+        if(g_bFreezeFlagsChanged) {
+            g_bFreezeFlagsChanged = false;
             freeze_unfreeze(1);
         }
     }
@@ -191,10 +190,6 @@ stock freeze_unfreeze(type)
         id = players[i];
         set_pev(id, pev_flags, type ? (pev(id, pev_flags) & ~FL_FROZEN) : pev(id, pev_flags) | FL_FROZEN);
     }
-}
-is_map_extended(const map[])
-{
-    return equali(map, g_sCurMap);
 }
 stock set_black_screenfade(fade)
 {

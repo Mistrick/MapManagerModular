@@ -73,8 +73,6 @@ new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 
 new bool:g_bChangeMapNextRound;
 
-new bool:g_bOneMapMode;
-
 new g_sPrefix[32];
 new g_sCurMap[MAPNAME_LENGTH];
 

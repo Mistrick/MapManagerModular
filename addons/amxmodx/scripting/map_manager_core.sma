@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.5"
+#define VERSION "3.0.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -120,6 +120,9 @@ public plugin_init()
 public plugin_natives()
 {
     register_library("map_manager_core");
+
+    g_aMapsList = ArrayCreate(MapStruct, 1);
+    get_mapname(g_sCurMap, charsmax(g_sCurMap));
 
     register_native("mapm_load_maplist", "native_load_maplist");
     register_native("mapm_load_maplist_to_array", "native_load_maplist_to_array");
@@ -337,13 +340,9 @@ public native_is_vote_finished(plugin, params)
 //-----------------------------------------------------//
 public plugin_cfg()
 {
-    g_aMapsList = ArrayCreate(MapStruct, 1);
-
     new configsdir[256]; get_localinfo("amxx_configsdir", configsdir, charsmax(configsdir));
     server_cmd("exec %s/map_manager.cfg", configsdir);
     server_exec();
-
-    get_mapname(g_sCurMap, charsmax(g_sCurMap));
 
     get_pcvar_string(g_pCvars[PREFIX], g_sPrefix, charsmax(g_sPrefix));
     replace_color_tag(g_sPrefix, charsmax(g_sPrefix));

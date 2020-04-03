@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.3"
+#define VERSION "0.1.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -73,8 +73,6 @@ new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 
 new bool:g_bChangeMapNextRound;
 
-new bool:g_bOneMapMode;
-
 new g_sPrefix[32];
 new g_sCurMap[MAPNAME_LENGTH];
 
@@ -138,6 +136,7 @@ public plugin_natives()
     set_native_filter("native_filter_handler");
 
     register_native("map_scheduler_start_vote", "native_start_vote");
+    register_native("map_scheduler_extend_map", "native_extend_map");
     register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
     register_native("is_last_round", "native_is_last_round");
 }
@@ -164,6 +163,14 @@ public native_start_vote(plugin, params)
     enum { arg_type = 1 };
     planning_vote(get_param(arg_type));
 
+    return 1;
+}
+public native_extend_map(plugin, params)
+{
+    enum { arg_count = 1 };
+    new count = get_param(arg_count);
+    g_iExtendedNum += count;
+    set_float(TIMELIMIT, get_float(TIMELIMIT) + float(get_num(EXTENDED_TIME)) * float(count));
     return 1;
 }
 public native_vote_will_in_next_round(plugin, params)

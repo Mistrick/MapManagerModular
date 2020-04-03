@@ -22,6 +22,15 @@
 native map_scheduler_start_vote(type);
 
 /**
+ * Extend current map time.
+ * 
+ * @param count                 Extend time param, bonus time = count * cvarnum(extend_time)
+ *
+ * @noreturn
+ */
+native map_scheduler_extend_map(count = 1);
+
+/**
  * Returns true if vote will in next round.
  *
  * @return                      true/false

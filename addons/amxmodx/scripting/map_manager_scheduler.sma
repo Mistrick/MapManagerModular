@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.4"
+#define VERSION "0.1.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -377,6 +377,12 @@ planning_vote(type)
         log_amx("[planning_vote]: vote in new round.");
     } else {
         mapm_start_vote(type);
+    }
+}
+public mapm_maplist_loaded(Array:maplist, const nextmap[])
+{
+    if(!g_bChangeMapNextRound) {
+        set_pcvar_string(g_pCvars[NEXTMAP], nextmap);
     }
 }
 public mapm_can_be_extended(type)

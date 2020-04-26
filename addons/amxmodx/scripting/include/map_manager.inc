@@ -193,15 +193,14 @@ native bool:is_vote_started();
 native bool:is_vote_finished();
 
 /**
- * Called after load maps from file.
+ * Called after load map list.
  * 
  * @param maplist               Array with loaded maps
- * @param file                  Load file
- * @param cleared               True if cleared old list before load
+ * @param nextmap               Nextmap after current map in loaded list
  *
  * @noreturn
  */
-forward mapm_maplist_loaded(Array:maplist);
+forward mapm_maplist_loaded(Array:maplist, const nextmap[]);
 
 /**
  * Called after clear maplist.

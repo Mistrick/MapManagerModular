@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.6"
+#define VERSION "3.0.7"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -101,7 +101,7 @@ public plugin_init()
     g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
     g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
 
-    g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL);
+    g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
     g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
     g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
     g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
@@ -374,7 +374,7 @@ load_maplist(Array:array, const file[], bool:silent = false)
         return 0;
     }
 
-    new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], first_map[MAPNAME_LENGTH], min[3], max[3], bool:nextmap, bool:found_nextmap;
+    new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], next_map[MAPNAME_LENGTH], min[3], max[3], bool:found_nextmap;
 
     while(!feof(f)) {
         fgets(f, text, charsmax(text));
@@ -382,17 +382,16 @@ load_maplist(Array:array, const file[], bool:silent = false)
 
         if(!map[0] || map[0] == ';' || !valid_map(map) || get_map_index(array, map) != INVALID_MAP_INDEX) continue;
         
-        if(!first_map[0]) {
-            copy(first_map, charsmax(first_map), map);
+        if(!next_map[0]) {
+            copy(next_map, charsmax(next_map), map);
         }
         if(equali(map, g_sCurMap)) {
-            nextmap = true;
+            found_nextmap = true;
             continue;
         }
-        if(nextmap) {
-            nextmap = false;
-            found_nextmap = true;
-            set_cvar_string("amx_nextmap", map);
+        if(found_nextmap) {
+            found_nextmap = false;
+            copy(next_map, charsmax(next_map), map);
         }
         
         map_info[Map] = map;
@@ -413,11 +412,8 @@ load_maplist(Array:array, const file[], bool:silent = false)
     }
 
     if(!silent) {
-        if(!found_nextmap) {
-            set_cvar_string("amx_nextmap", first_map);
-        }
         new ret;
-        ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array);
+        ExecuteForward(g_hForwards[MAPLIST_LOADED], ret, array, next_map);
     }
 
     return 1;

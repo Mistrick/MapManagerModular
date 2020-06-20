@@ -2,13 +2,14 @@
 #include <amxmisc>
 #include <map_manager>
 #include <map_manager_nomination>
+#include <map_manager_scheduler>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.5"
+#define VERSION "0.1.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -72,6 +73,7 @@ new g_iVoteType;
 new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 
 new bool:g_bChangeMapNextRound;
+new IgnoreFlags:g_bIgnoreCheckStart;
 
 new g_sPrefix[32];
 new g_sCurMap[MAPNAME_LENGTH];
@@ -135,6 +137,8 @@ public plugin_natives()
     set_module_filter("module_filter_handler");
     set_native_filter("native_filter_handler");
 
+    register_native("map_scheduler_get_ignore_check", "native_get_ignore_check");
+    register_native("map_scheduler_set_ignore_check", "native_set_ignore_check");
     register_native("map_scheduler_start_vote", "native_start_vote");
     register_native("map_scheduler_extend_map", "native_extend_map");
     register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
@@ -153,6 +157,15 @@ public native_filter_handler(const native_func[], index, trap)
         return PLUGIN_HANDLED;
     }
     return PLUGIN_CONTINUE;
+}
+public native_get_ignore_check(plugin, params)
+{
+    return _:g_bIgnoreCheckStart;
+}
+public native_set_ignore_check(plugin, params)
+{
+    enum { arg_flags = 1 };
+    g_bIgnoreCheckStart = IgnoreFlags:get_param(arg_flags);
 }
 public native_start_vote(plugin, params)
 {
@@ -288,6 +301,10 @@ public task_checktime()
         return 0;
     }
 
+    if(g_bIgnoreCheckStart & IGNORE_TIMER_CHECK) {
+        return 0;
+    }
+
     new Float:time_to_vote = get_float(TIMELEFT_TO_VOTE);
     
     new timeleft = get_timeleft();
@@ -301,12 +318,18 @@ public task_checktime()
 }
 public event_deathmsg()
 {
+    if(g_bIgnoreCheckStart & IGNORE_FRAGS_CHECK) {
+        return 0;
+    }
+
     if(get_num(FRAGLIMIT)) {
         if(get_num(FRAGSLEFT) <= get_num(FRAGS_TO_VOTE)) {
             log_amx("[deathmsg]: start vote, fragsleft %d", get_num(FRAGSLEFT));
             mapm_start_vote(VOTE_BY_SCHEDULER);
         }
     }
+
+    return 0;
 }
 public event_teamscore()
 {
@@ -315,6 +338,10 @@ public event_teamscore()
 }
 public event_newround()
 {
+    if(g_bIgnoreCheckStart & IGNORE_ROUND_CHECK) {
+        return 0;
+    }
+
     new max_rounds = get_num(MAXROUNDS);
     if(!is_vote_finished() && max_rounds && (g_iTeamScore[0] + g_iTeamScore[1]) >= max_rounds - get_num(ROUNDS_TO_VOTE)) {
         log_amx("[newround]: start vote, maxrounds %d [%d]", max_rounds, g_iTeamScore[0] + g_iTeamScore[1]);
@@ -337,6 +364,8 @@ public event_newround()
         client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
         intermission();
     }
+
+    return 0;
 }
 /*
 public event_restart()

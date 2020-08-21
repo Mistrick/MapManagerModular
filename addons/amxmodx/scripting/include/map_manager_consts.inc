@@ -8,7 +8,8 @@ const MAPNAME_LENGTH = 32;
 enum _:MapStruct {
     Map[MAPNAME_LENGTH],
     MinPlayers,
-    MaxPlayers
+    MaxPlayers,
+    MapPriority
 };
 
 enum _:NomStruct {

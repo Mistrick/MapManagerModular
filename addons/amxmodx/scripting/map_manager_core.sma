@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.7"
+#define VERSION "3.0.8"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -374,11 +374,11 @@ load_maplist(Array:array, const file[], bool:silent = false)
         return 0;
     }
 
-    new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], next_map[MAPNAME_LENGTH], min[3], max[3], bool:found_nextmap;
+    new map_info[MapStruct], text[48], map[MAPNAME_LENGTH], next_map[MAPNAME_LENGTH], min[3], max[3], priority[4], bool:found_nextmap;
 
     while(!feof(f)) {
         fgets(f, text, charsmax(text));
-        parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max));
+        parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max), priority, charsmax(priority));
 
         if(!map[0] || map[0] == ';' || !valid_map(map) || get_map_index(array, map) != INVALID_MAP_INDEX) continue;
         
@@ -387,6 +387,7 @@ load_maplist(Array:array, const file[], bool:silent = false)
         }
         if(equali(map, g_sCurMap)) {
             found_nextmap = true;
+            min = ""; max = ""; priority = "";
             continue;
         }
         if(found_nextmap) {
@@ -397,9 +398,10 @@ load_maplist(Array:array, const file[], bool:silent = false)
         map_info[Map] = map;
         map_info[MinPlayers] = str_to_num(min);
         map_info[MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
+        map_info[MapPriority] = str_to_num(priority) == 0 ? 100 : str_to_num(priority);
 
         ArrayPushArray(array, map_info);
-        min = ""; max = "";
+        min = ""; max = ""; priority = "";
     }
     fclose(f);
 

@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Advanced lists"
-#define VERSION "0.0.5"
+#define VERSION "0.0.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -89,6 +89,8 @@ public plugin_cfg()
 
     new list_info[MapListInfo];
     new text[256], name[32], start[8], stop[8], file_list[128], clr[4], i = 0;
+    new bool:have_any = false, total_time;
+
     while(!feof(f)) {
         fgets(f, text, charsmax(text));
         trim(text);
@@ -103,9 +105,16 @@ public plugin_cfg()
 
         if(!start[0] || equal(start, "anytime")) {
             list_info[AnyTime] = true;
+            have_any = true;
         } else {
             list_info[StartTime] = get_int_time(start);
             list_info[StopTime] = get_int_time(stop);
+
+            if(list_info[StartTime] > list_info[StopTime]) {
+                total_time += list_info[StopTime] + (24 * 60 - list_info[StartTime]);
+            } else {
+                total_time += list_info[StopTime] - list_info[StartTime];
+            }
         }
 
         // load maps from file to local list
@@ -127,12 +136,18 @@ public plugin_cfg()
     }
     fclose(f);
 
-    if(!ArraySize(g_aLists)) {
+    new size = ArraySize(g_aLists);
+
+    if(!size) {
         // pause plugin?
         log_amx("nothing loaded.");
     } else {
         task_check_list();
         set_task(60.0, "task_check_list", TASK_CHECK_LIST, .flags = "b");
+
+        if(!have_any && (total_time + size) != 1440) {
+            log_amx("WARN: maybe you have time without loaded maplist!!!");
+        }
     }
 }
 public task_check_list()

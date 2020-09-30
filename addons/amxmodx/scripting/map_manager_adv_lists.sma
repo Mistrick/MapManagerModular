@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Advanced lists"
-#define VERSION "0.0.6"
+#define VERSION "0.0.7"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -89,7 +89,7 @@ public plugin_cfg()
 
     new list_info[MapListInfo];
     new text[256], name[32], start[8], stop[8], file_list[128], clr[4], i = 0;
-    new bool:have_any = false, total_time;
+    new bool:have_any = false, time[1440 + 1];
 
     while(!feof(f)) {
         fgets(f, text, charsmax(text));
@@ -111,9 +111,16 @@ public plugin_cfg()
             list_info[StopTime] = get_int_time(stop);
 
             if(list_info[StartTime] > list_info[StopTime]) {
-                total_time += list_info[StopTime] + (24 * 60 - list_info[StartTime]);
+                for(new i = list_info[StartTime]; i <= 1440; i++) {
+                    time[i] = 1;
+                }
+                for(new i = 0; i <= list_info[StopTime]; i++) {
+                    time[i] = 1;
+                }
             } else {
-                total_time += list_info[StopTime] - list_info[StartTime];
+                for(new i = list_info[StartTime]; i <= list_info[StopTime]; i++) {
+                    time[i] = 1;
+                }
             }
         }
 
@@ -145,8 +152,21 @@ public plugin_cfg()
         task_check_list();
         set_task(60.0, "task_check_list", TASK_CHECK_LIST, .flags = "b");
 
-        if(!have_any && (total_time + size) != 1440) {
-            log_amx("WARN: maybe you have time without loaded maplist!!!");
+        if(!have_any) {
+            new start = -1, s[8], e[8];
+            for(new i; i < 1440; i++) {
+                if(start == -1 && !time[i]) {
+                    start = i;
+                }
+                if(start != -1 && (time[i + 1] || (i + 1) == 1440)) {
+                    get_string_time(start, s, charsmax(s));
+                    get_string_time(i, e, charsmax(e));
+
+                    log_amx("WARN: you have time without active maplist %s-%s", s, e);
+
+                    start = -1;
+                }
+            }
         }
     }
 }
@@ -211,4 +231,8 @@ get_int_time(string[])
 {
     new left[4], right[4]; strtok(string, left, charsmax(left), right, charsmax(right), ':');
     return str_to_num(left) * 60 + str_to_num(right);
+}
+get_string_time(time, out[], size)
+{
+    formatex(out, size, "%02d:%02d", time / 60, time % 60);
 }

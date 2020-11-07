@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.9"
+#define VERSION "0.0.10"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -62,12 +62,13 @@ public plugin_init()
 
     DisableHamForward(g_hHamSpawn = RegisterHam(Ham_Spawn, "player", "player_spawn_post", 1));
 }
+public plugin_precache()
+{
+    register_clcmd("say", "clcmd_say");
+    register_clcmd("say_team", "clcmd_say");
+}
 public plugin_cfg()
 {
-    if(get_num(BLOCK_CHAT)) {
-        register_clcmd("say", "clcmd_say");
-        register_clcmd("say_team", "clcmd_say");
-    }
     if(get_num(FREEZE_IN_VOTE)) {
         g_pCvars[FREEZETIME] = get_cvar_pointer("mp_freezetime");
         g_pCvars[VOTE_IN_NEW_ROUND] = get_cvar_pointer("mapm_vote_in_new_round");

@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.8"
+#define VERSION "3.0.9"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -381,20 +381,11 @@ load_maplist(Array:array, const file[], bool:silent = false)
         parse(text, map, charsmax(map), min, charsmax(min), max, charsmax(max), priority, charsmax(priority));
 
         if(!map[0] || map[0] == ';' || !valid_map(map) || get_map_index(array, map) != INVALID_MAP_INDEX) continue;
-        
+
         if(!next_map[0]) {
             copy(next_map, charsmax(next_map), map);
         }
-        if(equali(map, g_sCurMap)) {
-            found_nextmap = true;
-            min = ""; max = ""; priority = "";
-            continue;
-        }
-        if(found_nextmap) {
-            found_nextmap = false;
-            copy(next_map, charsmax(next_map), map);
-        }
-        
+
         map_info[Map] = map;
         map_info[MinPlayers] = str_to_num(min);
         map_info[MaxPlayers] = str_to_num(max) == 0 ? 32 : str_to_num(max);
@@ -402,6 +393,15 @@ load_maplist(Array:array, const file[], bool:silent = false)
 
         ArrayPushArray(array, map_info);
         min = ""; max = ""; priority = "";
+
+        if(equali(map, g_sCurMap)) {
+            found_nextmap = true;
+            continue;
+        }
+        if(found_nextmap) {
+            found_nextmap = false;
+            copy(next_map, charsmax(next_map), map);
+        }
     }
     fclose(f);
 
@@ -440,7 +440,8 @@ prepare_vote(type)
     arrayset(g_iVotes, 0, sizeof(g_iVotes));
 
     new array_size = ArraySize(g_aMapsList);
-    new vote_max_items = min(min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE), array_size);
+    new is_current_map_in_array = get_map_index(g_aMapsList, g_sCurMap) != INVALID_MAP_INDEX;
+    new vote_max_items = min(min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE), array_size - is_current_map_in_array);
 
     new ret;
     ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret, type);
@@ -456,7 +457,7 @@ prepare_vote(type)
             do {
                 random_map = random_num(0, array_size - 1);
                 ArrayGetArray(g_aMapsList, random_map, map_info);
-            } while(is_map_in_vote(map_info[Map]) || !is_map_allowed(map_info[Map], PUSH_BY_CORE, random_map));
+            } while(is_map_in_vote(map_info[Map]) || !is_map_allowed(map_info[Map], PUSH_BY_CORE, random_map) || equali(map_info[Map], g_sCurMap));
 
             copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), map_info[Map]);
         }

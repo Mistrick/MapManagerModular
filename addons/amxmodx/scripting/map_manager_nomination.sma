@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -57,6 +57,7 @@ new g_iLastDenominate[33];
 new bool:g_bIgnoreVote = false;
 
 new g_sPrefix[48];
+new g_szCurMap[32];
 
 public plugin_init()
 {
@@ -82,6 +83,8 @@ public plugin_init()
 }
 public plugin_natives()
 {
+    get_mapname(g_szCurMap, charsmax(g_szCurMap));
+
     set_module_filter("module_filter_handler");
     set_native_filter("native_filter_handler");
 
@@ -382,6 +385,11 @@ show_nomination_menu(id, Array:maplist, custom_title[] = "")
         }
 
         ArrayGetArray(maplist, index, map_info);
+
+        if(equali(map_info[Map], g_szCurMap)) {
+            continue;
+        }
+
         nom_index = map_nominated(map_info[Map]);
         block_count = mapm_get_blocked_count(map_info[Map]);
         

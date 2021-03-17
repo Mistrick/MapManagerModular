@@ -32,7 +32,6 @@ Models, sprites for test by 8dp
 
 #define MAX_CURSOR_X            140.0
 #define MAX_CURSOR_Y            103.0
-#define CURSOR_SENSITIVITY      2.2
 
 #define UNKNOWN_MAP_FRAME       0.0
 #define EXTEND_MAP_FRAME        1.0
@@ -455,8 +454,8 @@ public fm_cmd_start_post(id, cmd, seed)
         flDelta += 360.0;
     }
 
-    g_vecCursorPos[id][1] += flDelta * CURSOR_SENSITIVITY;
-    g_vecCursorPos[id][2] += -(view_angles[0] - old_viewangles[id][0]) * CURSOR_SENSITIVITY;
+    g_vecCursorPos[id][1] += flDelta * get_float(CURSOR_SENS);
+    g_vecCursorPos[id][2] += -(view_angles[0] - old_viewangles[id][0]) * get_float(CURSOR_SENS);
 
     g_vecCursorPos[id][1] = floatclamp(g_vecCursorPos[id][1], -MAX_CURSOR_X, MAX_CURSOR_X);
     g_vecCursorPos[id][2] = floatclamp(g_vecCursorPos[id][2], -MAX_CURSOR_Y, MAX_CURSOR_Y);

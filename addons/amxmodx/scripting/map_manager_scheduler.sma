@@ -338,6 +338,12 @@ public event_teamscore()
 }
 public event_newround()
 {
+    if(is_vote_finished() && g_bChangeMapNextRound) {
+        new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
+        client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
+        intermission();
+    }
+
     if(g_bIgnoreCheckStart & IGNORE_ROUND_CHECK) {
         return 0;
     }
@@ -357,12 +363,6 @@ public event_newround()
     if(g_bVoteInNewRound && !is_vote_started()) {
         log_amx("[newround]: start vote, timeleft %d, new round", get_timeleft());
         mapm_start_vote(g_iVoteType);
-    }
-
-    if(is_vote_finished() && g_bChangeMapNextRound) {
-        new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
-        client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
-        intermission();
     }
 
     return 0;

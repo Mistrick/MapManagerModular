@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Online sorter"
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -50,7 +50,7 @@ public mapm_prepare_votelist(type)
         index = random_num(0, ArraySize(array) - 1);
         ArrayGetString(array, index, map, charsmax(map));
         ArrayDeleteItem(array, index);
-        if(mapm_push_map_to_votelist(map, PUSH_BY_ONLINE_SORTER) == PUSH_BLOCKED) {
+        if(mapm_push_map_to_votelist(map, PUSH_BY_ONLINE_SORTER) != PUSH_SUCCESS) {
             i--;
         }
     }

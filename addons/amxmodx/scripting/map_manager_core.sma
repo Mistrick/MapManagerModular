@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.0.9"
+#define VERSION "3.0.10"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -50,7 +50,8 @@ enum Cvars {
     RANDOM_NUMS,
     PREPARE_TIME,
     VOTE_TIME,
-    VOTE_ITEM_OFFSET
+    VOTE_ITEM_OFFSET,
+    ONLY_EXTERNAL_VOTE_ITEMS
 };
 
 new g_pCvars[Cvars];
@@ -72,7 +73,7 @@ new g_iShowPercent;
 new g_bShowSelects;
 new g_iTimer;
 new g_bCanExtend;
-new g_iMaxItems;
+new g_iExternalMaxItems;
 new g_iCurMap;
 
 new g_iRandomNums[MAX_VOTELIST_SIZE + 1];
@@ -100,6 +101,7 @@ public plugin_init()
     g_pCvars[PREPARE_TIME] = register_cvar("mapm_prepare_time", "5"); // seconds
     g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
     g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
+    g_pCvars[ONLY_EXTERNAL_VOTE_ITEMS] = register_cvar("mapm_only_external_vote_items", "0");
 
     g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
     g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
@@ -187,7 +189,8 @@ public native_add_map_to_list(plugin, params)
     enum {
         arg_name = 1,
         arg_minplayers,
-        arg_maxplayers
+        arg_maxplayers,
+        arg_priority
     };
 
     new map_info[MapStruct];
@@ -199,6 +202,10 @@ public native_add_map_to_list(plugin, params)
     
     map_info[MinPlayers] = get_param(arg_minplayers);
     map_info[MaxPlayers] = get_param(arg_maxplayers);
+
+    new priority = clamp(get_param(arg_priority), 0, 100);
+    map_info[MapPriority] = priority ? priority : 100;
+
     ArrayPushArray(g_aMapsList, map_info);
     
     return 1;
@@ -237,15 +244,15 @@ public native_block_show_vote(plugin, params)
 }
 public native_get_votelist_size(plugin, params)
 {
-    if(g_iMaxItems) {
-        return g_iMaxItems;
+    if(g_iExternalMaxItems) {
+        return g_iExternalMaxItems;
     }
     return min(min(get_num(VOTELIST_SIZE), MAX_VOTELIST_SIZE), ArraySize(g_aMapsList));
 }
 public native_set_votelist_max_items(plugin, params)
 {
     enum { arg_value = 1 };
-    g_iMaxItems = get_param(arg_value);
+    g_iExternalMaxItems = get_param(arg_value);
 }
 public native_push_map_to_votelist(plugin, params)
 {
@@ -255,7 +262,7 @@ public native_push_map_to_votelist(plugin, params)
         arg_ignore_check 
     };
 
-    if(g_iMaxItems && g_iVoteItems >= g_iMaxItems) {
+    if(g_iExternalMaxItems && g_iVoteItems >= g_iExternalMaxItems) {
         return PUSH_CANCELED;
     }
 
@@ -446,12 +453,12 @@ prepare_vote(type)
     new ret;
     ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret, type);
 
-    if(g_iMaxItems) {
-        vote_max_items = g_iMaxItems;
-        g_iMaxItems = 0;
+    if(g_iExternalMaxItems) {
+        vote_max_items = g_iExternalMaxItems;
+        g_iExternalMaxItems = 0;
     }
 
-    if(g_iVoteItems < vote_max_items) {
+    if(!get_num(ONLY_EXTERNAL_VOTE_ITEMS) && g_iVoteItems < vote_max_items) {
         new map_info[MapStruct];
         for(new random_map; g_iVoteItems < vote_max_items; g_iVoteItems++) {
             do {
@@ -461,6 +468,10 @@ prepare_vote(type)
 
             copy(g_sVoteList[g_iVoteItems], charsmax(g_sVoteList[]), map_info[Map]);
         }
+    }
+
+    if(!g_iVoteItems) {
+        log_amx("Started vote with ZERO items. Check your maps list!");
     }
 
     ExecuteForward(g_hForwards[CAN_BE_EXTENDED], ret, type);

@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "**.md"
+
+  pull_request:
+    types: [opened, reopened, synchronize]
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.declare_sha.outputs.sha }}
+      semver: ${{ steps.declare_sha.outputs.semver }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Parse SemVer string (release)
+        id: semver_parser
+        if: |
+          github.event_name == 'release' &&
+          github.event.action == 'published' &&
+          startsWith(github.ref, 'refs/tags/')
+        uses: booxmedialtd/ws-action-parse-semver@v1
+        with:
+          input_string: ${{ github.ref }}
+          version_extractor_regex: '\/v(.*)$'
+
+      - name: Declare SHA & package name
+        id: declare_sha
+        shell: bash
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          echo "COMMIT_SHA=${SHA}" >> $GITHUB_ENV
+          echo "::set-output name=sha::$SHA"
+          echo "::set-output name=semver::${{ steps.semver_parser.outputs.fullversion }}"
+
+      - name: Update versions for plugins (release)
+        working-directory: cstrike/addons/amxmodx/scripting/include/
+        if: |
+          github.event_name == 'release' &&
+          github.event.action == 'published' &&
+          startsWith(github.ref, 'refs/tags/')
+        env:
+          PLUGIN_VERSION: "v${{ steps.semver_parser.outputs.fullversion }}"
+          VERSION_MAJOR: ${{ steps.semver_parser.outputs.major }}
+          VERSION_MINOR: ${{ steps.semver_parser.outputs.minor }}
+          VERSION_PATCH: ${{ steps.semver_parser.outputs.patch }}
+          VERSION_SHA: ${{ env.COMMIT_SHA }}
+        run: |
+          sed -i "s|%VERSION_MAJOR%|$VERSION_MAJOR|g" version.inc
+          sed -i "s|%VERSION_MINOR%|$VERSION_MINOR|g" version.inc
+          sed -i "s|%VERSION_PATCH%|$VERSION_PATCH|g" version.inc
+          sed -i "s|%VERSION_SHA%|$VERSION_SHA|g"     version.inc
+
+      - name: Update versions for plugins (only for artifacts builds)
+        working-directory: cstrike/addons/amxmodx/scripting/include/
+        env:
+          VERSION_SHA: "${{ env.COMMIT_SHA }}"
+        run: sed -i "s|%VERSION_SHA%|$VERSION_SHA|g"  version.inc
+
+      - name: Setup AMXXPawn Compiler
+        uses: wopox1337/setup-amxxpawn@v1
+        with:
+          version: "1.10.5428"
+
+      - name: Compile plugins
+        working-directory: cstrike/addons/amxmodx/scripting/
+        run: |
+          compile() {
+            sourcefile=$1
+            amxxfile="$(echo $sourcefile | sed -e 's/\.sma$/.amxx/')"
+            output_path="../plugins/$amxxfile"
+
+            mkdir -p $(dirname $output_path)
+
+            echo -n "Compiling $sourcefile ... "
+            amxxpc $sourcefile -o"$output_path" \
+              -i"include"
+          }
+          export -f compile
+
+          find * -type f -name "*.sma" -exec bash -c 'compile "$0"' {} \;
+
+      - name: Move files
+        run: |
+          mkdir publish
+          mv cstrike/ publish/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: MapManager-${{ env.COMMIT_SHA }}-dev
+          path: publish/*
+
+  publish:
+    name: "Publish"
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: |
+      github.event_name == 'release' &&
+      github.event.action == 'published' &&
+      startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: MapManager-${{needs.build.outputs.sha}}-dev
+
+      - name: Packaging binaries
+        id: packaging
+        run: 7z a -mm=Deflate -mfb=258 -mpass=15 -r MapManager-v${{needs.build.outputs.semver}}.zip cstrike/
+
+      - name: Publish artifacts
+        uses: softprops/action-gh-release@v1
+        id: publish-job
+        if: |
+          startsWith(github.ref, 'refs/tags/') &&
+          steps.packaging.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            *.zip

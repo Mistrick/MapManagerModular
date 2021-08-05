@@ -88,7 +88,7 @@ new g_sPrefix[48];
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     register_cvar("mapm_version", VERSION, FCVAR_SERVER | FCVAR_SPONLY);
 

@@ -40,33 +40,16 @@ jobs:
         shell: bash
         run: |
           SHA=$(git rev-parse --short HEAD)
-          echo "COMMIT_SHA=${SHA}" >> $GITHUB_ENV
+          echo "SHA_SHORT=${SHA}" >> $GITHUB_ENV
           echo "::set-output name=sha::$SHA"
           echo "::set-output name=semver::${{ steps.semver_parser.outputs.fullversion }}"
 
-      - name: Update versions for plugins (release)
-        working-directory: cstrike/addons/amxmodx/scripting/include/
-        if: |
-          github.event_name == 'release' &&
-          github.event.action == 'published' &&
-          startsWith(github.ref, 'refs/tags/')
-        env:
-          PLUGIN_VERSION: "v${{ steps.semver_parser.outputs.fullversion }}"
-          VERSION_MAJOR: ${{ steps.semver_parser.outputs.major }}
-          VERSION_MINOR: ${{ steps.semver_parser.outputs.minor }}
-          VERSION_PATCH: ${{ steps.semver_parser.outputs.patch }}
-          VERSION_SHA: ${{ env.COMMIT_SHA }}
-        run: |
-          sed -i "s|%VERSION_MAJOR%|$VERSION_MAJOR|g" version.inc
-          sed -i "s|%VERSION_MINOR%|$VERSION_MINOR|g" version.inc
-          sed -i "s|%VERSION_PATCH%|$VERSION_PATCH|g" version.inc
-          sed -i "s|%VERSION_SHA%|$VERSION_SHA|g"     version.inc
-
-      - name: Update versions for plugins (only for artifacts builds)
+      - name: Update versions for plugins
         working-directory: cstrike/addons/amxmodx/scripting/include/
         env:
-          VERSION_SHA: "${{ env.COMMIT_SHA }}"
-        run: sed -i "s|%VERSION_SHA%|$VERSION_SHA|g"  version.inc
+          SHA_SHORT: "${{ env.SHA_SHORT }}"
+          FILE: map_manager_consts.inc
+        run: sed -i "s|VERSION_HASH \"\"|VERSION_HASH \"$SHA_SHORT\"|g" $FILE
 
       - name: Setup AMXXPawn Compiler
         uses: wopox1337/setup-amxxpawn@v1
@@ -76,20 +59,16 @@ jobs:
       - name: Compile plugins
         working-directory: cstrike/addons/amxmodx/scripting/
         run: |
-          compile() {
-            sourcefile=$1
-            amxxfile="$(echo $sourcefile | sed -e 's/\.sma$/.amxx/')"
+          for sourcefile in *.sma;
+          do
+            amxxfile="`echo $sourcefile | sed -e 's/\.sma$/.amxx/'`"
             output_path="../plugins/$amxxfile"
 
             mkdir -p $(dirname $output_path)
 
             echo -n "Compiling $sourcefile ... "
-            amxxpc $sourcefile -o"$output_path" \
-              -i"include"
-          }
-          export -f compile
-
-          find * -type f -name "*.sma" -exec bash -c 'compile "$0"' {} \;
+            amxxpc $sourcefile -i"include" -o"$output_path"
+          done
 
       - name: Move files
         run: |
@@ -99,7 +78,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: MapManager-${{ env.COMMIT_SHA }}-dev
+          name: MapManager-${{ env.SHA_SHORT }}-dev
           path: publish/*
 
   publish:

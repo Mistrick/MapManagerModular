@@ -61,7 +61,7 @@ new g_szCurMap[32];
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[TYPE] = register_cvar("mapm_nom_type", "0"); // 0 - standart, 1 - fixed
     g_pCvars[MAPS_IN_VOTE] = register_cvar("mapm_nom_maps_in_vote", "3");

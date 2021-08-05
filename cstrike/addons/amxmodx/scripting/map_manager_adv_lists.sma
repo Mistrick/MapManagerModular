@@ -30,7 +30,7 @@ new Array:g_aMapLists[MAX_MAPLISTS];
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
     mapm_block_load_maplist();
 }
 public plugin_natives()

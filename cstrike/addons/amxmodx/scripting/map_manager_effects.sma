@@ -51,7 +51,7 @@ new const g_sSound[][] = {
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[BLACK_SCREEN] = register_cvar("mapm_black_screen", "1"); // 0 - disable, 1 - enable
     g_pCvars[BLOCK_CHAT] = register_cvar("mapm_block_chat", "1"); // 0 - disable, 1 - enable

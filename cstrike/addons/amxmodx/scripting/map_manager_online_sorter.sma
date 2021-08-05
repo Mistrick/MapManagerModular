@@ -19,7 +19,7 @@ new Array:g_aMapsList;
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[CHECK_NOMINATED_MAPS] = register_cvar("mapm_sort_check_nominated_maps", "0"); // 0 - disable, 1 - enable
 }

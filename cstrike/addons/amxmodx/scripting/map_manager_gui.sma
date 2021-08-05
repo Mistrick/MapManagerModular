@@ -117,7 +117,7 @@ new g_hForwards[Forwards];
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[CURSOR_SENS] = register_cvar("mapm_cursor_sens", "2.5");
 

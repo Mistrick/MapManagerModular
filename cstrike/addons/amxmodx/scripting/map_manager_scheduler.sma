@@ -80,7 +80,7 @@ new g_sCurMap[MAPNAME_LENGTH];
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[CHANGE_TYPE] = register_cvar("mapm_change_type", "1"); // 0 - after end vote, 1 - in round end, 2 - after end map
     g_pCvars[TIMELEFT_TO_VOTE] = register_cvar("mapm_timeleft_to_vote", "2"); // minutes

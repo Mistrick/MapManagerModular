@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - "**.md"
+
+  pull_request:
+    types: [opened, reopened, synchronize]
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: "Build"
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ steps.declare_sha.outputs.sha }}
+      semver: ${{ steps.declare_sha.outputs.semver }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Parse SemVer string (release)
+        id: semver_parser
+        if: |
+          github.event_name == 'release' &&
+          github.event.action == 'published' &&
+          startsWith(github.ref, 'refs/tags/')
+        uses: booxmedialtd/ws-action-parse-semver@v1
+        with:
+          input_string: ${{ github.ref }}
+          version_extractor_regex: '\/v(.*)$'
+
+      - name: Declare SHA & package name
+        id: declare_sha
+        shell: bash
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          echo "SHA_SHORT=${SHA}" >> $GITHUB_ENV
+          echo "::set-output name=sha::$SHA"
+          echo "::set-output name=semver::${{ steps.semver_parser.outputs.fullversion }}"
+
+      - name: Update versions for plugins
+        working-directory: cstrike/addons/amxmodx/scripting/include/
+        env:
+          SHA_SHORT: "${{ env.SHA_SHORT }}"
+          FILE: map_manager_consts.inc
+        run: sed -i "s|VERSION_HASH \"\"|VERSION_HASH \"-$SHA_SHORT\"|g" $FILE
+
+      - name: Setup AMXXPawn Compiler
+        uses: wopox1337/setup-amxxpawn@v1
+        with:
+          version: "1.10.5428"
+
+      - name: Compile plugins
+        working-directory: cstrike/addons/amxmodx/scripting/
+        run: |
+          for sourcefile in *.sma;
+          do
+            amxxfile="`echo $sourcefile | sed -e 's/\.sma$/.amxx/'`"
+            output_path="../plugins/$amxxfile"
+
+            mkdir -p $(dirname $output_path)
+
+            echo -n "Compiling $sourcefile ... "
+            amxxpc $sourcefile -i"include" -o"$output_path"
+          done
+
+      - name: Move files
+        run: |
+          mkdir publish
+          mv cstrike/ publish/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: MapManager-${{ env.SHA_SHORT }}-dev
+          path: publish/*
+
+  publish:
+    name: "Publish"
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: |
+      github.event_name == 'release' &&
+      github.event.action == 'published' &&
+      startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: MapManager-${{needs.build.outputs.sha}}-dev
+
+      - name: Packaging binaries
+        id: packaging
+        run: 7z a -mm=Deflate -mfb=258 -mpass=15 -r MapManager-v${{needs.build.outputs.semver}}.zip cstrike/
+
+      - name: Publish artifacts
+        uses: softprops/action-gh-release@v1
+        id: publish-job
+        if: |
+          startsWith(github.ref, 'refs/tags/') &&
+          steps.packaging.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            *.zip

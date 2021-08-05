@@ -3,6 +3,8 @@
 #endif
 #define _map_manager_consts_included
 
+#define VERSION_HASH ""
+
 const MAPNAME_LENGTH = 32;
 
 enum _:MapStruct {

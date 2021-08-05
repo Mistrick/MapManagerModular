@@ -11,7 +11,7 @@ new Array:g_aMapList;
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 }
 
 public mapm_maplist_loaded(Array:maplist, const nextmap[])

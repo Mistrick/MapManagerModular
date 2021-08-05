@@ -42,7 +42,7 @@ new g_sPrefix[48];
 
 public plugin_init()
 {
-    register_plugin(PLUGIN, VERSION, AUTHOR);
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[MODE] = register_cvar("mapm_rtv_mode", "0"); // 0 - percents, 1 - players
     g_pCvars[CHANGE_AFTER_VOTE] = register_cvar("mapm_rtv_change_after_vote", "0"); // 0 - disable, 1 - enable

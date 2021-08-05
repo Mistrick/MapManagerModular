@@ -49,7 +49,7 @@ jobs:
         env:
           SHA_SHORT: "${{ env.SHA_SHORT }}"
           FILE: map_manager_consts.inc
-        run: sed -i "s|VERSION_HASH \"\"|VERSION_HASH \"$SHA_SHORT\"|g" $FILE
+        run: sed -i "s|VERSION_HASH \"\"|VERSION_HASH \"-$SHA_SHORT\"|g" $FILE
 
       - name: Setup AMXXPawn Compiler
         uses: wopox1337/setup-amxxpawn@v1

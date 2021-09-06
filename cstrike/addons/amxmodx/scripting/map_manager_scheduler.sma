@@ -419,7 +419,10 @@ public mapm_can_be_extended(type)
     if(type == VOTE_BY_SCHEDULER_SECOND) {
         return EXTEND_BLOCKED;
     }
-    if(g_iExtendedNum >= get_num(EXTENDED_MAX)) {
+
+    new extended_max = get_num(EXTENDED_MAX);
+
+    if(g_iExtendedNum >= extended_max && extended_max != -1) {
         return EXTEND_BLOCKED;
     }
     return EXTEND_ALLOWED;

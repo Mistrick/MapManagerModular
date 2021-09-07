@@ -51,7 +51,8 @@ enum Cvars {
     PREPARE_TIME,
     VOTE_TIME,
     VOTE_ITEM_OFFSET,
-    ONLY_EXTERNAL_VOTE_ITEMS
+    ONLY_EXTERNAL_VOTE_ITEMS,
+    EARLY_FINISH_VOTE
 };
 
 new g_pCvars[Cvars];
@@ -102,6 +103,7 @@ public plugin_init()
     g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
     g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
     g_pCvars[ONLY_EXTERNAL_VOTE_ITEMS] = register_cvar("mapm_only_external_vote_items", "0");
+    g_pCvars[EARLY_FINISH_VOTE] = register_cvar("mapm_early_finish_vote", "0");
 
     g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
     g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
@@ -552,6 +554,12 @@ public countdown(taskid)
                 if(!dont_show_result || g_iVoted[id] == NOT_VOTED) {
                     show_votemenu(id);
                 }
+            }
+
+            if(get_num(EARLY_FINISH_VOTE) && g_iTotalVotes == pnum) {
+                g_iTimer = 0;
+
+                client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_EARLY_FINISH_VOTE");
             }
         }
 

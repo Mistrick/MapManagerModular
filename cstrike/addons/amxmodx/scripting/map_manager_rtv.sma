@@ -40,6 +40,8 @@ new g_iVotes;
 
 new g_sPrefix[48];
 
+new g_sNextMap[MAPNAME_LENGTH];
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
@@ -71,8 +73,16 @@ public client_disconnected(id)
 }
 public clcmd_rtv(id)
 {
-    if(is_vote_started() || is_vote_finished() || is_vote_will_in_next_round()) {
-        // add msg?
+    if(is_vote_started()) {
+        client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_VOTE_ALREADY_STARTED");
+        return PLUGIN_HANDLED;
+    }
+    else if(is_vote_finished()) {
+        client_print_color(id, print_team_default, "%s^1 %L %L^3 %s.", g_sPrefix, id, "MAPM_VOTE_ALREADY_FINISHED", id, "MAPM_NEXTMAP", g_sNextMap);
+        return PLUGIN_HANDLED;
+    }
+    else if(is_vote_will_in_next_round()) {
+        client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_VOTE_WILL_BEGIN");
         return PLUGIN_HANDLED;
     }
 
@@ -122,6 +132,8 @@ public mapm_vote_started(type)
 }
 public mapm_vote_finished(const map[], type, total_votes)
 {
+    copy(g_sNextMap, charsmax(g_sNextMap), map);
+
     if(type == VOTE_BY_RTV && get_num(CHANGE_TYPE) && get_num(CHANGE_AFTER_VOTE)) {
         intermission();
     }

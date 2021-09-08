@@ -230,7 +230,7 @@ public concmd_startvote(id, level, cid)
     }
 
     new name[32]; get_user_name(id, name, charsmax(name));
-    client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_START_VOTE", name);
+    client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_START_VOTE", id ? name : "Server");
 
     log_amx("%s started vote", id ? name : "Server");
 
@@ -245,7 +245,7 @@ public concmd_stopvote(id, level, cid)
     }
 
     new name[32]; get_user_name(id, name, charsmax(name));
-    client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_CANCEL_VOTE", name);
+    client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_CANCEL_VOTE", id ? name : "Server");
 
     log_amx("%s stopped vote", id ? name : "Server");
 

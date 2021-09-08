@@ -49,6 +49,10 @@ new const g_sSound[][] = {
     "sound/fvox/six.wav", "sound/fvox/seven.wav", "sound/fvox/eight.wav", "sound/fvox/nine.wav", "sound/fvox/ten.wav"
 };
 
+// You can disable sound by setting empty string, like 'new g_sStartSound[] = "";'
+new g_sStartSound[] = "Gman/Gman_Choose2.wav";
+new g_sEndSound[] = "";
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
@@ -66,6 +70,14 @@ public plugin_precache()
 {
     register_clcmd("say", "clcmd_say");
     register_clcmd("say_team", "clcmd_say");
+
+    if(g_sStartSound[0]) {
+        precache_sound(g_sStartSound);
+    }
+
+    if(g_sEndSound[0]) {
+        precache_sound(g_sEndSound);
+    }
 }
 public plugin_cfg()
 {
@@ -145,10 +157,12 @@ public mapm_prepare_votelist(type)
 }
 public mapm_vote_started(type)
 {
-    send_audio(0, "sound/Gman/Gman_Choose2.wav", PITCH_NORM);
+    send_audio(0, g_sStartSound, PITCH_NORM);
 }
 public mapm_vote_finished(const map[], type, total_votes)
 {
+    send_audio(0, g_sEndSound, PITCH_NORM);
+
     disable_effects();
 }
 public mapm_vote_canceled(type)

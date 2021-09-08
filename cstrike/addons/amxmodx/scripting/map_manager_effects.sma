@@ -45,9 +45,11 @@ new bool:g_bFreezeFlagsChanged;
 new HamHook:g_hHamSpawn;
 
 new const g_sSound[][] = {
-    "sound/fvox/one.wav", "sound/fvox/two.wav", "sound/fvox/three.wav", "sound/fvox/four.wav", "sound/fvox/five.wav",
-    "sound/fvox/six.wav", "sound/fvox/seven.wav", "sound/fvox/eight.wav", "sound/fvox/nine.wav", "sound/fvox/ten.wav"
+    "fvox/one.wav", "fvox/two.wav", "fvox/three.wav", "fvox/four.wav", "fvox/five.wav",
+    "fvox/six.wav", "fvox/seven.wav", "fvox/eight.wav", "fvox/nine.wav", "fvox/ten.wav"
 };
+
+new g_sStartSound[] = "Gman/Gman_Choose2.wav";
 
 public plugin_init()
 {
@@ -66,6 +68,12 @@ public plugin_precache()
 {
     register_clcmd("say", "clcmd_say");
     register_clcmd("say_team", "clcmd_say");
+    
+    for(new i; i < sizeof g_sSound; i++) {
+        precache_sound(g_sSound[i]);
+    }
+
+    precache_sound(g_sStartSound);
 }
 public plugin_cfg()
 {
@@ -145,7 +153,7 @@ public mapm_prepare_votelist(type)
 }
 public mapm_vote_started(type)
 {
-    send_audio(0, "sound/Gman/Gman_Choose2.wav", PITCH_NORM);
+    send_audio(0, g_sStartSound, PITCH_NORM);
 }
 public mapm_vote_finished(const map[], type, total_votes)
 {

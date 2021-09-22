@@ -60,8 +60,7 @@ enum Cvars {
     FRAGLIMIT,
     FRAGSLEFT,
     NEXTMAP,
-
-    EXTEND_MAP_IF_NO_VOTES // core cvar
+    EXTEND_MAP_IF_NO_VOTES
 };
 
 new g_pCvars[Cvars];
@@ -101,6 +100,7 @@ public plugin_init()
     g_pCvars[EXTENDED_MAX] = register_cvar("mapm_extended_map_max", "3");
     g_pCvars[EXTENDED_TIME] = register_cvar("mapm_extended_time", "15"); // minutes
     g_pCvars[EXTENDED_ROUNDS] = register_cvar("mapm_extended_rounds", "3"); // rounds
+    g_pCvars[EXTEND_MAP_IF_NO_VOTES] = register_cvar("mapm_extend_map_if_no_votes", "0"); // 0 - disable, 1 - enable
 
     g_pCvars[MAXROUNDS] = get_cvar_pointer("mp_maxrounds");
     g_pCvars[WINLIMIT] = get_cvar_pointer("mp_winlimit");
@@ -108,8 +108,6 @@ public plugin_init()
     g_pCvars[CHATTIME] = get_cvar_pointer("mp_chattime");
     g_pCvars[FRAGLIMIT] = get_cvar_pointer("mp_fraglimit");
     g_pCvars[FRAGSLEFT] = get_cvar_pointer("mp_fragsleft");
-
-    g_pCvars[EXTEND_MAP_IF_NO_VOTES] = get_cvar_pointer("mapm_extend_map_if_no_votes");
 
 
     g_pCvars[NEXTMAP] = register_cvar("amx_nextmap", "", FCVAR_SERVER|FCVAR_EXTDLL|FCVAR_SPONLY);
@@ -500,13 +498,14 @@ public mapm_vote_finished(const map[], type, total_votes)
     }
     g_bVoteInNewRound = false;
 
+    new extend_map_no_votes = get_num(EXTEND_MAP_IF_NO_VOTES);
+
     // map extended
-    if(equali(map, g_sCurMap)) {
+    if(equali(map, g_sCurMap) || (!total_votes && extend_map_no_votes)) {
         g_iExtendedNum++;
 
         new win_limit = get_num(WINLIMIT);
         new max_rounds = get_num(MAXROUNDS);
-        new extend_map_no_votes = get_num(EXTEND_MAP_IF_NO_VOTES);
 
         if(get_num(EXTENDED_TYPE) == EXTEND_ROUNDS && (win_limit || max_rounds)) {
             new rounds = get_num(EXTENDED_ROUNDS);

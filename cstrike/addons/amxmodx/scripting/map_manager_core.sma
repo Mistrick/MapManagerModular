@@ -51,8 +51,7 @@ enum Cvars {
     PREPARE_TIME,
     VOTE_TIME,
     VOTE_ITEM_OFFSET,
-    ONLY_EXTERNAL_VOTE_ITEMS,
-    EXTEND_MAP_IF_NO_VOTES
+    ONLY_EXTERNAL_VOTE_ITEMS
 };
 
 new g_pCvars[Cvars];
@@ -103,7 +102,6 @@ public plugin_init()
     g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
     g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
     g_pCvars[ONLY_EXTERNAL_VOTE_ITEMS] = register_cvar("mapm_only_external_vote_items", "0");
-    g_pCvars[EXTEND_MAP_IF_NO_VOTES] = register_cvar("mapm_extend_map_if_no_votes", "0"); // 0 - disable, 1 - enable
 
     g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
     g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
@@ -688,11 +686,6 @@ finish_vote()
         }
     }
     else {
-        if(get_num(EXTEND_MAP_IF_NO_VOTES)) {
-            ExecuteForward(g_hForwards[VOTE_FINISHED], ret, g_sCurMap, g_iVoteType, g_iTotalVotes);
-            return;
-        }
-
         max_vote = random_num(0, g_iVoteItems - 1);
     }
 

@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.1.3"
+#define VERSION "0.2.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -59,6 +59,16 @@ new bool:g_bIgnoreVote = false;
 new g_sPrefix[48];
 new g_szCurMap[32];
 
+enum Sections {
+    UNUSED_SECTION,
+    MAPLIST_COMMANDS
+}
+enum ParserData {
+    Sections:SECTION,
+    MAPLIST_COMMAND_FOUND
+};
+new parser_info[ParserData];
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
@@ -76,10 +86,45 @@ public plugin_init()
 
     register_clcmd("say", "clcmd_say");
     register_clcmd("say_team", "clcmd_say");
-    register_clcmd("say maps", "clcmd_mapslist");
-    register_clcmd("say /maps", "clcmd_mapslist");
+
+    load_settings();
 
     g_hCallbackDisabled = menu_makecallback("callback_disable_item");
+}
+load_settings()
+{
+    new INIParser:parser = INI_CreateParser();
+
+    INI_SetParseEnd(parser, "ini_parse_end");
+    INI_SetReaders(parser, "ini_key_value", "ini_new_section");
+    INI_ParseFile(parser, "addons/amxmodx/configs/map_manager_settings.ini");
+}
+public ini_new_section(INIParser:handle, const section[], bool:invalid_tokens, bool:close_bracket, bool:extra_tokens, curtok, any:data)
+{
+    if(equal(section, "nomination_maplist_commands")) {
+        parser_info[SECTION] = MAPLIST_COMMANDS;
+    } else {
+        parser_info[SECTION] = UNUSED_SECTION;
+    }
+    return true;
+}
+public ini_key_value(INIParser:handle, const key[], const value[], bool:invalid_tokens, bool:equal_token, bool:quotes, curtok, any:data)
+{
+    switch(parser_info[SECTION]) {
+        case MAPLIST_COMMANDS: {
+            register_clcmd(fmt("say %s", key), "clcmd_mapslist");
+            parser_info[MAPLIST_COMMAND_FOUND] = true;
+        }
+    }
+    return true;
+}
+public ini_parse_end(INIParser:handle, bool:halted, any:data)
+{
+    if(!parser_info[MAPLIST_COMMAND_FOUND]) {
+        register_clcmd("say maps", "clcmd_mapslist");
+        register_clcmd("say /maps", "clcmd_mapslist");
+    }
+    INI_DestroyParser(handle);
 }
 public plugin_natives()
 {

@@ -180,6 +180,18 @@ native mapm_get_vote_type();
 native mapm_add_vote_to_item(item, value);
 
 /**
+ * Set displayed name for item.
+ *
+ * @note Use in forward mapm_displayed_item_name
+ *
+ * @param item                  Index in votelist
+ * @param name                  Displayed name
+ * 
+ * @noreturn
+ */
+native mapm_set_displayed_name(item, name[]);
+
+/**
  * Returns if vote started.
  * 
  * @return                      true/false
@@ -250,6 +262,17 @@ forward mapm_can_be_in_votelist(const map[], type, index);
  *                              EXTEND_BLOCKED to block extend current map
  */
 forward mapm_can_be_extended(type);
+
+/**
+ * Called when can change displayed name.
+ *
+ * @param type                  Type of vote, used const VOTE_BY_*
+ * @param item                  Vote item index, from 0 to MAX_VOTELIST_SIZE
+ * @param name                  Original vote item name
+ *
+ * @noreturn
+ */
+forward mapm_displayed_item_name(type, item, name[]);
 
 /**
  * Called when core start show menu with vote.

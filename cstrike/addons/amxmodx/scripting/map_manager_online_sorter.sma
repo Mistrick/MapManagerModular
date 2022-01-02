@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Online sorter"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -16,12 +16,17 @@ enum Cvars {
 new g_pCvars[Cvars];
 
 new Array:g_aMapsList;
+new g_sCurMap[MAPNAME_LENGTH];
 
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[CHECK_NOMINATED_MAPS] = register_cvar("mapm_sort_check_nominated_maps", "0"); // 0 - disable, 1 - enable
+}
+public plugin_natives()
+{
+    get_mapname(g_sCurMap, charsmax(g_sCurMap));
 }
 public mapm_maplist_loaded(Array:maplist)
 {
@@ -41,6 +46,9 @@ public mapm_prepare_votelist(type)
     for(new i; i < size; i++) {
         ArrayGetArray(g_aMapsList, i, map_info);
         if(map_info[MinPlayers] <= players_num <= map_info[MaxPlayers]) {
+            if(equali(map_info[Map], g_sCurMap)) {
+                continue;
+            }
             ArrayPushString(array, map_info[Map]);
         }
     }

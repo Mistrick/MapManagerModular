@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.1.0"
+#define VERSION "3.1.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -38,7 +38,8 @@ enum Forwards {
     VOTE_CANCELED,
     ANALYSIS_OF_RESULTS,
     VOTE_FINISHED,
-    COUNTDOWN
+    COUNTDOWN,
+    DISPLAYED_ITEM_NAME
 };
 
 enum Cvars {
@@ -87,6 +88,8 @@ new bool:g_bVoteFinished;
 new g_sCurMap[MAPNAME_LENGTH];
 new g_sPrefix[48];
 
+new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH];
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
@@ -115,6 +118,7 @@ public plugin_init()
     g_hForwards[CAN_BE_IN_VOTELIST] = CreateMultiForward("mapm_can_be_in_votelist", ET_CONTINUE, FP_STRING, FP_CELL, FP_CELL);
     g_hForwards[CAN_BE_EXTENDED] = CreateMultiForward("mapm_can_be_extended", ET_CONTINUE, FP_CELL);
     g_hForwards[COUNTDOWN] = CreateMultiForward("mapm_countdown", ET_IGNORE, FP_CELL, FP_CELL);
+    g_hForwards[DISPLAYED_ITEM_NAME] = CreateMultiForward("mapm_displayed_item_name", ET_CONTINUE, FP_CELL, FP_CELL, FP_STRING);
 
     register_menucmd(register_menuid("VoteMenu"), 1023, "votemenu_handler");
 
@@ -145,6 +149,7 @@ public plugin_natives()
     register_native("mapm_get_voteitem_info", "native_get_voteitem_info");
     register_native("mapm_get_vote_type", "native_get_vote_type");
     register_native("mapm_add_vote_to_item", "native_add_vote_to_item");
+    register_native("mapm_set_displayed_name", "native_set_displayed_name");
     register_native("is_vote_started", "native_is_vote_started");
     register_native("is_vote_finished", "native_is_vote_finished");
 }
@@ -336,6 +341,22 @@ public native_add_vote_to_item(plugin, params)
 
     return 1;
 }
+public native_set_displayed_name(plugin, params)
+{
+    enum {
+        arg_item = 1,
+        arg_displayed_name
+    }
+
+    new item = get_param(arg_item);
+    if(item < 0 || item >= g_iVoteItems + g_bCanExtend) {
+        return 0;
+    }
+
+    get_string(arg_displayed_name, g_sDisplayedItemName[item], charsmax(g_sDisplayedItemName[]));
+
+    return 0;
+}
 public native_is_vote_started(plugin, params)
 {
     return g_bVoteStarted;
@@ -510,6 +531,13 @@ prepare_vote(type)
         g_iOffset = MAX_VOTELIST_SIZE + 1 - g_iVoteItems - g_bCanExtend;
     }
 
+    for(new i; i < MAX_VOTELIST_SIZE; i++) {
+        g_sDisplayedItemName[i][0] = '^0';
+    }
+    for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
+        ExecuteForward(g_hForwards[DISPLAYED_ITEM_NAME], ret, type, i, g_sVoteList[i]);
+    }
+
     g_iTimer = get_num(PREPARE_TIME) + 1;
     countdown(TASK_PREPARE_VOTE);
 
@@ -604,10 +632,13 @@ public show_votemenu(id)
         len += formatex(menu[len], charsmax(menu) - len, "%s", (item == g_iVoteItems) ? "^n" : "");
 
         if(g_iVoted[id] == NOT_VOTED) {
-            len += formatex(menu[len], charsmax(menu) - len, "\r%d.\w %s", (g_iRandomNums[item] + 1 + g_iOffset == 10 ? 0 : g_iRandomNums[item] + 1 + g_iOffset), g_sVoteList[item]);
+            len += formatex(menu[len], charsmax(menu) - len, "\r%d.\w %s", 
+                            (g_iRandomNums[item] + 1 + g_iOffset == 10 ? 0 : g_iRandomNums[item] + 1 + g_iOffset),
+                            (g_sDisplayedItemName[item][0]) ? g_sDisplayedItemName[item] : g_sVoteList[item]);
             keys |= (1 << (g_iRandomNums[item] + g_iOffset));
         } else {
-            len += formatex(menu[len], charsmax(menu) - len, "%s%s", (g_iRandomNums[item] + g_iOffset == g_iVoted[id]) ? "\r" : "\d", g_sVoteList[item]);
+            len += formatex(menu[len], charsmax(menu) - len, "%s%s", (g_iRandomNums[item] + g_iOffset == g_iVoted[id]) ? "\r" : "\d",
+                            (g_sDisplayedItemName[item][0]) ? g_sDisplayedItemName[item] : g_sVoteList[item]);
         }
 
         if(g_iShowPercent == PERCENT_ALWAYS || g_iVoted[id] != NOT_VOTED && g_iShowPercent == PERCENT_AFTER_VOTE) {

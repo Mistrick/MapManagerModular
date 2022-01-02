@@ -500,8 +500,10 @@ public mapm_vote_finished(const map[], type, total_votes)
 
     new extend_map_no_votes = get_num(EXTEND_MAP_IF_NO_VOTES);
 
+    new bool:bNeedExtend = bool:(!total_votes && (extend_map_no_votes && g_iExtendedNum < get_num(EXTENDED_MAX)));
+
     // map extended
-    if(equali(map, g_sCurMap) || (!total_votes && extend_map_no_votes)) {
+    if(equali(map, g_sCurMap) || bNeedExtend) {
         g_iExtendedNum++;
 
         new win_limit = get_num(WINLIMIT);

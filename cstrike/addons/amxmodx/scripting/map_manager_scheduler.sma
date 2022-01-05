@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.7"
+#define VERSION "0.1.8"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -59,7 +59,8 @@ enum Cvars {
     CHATTIME,
     FRAGLIMIT,
     FRAGSLEFT,
-    NEXTMAP
+    NEXTMAP,
+    EXTEND_MAP_IF_NO_VOTES
 };
 
 new g_pCvars[Cvars];
@@ -99,6 +100,7 @@ public plugin_init()
     g_pCvars[EXTENDED_MAX] = register_cvar("mapm_extended_map_max", "3");
     g_pCvars[EXTENDED_TIME] = register_cvar("mapm_extended_time", "15"); // minutes
     g_pCvars[EXTENDED_ROUNDS] = register_cvar("mapm_extended_rounds", "3"); // rounds
+    g_pCvars[EXTEND_MAP_IF_NO_VOTES] = register_cvar("mapm_extend_map_if_no_votes", "0"); // 0 - disable, 1 - enable
 
     g_pCvars[MAXROUNDS] = get_cvar_pointer("mp_maxrounds");
     g_pCvars[WINLIMIT] = get_cvar_pointer("mp_winlimit");
@@ -499,8 +501,12 @@ public mapm_vote_finished(const map[], type, total_votes)
     }
     g_bVoteInNewRound = false;
 
+    new extend_map_no_votes = get_num(EXTEND_MAP_IF_NO_VOTES);
+
+    new bool:can_be_extend = bool:(equali(map, g_sCurMap) || !total_votes && extend_map_no_votes && g_iExtendedNum < get_num(EXTENDED_MAX));
+
     // map extended
-    if(equali(map, g_sCurMap)) {
+    if(can_be_extend) {
         g_iExtendedNum++;
 
         new win_limit = get_num(WINLIMIT);
@@ -515,12 +521,23 @@ public mapm_vote_finished(const map[], type, total_votes)
             if(max_rounds > 0) {
                 set_num(MAXROUNDS, max_rounds + rounds);
             }
-            
-            client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", rounds, LANG_PLAYER, "MAPM_ROUNDS");
+
+            if(!total_votes && extend_map_no_votes) {
+                client_print_color(0, print_team_default, "%s^1 %L %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", LANG_PLAYER, "MAPM_MAP_EXTEND", rounds, LANG_PLAYER, "MAPM_ROUNDS");
+            }
+            else {
+                client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", rounds, LANG_PLAYER, "MAPM_ROUNDS");
+            }
         } else {
             new min = get_num(EXTENDED_TIME);
             
-            client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", min, LANG_PLAYER, "MAPM_MINUTES");
+            if(!total_votes && extend_map_no_votes) {
+                client_print_color(0, print_team_default, "%s^1 %L %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", LANG_PLAYER, "MAPM_MAP_EXTEND", min, LANG_PLAYER, "MAPM_MINUTES");
+            }
+            else {
+                client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", min, LANG_PLAYER, "MAPM_MINUTES");
+            }
+
             set_float(TIMELIMIT, get_float(TIMELIMIT) + float(min));
         }
         
@@ -532,7 +549,7 @@ public mapm_vote_finished(const map[], type, total_votes)
 
     // change map
     if(!total_votes) {
-        client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", map);
+        client_print_color(0, print_team_default, "%s^1 %L %L", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", LANG_PLAYER, "MAPM_NEXTMAP_BY_VOTE", map);
     } else {
         client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", map);
     }

@@ -502,8 +502,9 @@ public mapm_vote_finished(const map[], type, total_votes)
     g_bVoteInNewRound = false;
 
     new extend_map_no_votes = get_num(EXTEND_MAP_IF_NO_VOTES);
+    new extended_max = get_num(EXTENDED_MAX);
 
-    new bool:can_be_extend = bool:(equali(map, g_sCurMap) || !total_votes && extend_map_no_votes && g_iExtendedNum < get_num(EXTENDED_MAX));
+    new bool:can_be_extend = bool:(equali(map, g_sCurMap) || !total_votes && extend_map_no_votes && g_iExtendedNum < extended_max && extended_max != -1);
 
     // map extended
     if(can_be_extend) {

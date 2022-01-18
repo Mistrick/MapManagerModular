@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.1.1"
+#define VERSION "3.1.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -87,7 +87,7 @@ new bool:g_bVoteFinished;
 new g_sCurMap[MAPNAME_LENGTH];
 new g_sPrefix[48];
 
-new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH];
+new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH * 2];
 
 public plugin_init()
 {

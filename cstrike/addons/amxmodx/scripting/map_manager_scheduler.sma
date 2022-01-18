@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.8"
+#define VERSION "0.1.9"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -512,36 +512,31 @@ public mapm_vote_finished(const map[], type, total_votes)
 
         new win_limit = get_num(WINLIMIT);
         new max_rounds = get_num(MAXROUNDS);
+        new num, lang[32];
 
         if(get_num(EXTENDED_TYPE) == EXTEND_ROUNDS && (win_limit || max_rounds)) {
-            new rounds = get_num(EXTENDED_ROUNDS);
-            
+            num = get_num(EXTENDED_ROUNDS);
+            lang = "MAPM_ROUNDS";
+
             if(win_limit > 0) {
-                set_num(WINLIMIT, win_limit + rounds);
+                set_num(WINLIMIT, win_limit + num);
             }
             if(max_rounds > 0) {
-                set_num(MAXROUNDS, max_rounds + rounds);
-            }
-
-            if(!total_votes && extend_map_no_votes) {
-                client_print_color(0, print_team_default, "%s^1 %L %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", LANG_PLAYER, "MAPM_MAP_EXTEND", rounds, LANG_PLAYER, "MAPM_ROUNDS");
-            }
-            else {
-                client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", rounds, LANG_PLAYER, "MAPM_ROUNDS");
+                set_num(MAXROUNDS, max_rounds + num);
             }
         } else {
-            new min = get_num(EXTENDED_TIME);
-            
-            if(!total_votes && extend_map_no_votes) {
-                client_print_color(0, print_team_default, "%s^1 %L %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", LANG_PLAYER, "MAPM_MAP_EXTEND", min, LANG_PLAYER, "MAPM_MINUTES");
-            }
-            else {
-                client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", min, LANG_PLAYER, "MAPM_MINUTES");
-            }
-
-            set_float(TIMELIMIT, get_float(TIMELIMIT) + float(min));
+            num = get_num(EXTENDED_TIME);
+            lang = "MAPM_MINUTES";
+            set_float(TIMELIMIT, get_float(TIMELIMIT) + float(num));
         }
-        
+
+        if(!total_votes && extend_map_no_votes) {
+            client_print_color(0, print_team_default, "%s^1 %L %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", LANG_PLAYER, "MAPM_MAP_EXTEND", num, LANG_PLAYER, lang);
+        }
+        else {
+            client_print_color(0, print_team_default, "%s^1 %L %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_EXTEND", num, LANG_PLAYER, lang);
+        }
+
         mapm_set_vote_finished(false);
 
         log_amx("[vote_finished]: map extended[%d].", g_iExtendedNum);

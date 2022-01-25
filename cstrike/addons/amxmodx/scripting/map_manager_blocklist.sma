@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: BlockList"
-#define VERSION "0.0.3"
+#define VERSION "0.0.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -19,6 +19,7 @@ new const FILE_BLOCKED_MAPS[] = "blockedmaps.ini"; //datadir
 
 new Trie:g_tBlockedList;
 new g_iMaxItems;
+new bool:g_bNeedCheck;
 
 public plugin_init()
 {
@@ -35,6 +36,10 @@ public native_get_blocked_count(plugin, params)
 {
     enum { arg_map = 1 };
 
+    if(!get_num(BAN_LAST_MAPS)) {
+        return 0;
+    }
+    
     new map[MAPNAME_LENGTH];
     get_string(arg_map, map, charsmax(map));
     strtolower(map);
@@ -132,9 +137,13 @@ public mapm_prepare_votelist(type)
     if(g_iMaxItems) {
         mapm_set_votelist_max_items(g_iMaxItems);
     }
+    g_bNeedCheck = get_num(BAN_LAST_MAPS) > 0;
 }
 public mapm_can_be_in_votelist(const map[])
 {
+    if(!g_bNeedCheck) {
+        return MAP_ALLOWED;
+    }
     new lower[MAPNAME_LENGTH];
     copy(lower, charsmax(lower), map);
     strtolower(lower);

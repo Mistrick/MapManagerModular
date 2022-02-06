@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.1.3"
+#define VERSION "3.1.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1

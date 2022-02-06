@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.0.10"
+#define VERSION "0.1.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -43,11 +43,6 @@ new bool:g_bBlockChat;
 new bool:g_bFreezeTimeChanged;
 new bool:g_bFreezeFlagsChanged;
 new HamHook:g_hHamSpawn;
-
-new const g_sSound[][] = {
-    "sound/fvox/one.wav", "sound/fvox/two.wav", "sound/fvox/three.wav", "sound/fvox/four.wav", "sound/fvox/five.wav",
-    "sound/fvox/six.wav", "sound/fvox/seven.wav", "sound/fvox/eight.wav", "sound/fvox/nine.wav", "sound/fvox/ten.wav"
-};
 
 public plugin_init()
 {
@@ -111,10 +106,6 @@ public mapm_countdown(type, time)
             id = players[i];
             show_hudmessage(id, "%L %L!", id, "MAPM_HUD_TIMER", time, id, "MAPM_SECONDS");
         }
-        // sound
-        if( 0 < time <= 10 ) {
-            send_audio(0, g_sSound[time - 1], PITCH_NORM);
-        }
     }
 }
 public mapm_prepare_votelist(type)
@@ -142,10 +133,6 @@ public mapm_prepare_votelist(type)
         }
     }
     EnableHamForward(g_hHamSpawn);
-}
-public mapm_vote_started(type)
-{
-    send_audio(0, "sound/Gman/Gman_Choose2.wav", PITCH_NORM);
 }
 public mapm_vote_finished(const map[], type, total_votes)
 {

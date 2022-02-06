@@ -2,12 +2,14 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Advanced lists"
-#define VERSION "0.0.7"
+#define VERSION "0.1.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
 
 #define MAX_MAPLISTS 16
+
+#define get_num(%0) get_pcvar_num(g_pCvars[%0])
 
 new const FILE_MAP_LISTS[] = "maplists.ini";
 
@@ -24,17 +26,32 @@ enum _:MapListInfo {
     FileList[128]
 };
 
+enum Cvars {
+    SHOW_LIST_NAME
+};
+
+new g_pCvars[Cvars];
+
 new Array:g_aLists;
 new Array:g_aActiveLists;
 new Array:g_aMapLists[MAX_MAPLISTS];
 
+new Trie:g_tMapPull;
+new g_sCurMap[MAPNAME_LENGTH];
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
+
+    g_pCvars[SHOW_LIST_NAME] = register_cvar("mapm_show_list_name_in_vote", "0");
+
     mapm_block_load_maplist();
 }
 public plugin_natives()
 {
+    g_tMapPull = TrieCreate();
+    get_mapname(g_sCurMap, charsmax(g_sCurMap));
+
     register_library("map_manager_adv_lists");
 
     register_native("mapm_advl_get_active_lists", "native_get_active_lists");
@@ -219,12 +236,40 @@ public task_check_list()
     if(reload) {
         ArrayDestroy(g_aActiveLists);
         g_aActiveLists = temp;
+        TrieClear(g_tMapPull);
         for(new i, item, size = ArraySize(g_aActiveLists); i < size; i++) {
             item = ArrayGetCell(g_aActiveLists, i);
             ArrayGetArray(g_aLists, item, list_info);
+            push_maps_to_pull(g_aMapLists[item], list_info[ListName]);
             log_amx("loaded new maplist ^"%s^"", list_info[FileList]);
             mapm_load_maplist(list_info[FileList], list_info[ClearOldList], i != size - 1);
         }
+    }
+}
+public mapm_displayed_item_name(type, item, name[])
+{
+    if(!get_num(SHOW_LIST_NAME)) {
+        return 0;
+    }
+
+    if(equali(name, g_sCurMap)) {
+        return 0;
+    }
+
+    if(TrieKeyExists(g_tMapPull, name)) {
+        new list_name[32];
+        TrieGetString(g_tMapPull, name, list_name, charsmax(list_name));
+        mapm_set_displayed_name(item, fmt("%s\y[%s]", name, list_name));
+    }
+
+    return 0;
+}
+push_maps_to_pull(Array:array, const list_name[])
+{
+    new map_info[MapStruct];
+    for(new i, size = ArraySize(array); i < size; i++) {
+        ArrayGetArray(array, i, map_info);
+        TrieSetString(g_tMapPull, map_info[Map], list_name);
     }
 }
 get_int_time(string[])

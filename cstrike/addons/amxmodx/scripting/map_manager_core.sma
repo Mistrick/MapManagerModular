@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.1.3"
+#define VERSION "3.1.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -52,7 +52,8 @@ enum Cvars {
     PREPARE_TIME,
     VOTE_TIME,
     VOTE_ITEM_OFFSET,
-    ONLY_EXTERNAL_VOTE_ITEMS
+    ONLY_EXTERNAL_VOTE_ITEMS,
+    EARLY_FINISH_VOTE
 };
 
 new g_pCvars[Cvars];
@@ -89,6 +90,8 @@ new g_sPrefix[48];
 
 new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH * 2];
 
+new g_iPlayersNum;
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
@@ -105,6 +108,7 @@ public plugin_init()
     g_pCvars[VOTE_TIME] = register_cvar("mapm_vote_time", "10"); // seconds
     g_pCvars[VOTE_ITEM_OFFSET] = register_cvar("mapm_vote_item_offset", "0");
     g_pCvars[ONLY_EXTERNAL_VOTE_ITEMS] = register_cvar("mapm_only_external_vote_items", "0");
+    g_pCvars[EARLY_FINISH_VOTE] = register_cvar("mapm_early_finish_vote", "0");
 
     g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
     g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
@@ -573,8 +577,8 @@ public countdown(taskid)
             g_iShowPercent = get_num(SHOW_PERCENT);
             g_bShowSelects = get_num(SHOW_SELECTS);
             
-            new players[32], pnum; get_players(players, pnum, "ch");
-            for(new i, id; i < pnum; i++) {
+            new players[32]; get_players(players, g_iPlayersNum, "ch");
+            for(new i, id; i < g_iPlayersNum; i++) {
                 id = players[i];
                 if(!dont_show_result || g_iVoted[id] == NOT_VOTED) {
                     show_votemenu(id);
@@ -693,6 +697,11 @@ add_item_votes(item, value)
 {
     g_iVotes[item] += value;
     g_iTotalVotes += value;
+
+    if(get_num(EARLY_FINISH_VOTE) && g_iTotalVotes == g_iPlayersNum) {
+        g_iTimer = 0;
+        client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_EARLY_FINISH_VOTE");
+    }
 }
 finish_vote()
 {

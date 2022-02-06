@@ -44,6 +44,7 @@ MAPM_WINS = wins
 MAPM_VOTE_IN_NEXTROUND = Wait vote in next round.
 MAPM_SECOND_VOTE = Second vote.
 MAPM_CHANGELEVEL_NEXTROUND = Map will change in next round.
+MAPM_EARLY_FINISH_VOTE = All players have voted, so we are ending voting^3 early^1.
 
 [ru]
 MAPM_VOTE_WILL_BEGIN = Голосование начнется в следующем раунде.
@@ -91,3 +92,4 @@ MAPM_WINS = побед
 MAPM_VOTE_IN_NEXTROUND = Подождите, голосование начнется в следующем раунде.
 MAPM_SECOND_VOTE = Второе голосование.
 MAPM_CHANGELEVEL_NEXTROUND = Карта сменится в следующем раунде.
+MAPM_EARLY_FINISH_VOTE = Проголосовали все игроки,^3 досрочно^1 завершаем голосование.

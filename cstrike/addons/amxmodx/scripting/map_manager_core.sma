@@ -90,6 +90,8 @@ new g_sPrefix[48];
 
 new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH * 2];
 
+new g_playersnum;
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
@@ -575,18 +577,12 @@ public countdown(taskid)
             g_iShowPercent = get_num(SHOW_PERCENT);
             g_bShowSelects = get_num(SHOW_SELECTS);
             
-            new players[32], pnum; get_players(players, pnum, "ch");
-            for(new i, id; i < pnum; i++) {
+            new players[32]; get_players(players, g_playersnum, "ch");
+            for(new i, id; i < g_playersnum; i++) {
                 id = players[i];
                 if(!dont_show_result || g_iVoted[id] == NOT_VOTED) {
                     show_votemenu(id);
                 }
-            }
-
-            if(get_num(EARLY_FINISH_VOTE) && g_iTotalVotes == pnum) {
-                g_iTimer = 0;
-
-                client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_EARLY_FINISH_VOTE");
             }
         }
 
@@ -701,6 +697,12 @@ add_item_votes(item, value)
 {
     g_iVotes[item] += value;
     g_iTotalVotes += value;
+
+    if(get_num(EARLY_FINISH_VOTE) && g_iTotalVotes == g_playersnum) {
+        g_iTimer = 0;
+
+        client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_EARLY_FINISH_VOTE");
+    }
 }
 finish_vote()
 {

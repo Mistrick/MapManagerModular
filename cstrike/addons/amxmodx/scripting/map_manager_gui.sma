@@ -13,7 +13,7 @@ Models, sprites for test by 8dp
 #endif
 
 #define PLUGIN "Map Manager: GUI"
-#define VERSION "0.0.5"
+#define VERSION "0.0.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -57,6 +57,7 @@ enum Cvars {
     CURSOR_SENS,
     HIDE_MAP_PREFIX,
     SHOW_SELECTS,
+    BLACK_SCREEN,
     SHOW_PERCENT
 };
 
@@ -130,8 +131,18 @@ public plugin_cfg()
 
     g_pCvars[SHOW_SELECTS] = get_cvar_pointer("mapm_show_selects");
     g_pCvars[SHOW_PERCENT] = get_cvar_pointer("mapm_show_percent");
+    g_pCvars[BLACK_SCREEN] = get_cvar_pointer("mapm_black_screen");
 
     g_fCursorSens = get_float(CURSOR_SENS);
+
+    set_task(1.0, "check_cvar");
+}
+public check_cvar()
+{
+    if(get_num(BLACK_SCREEN)) {
+        log_amx("WARNING: set config value ^"mapm_black_screen^" to 0.");
+        set_pcvar_num(g_pCvars[BLACK_SCREEN], 0);
+    }
 }
 public plugin_precache()
 {

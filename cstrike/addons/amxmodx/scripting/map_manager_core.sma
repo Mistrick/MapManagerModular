@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.1.1"
+#define VERSION "3.1.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -88,7 +88,7 @@ new bool:g_bVoteFinished;
 new g_sCurMap[MAPNAME_LENGTH];
 new g_sPrefix[48];
 
-new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH];
+new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH * 2];
 
 public plugin_init()
 {
@@ -336,8 +336,7 @@ public native_add_vote_to_item(plugin, params)
     }
 
     new value = get_param(arg_value);
-    g_iVotes[item] += value;
-    g_iTotalVotes += value;
+    add_item_votes(item, value);
 
     return 1;
 }
@@ -677,8 +676,8 @@ public votemenu_handler(id, key)
     }
     
     new original = get_original_num(key - g_iOffset);
-    g_iVotes[original]++;
-    g_iTotalVotes++;
+    add_item_votes(original, 1);
+    
     g_iVoted[id] = key;
 
     // TODO: add forward if someone want add more votes for admin, etc.
@@ -697,6 +696,11 @@ public votemenu_handler(id, key)
     }
     
     return PLUGIN_HANDLED;
+}
+add_item_votes(item, value)
+{
+    g_iVotes[item] += value;
+    g_iTotalVotes += value;
 }
 finish_vote()
 {

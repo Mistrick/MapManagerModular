@@ -89,7 +89,7 @@ public clcmd_say(id)
 }
 public player_spawn_post(id)
 {
-    if(get_num(FREEZE_IN_VOTE) == FREEZE_FORCE_USE_FLAGS || get_num(FREEZE_IN_VOTE) && !get_num(VOTE_IN_NEW_ROUND)) {
+    if((get_num(FREEZE_IN_VOTE) == FREEZE_FORCE_USE_FLAGS || get_num(FREEZE_IN_VOTE) && !get_num(VOTE_IN_NEW_ROUND)) || mapm_get_vote_type() == VOTE_BY_SCHEDULER_SECOND) {
         set_pev(id, pev_flags, pev(id, pev_flags) | FL_FROZEN);
     }
     if(get_num(BLACK_SCREEN)) {

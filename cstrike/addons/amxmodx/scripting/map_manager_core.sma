@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.1.4"
+#define VERSION "3.1.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -726,7 +726,11 @@ finish_vote()
     new max_vote = 0;
     if(g_iTotalVotes) {
         for(new i = 1; i < g_iVoteItems + 1; i++) {
-            if(g_iVotes[max_vote] < g_iVotes[i]) max_vote = i;
+            if(random_num(0, 99) >= 50) {
+                if(g_iVotes[max_vote] < g_iVotes[i]) max_vote = i;
+            } else {
+                if(g_iVotes[max_vote] <= g_iVotes[i]) max_vote = i;
+            }
         }
     }
     else {

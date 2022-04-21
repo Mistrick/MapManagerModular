@@ -2,7 +2,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Sounds"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -22,12 +22,10 @@ new g_sVoteStarted[128];
 new g_sVoteFinished[128];
 new Trie:g_tCountdownSounds;
 
-public plugin_init()
-{
-    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
-}
 public plugin_precache()
 {
+    register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
+
     g_tCountdownSounds = TrieCreate();
     load_settings();
 }
@@ -37,7 +35,11 @@ load_settings()
 
     INI_SetParseEnd(parser, "ini_parse_end");
     INI_SetReaders(parser, "ini_key_value", "ini_new_section");
-    INI_ParseFile(parser, "addons/amxmodx/configs/map_manager_settings.ini");
+    new bool:result = INI_ParseFile(parser, "addons/amxmodx/configs/map_manager_settings.ini");
+
+    if(!result) {
+        set_fail_state("Can't read from ini file.");
+    }
 }
 public ini_new_section(INIParser:handle, const section[], bool:invalid_tokens, bool:close_bracket, bool:extra_tokens, curtok, any:data)
 {

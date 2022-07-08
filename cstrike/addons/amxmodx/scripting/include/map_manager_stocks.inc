@@ -64,6 +64,14 @@ stock get_players_num(ignore = 0)
             || is_user_hltv(i)) {
             continue;
         }
+
+        if(ignore == -1) {
+            new team = get_user_team(i);
+            if(team == 0 || team == 4) {
+                continue;
+            }
+        }
+
         pnum++;
     }
     return pnum;

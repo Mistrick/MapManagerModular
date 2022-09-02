@@ -13,7 +13,6 @@ new Float: mapm_online_check_interval, mapm_online_check_count,
 public stock const PluginName[] = "Map Manager: Online checker";
 public stock const PluginVersion[] = "1.0.0";
 public stock const PluginAuthor[] = "Sergey Shorokhov";
-public stock const PluginURL[] = "https://dev-cs.ru/";
 
 public plugin_init() {
   register_plugin(PluginName, PluginVersion, PluginAuthor);

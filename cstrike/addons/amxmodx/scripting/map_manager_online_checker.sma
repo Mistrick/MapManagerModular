@@ -3,6 +3,13 @@
 #include <map_manager>
 #include <map_manager_scheduler>
 
+
+#define PLUGIN "Map Manager: Online checker"
+#define VERSION "1.0.0"
+#define AUTHOR "Sergey Shorokhov"
+
+#pragma semicolon 1
+
 new g_Prefix[48];
 new g_CurrentMap[MapStruct];
 new g_Warnings;
@@ -10,12 +17,8 @@ new g_Warnings;
 new Float: mapm_online_check_interval, mapm_online_check_count,
     Float: mapm_online_check_timeout;
 
-public stock const PluginName[] = "Map Manager: Online checker";
-public stock const PluginVersion[] = "1.0.0";
-public stock const PluginAuthor[] = "Sergey Shorokhov";
-
 public plugin_init() {
-  register_plugin(PluginName, PluginVersion, PluginAuthor);
+  register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
   bind_pcvar_float(
     create_cvar("mapm_online_check_interval", "30.0"),

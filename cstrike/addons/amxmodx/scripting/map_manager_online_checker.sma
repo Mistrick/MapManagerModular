@@ -36,25 +36,6 @@ public plugin_init() {
   set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b");
 }
 
-public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
-  get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
-
-  new map_info[MapStruct];
-  for(new i, size = ArraySize(maplist); i < size; i++) {
-    ArrayGetArray(maplist, i, map_info);
-
-    if(strcmp(g_CurrentMap[Map], map_info[Map]) != 0)
-      continue;
-
-    g_CurrentMap[MinPlayers] = map_info[MinPlayers];
-    g_CurrentMap[MaxPlayers] = map_info[MaxPlayers];
-
-    return;
-  }
-
-  set_fail_state("Map '%s' not found in 'maps.ini'", g_CurrentMap[Map]);
-}
-
 public task_check_online() {
   new current_online = get_players_num();
   if(current_online != 0 && get_float(CHECK_TIMEOUT) > get_gametime()) {
@@ -75,6 +56,25 @@ public task_check_online() {
 
   const VOTE_BY_INCORRECT_ONLINE = 1337;
   map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);
+}
+
+public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
+  get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
+
+  new map_info[MapStruct];
+  for(new i, size = ArraySize(maplist); i < size; i++) {
+    ArrayGetArray(maplist, i, map_info);
+
+    if(strcmp(g_CurrentMap[Map], map_info[Map]) != 0)
+      continue;
+
+    g_CurrentMap[MinPlayers] = map_info[MinPlayers];
+    g_CurrentMap[MaxPlayers] = map_info[MaxPlayers];
+
+    return;
+  }
+
+  set_fail_state("Map '%s' not found in 'maps.ini'", g_CurrentMap[Map]);
 }
 
 public mapm_can_be_extended(type) {

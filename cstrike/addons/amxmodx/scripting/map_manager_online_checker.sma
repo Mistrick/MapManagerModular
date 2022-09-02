@@ -12,34 +12,28 @@
 
 #pragma semicolon 1
 
-new g_Prefix[48];
+#define get_num(%0) get_pcvar_num(g_pCvars[%0])
+#define get_float(%0) get_pcvar_float(g_pCvars[%0])
+
+enum Cvars {
+  CHECK_INTERVAL,
+  CHECKS_COUNT,
+  CHECK_TIMEOUT
+};
+
+new g_pCvars[Cvars];
+
 new g_CurrentMap[MapStruct];
 new g_Warnings;
-
-new Float: mapm_online_check_interval, mapm_online_check_count,
-    Float: mapm_online_check_timeout;
 
 public plugin_init() {
   register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
-  bind_pcvar_float(
-    create_cvar("mapm_online_check_interval", "30.0"),
-    mapm_online_check_interval
-  );
+  g_pCvars[CHECK_INTERVAL] = register_cvar("mapm_online_check_interval", "30");
+  g_pCvars[CHECKS_COUNT] = register_cvar("mapm_online_check_count", "3");
+  g_pCvars[CHECK_TIMEOUT] = register_cvar("mapm_online_check_timeout", "120");
 
-  bind_pcvar_num(
-    create_cvar("mapm_online_check_count", "3"),
-    mapm_online_check_count
-  );
-
-  bind_pcvar_float(
-    create_cvar("mapm_online_check_timeout", "120.0"),
-    mapm_online_check_timeout
-  );
-
-  mapm_get_prefix(g_Prefix, charsmax(g_Prefix));
-
-  set_task(mapm_online_check_interval, "task_check_online", .flags = "b");
+  set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b");
 }
 
 public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
@@ -63,25 +57,28 @@ public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
 
 public task_check_online() {
   new current_online = get_players_num();
-  if(current_online != 0 && mapm_online_check_timeout > get_gametime()) {
+  if(current_online != 0 && get_float(CHECK_TIMEOUT) > get_gametime()) {
     return;
   }
 
   new bool: IsOnlineIncorrect = (current_online < g_CurrentMap[MinPlayers] || current_online > g_CurrentMap[MaxPlayers]);
 
-  g_Warnings = clamp(IsOnlineIncorrect ? ++g_Warnings : --g_Warnings, 0, mapm_online_check_count);
-  if(g_Warnings != mapm_online_check_count) {
+  g_Warnings = clamp(IsOnlineIncorrect ? ++g_Warnings : --g_Warnings, 0, get_num(CHECKS_COUNT));
+  if(g_Warnings != get_num(CHECKS_COUNT)) {
     return;
   }
 
-  client_print_color(0, print_team_default, "%s\1 %L", g_Prefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
+  new sPrefix[48];
+  mapm_get_prefix(sPrefix, charsmax(sPrefix));
+
+  client_print_color(0, print_team_default, "%s\1 %L", sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
 
   const VOTE_BY_INCORRECT_ONLINE = 1337;
   map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);
 }
 
 public mapm_can_be_extended(type) {
-  if(g_Warnings == mapm_online_check_count) {
+  if(g_Warnings == get_num(CHECKS_COUNT)) {
     return EXTEND_BLOCKED;
   }
 

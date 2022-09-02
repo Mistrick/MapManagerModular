@@ -71,7 +71,7 @@ public task_check_online() {
   new sPrefix[48];
   mapm_get_prefix(sPrefix, charsmax(sPrefix));
 
-  client_print_color(0, print_team_default, "%s\1 %L", sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
+  client_print_color(0, print_team_default, "%s^1 %L", sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
 
   const VOTE_BY_INCORRECT_ONLINE = 1337;
   map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);

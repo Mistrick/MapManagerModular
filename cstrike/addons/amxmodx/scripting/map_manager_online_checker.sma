@@ -62,7 +62,7 @@ public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
 }
 
 public task_check_online() {
-  new current_online = get_playersnum_ex(GetPlayers_ExcludeBots | GetPlayers_ExcludeHLTV | GetPlayers_IncludeConnecting);
+  new current_online = get_players_num();
   if(current_online != 0 && mapm_online_check_timeout > get_gametime()) {
     return;
   }

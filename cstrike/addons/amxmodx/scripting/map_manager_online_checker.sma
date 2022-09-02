@@ -1,8 +1,10 @@
 #include <amxmodx>
-#include <amxmisc>
 #include <map_manager>
 #include <map_manager_scheduler>
 
+#if AMXX_VERSION_NUM < 183
+#include <colorchat>
+#endif
 
 #define PLUGIN "Map Manager: Online checker"
 #define VERSION "1.0.0"
@@ -37,7 +39,7 @@ public plugin_init() {
 
   mapm_get_prefix(g_Prefix, charsmax(g_Prefix));
 
-  set_task_ex(mapm_online_check_interval, "OnlineCheck", .flags = SetTask_Repeat);
+  set_task(mapm_online_check_interval, "task_check_online", .flags = "b");
 }
 
 public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
@@ -59,7 +61,7 @@ public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
   set_fail_state("Map '%s' not found in 'maps.ini'", g_CurrentMap[Map]);
 }
 
-public OnlineCheck() {
+public task_check_online() {
   new current_online = get_playersnum_ex(GetPlayers_ExcludeBots | GetPlayers_ExcludeHLTV | GetPlayers_IncludeConnecting);
   if(current_online != 0 && mapm_online_check_timeout > get_gametime()) {
     return;
@@ -73,7 +75,6 @@ public OnlineCheck() {
   }
 
   client_print_color(0, print_team_default, "%s\1 %L", g_Prefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
-
 
   const VOTE_BY_INCORRECT_ONLINE = 1337;
   map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);

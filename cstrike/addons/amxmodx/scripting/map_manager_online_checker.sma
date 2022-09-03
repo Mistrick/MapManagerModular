@@ -35,6 +35,7 @@ public plugin_init() {
 
 public plugin_cfg() {
     mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
+    get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
 }
 
 public task_check_online() {
@@ -56,8 +57,6 @@ public task_check_online() {
 }
 
 public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
-    get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
-
     new map_info[MapStruct];
     for(new i, size = ArraySize(maplist); i < size; i++) {
         ArrayGetArray(maplist, i, map_info);

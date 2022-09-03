@@ -70,6 +70,10 @@ public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
 }
 
 public mapm_can_be_extended(type) {
+    if(get_num(CHECKS_COUNT) <= 0) {
+        return EXTEND_ALLOWED;
+    }
+
     if(g_Warnings == get_num(CHECKS_COUNT)) {
         return EXTEND_BLOCKED;
     }

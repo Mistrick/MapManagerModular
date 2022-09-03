@@ -39,6 +39,10 @@ public plugin_cfg() {
 }
 
 public task_check_online() {
+    if(get_num(CHECKS_COUNT) <= 0) {
+        return;
+    }
+
     new current_online = get_players_num();
     if(current_online != 0 && get_float(CHECK_TIMEOUT) > get_gametime()) {
         return;

@@ -57,20 +57,12 @@ public task_check_online() {
 }
 
 public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
-    new map_info[MapStruct];
-    for(new i, size = ArraySize(maplist); i < size; i++) {
-        ArrayGetArray(maplist, i, map_info);
-
-        if(strcmp(g_CurrentMap[Map], map_info[Map]) != 0)
-            continue;
-
-        g_CurrentMap[MinPlayers] = map_info[MinPlayers];
-        g_CurrentMap[MaxPlayers] = map_info[MaxPlayers];
-
+    new idx = mapm_get_map_index(g_CurrentMap[Map]);
+    if(idx == INVALID_MAP_INDEX) {
         return;
     }
 
-    set_fail_state("Map '%s' not found in 'maps.ini'", g_CurrentMap[Map]);
+    ArrayGetArray(maplist, idx, g_CurrentMap);
 }
 
 public mapm_can_be_extended(type) {

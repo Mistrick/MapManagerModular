@@ -17,6 +17,7 @@ enum Cvars {
     CHECK_TIMEOUT
 };
 
+new g_sPrefix[48];
 new g_pCvars[Cvars];
 
 new g_CurrentMap[MapStruct];
@@ -32,6 +33,10 @@ public plugin_init() {
     set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b");
 }
 
+public plugin_cfg() {
+    mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
+}
+
 public task_check_online() {
     new current_online = get_players_num();
     if(current_online != 0 && get_float(CHECK_TIMEOUT) > get_gametime()) {
@@ -45,10 +50,7 @@ public task_check_online() {
         return;
     }
 
-    new sPrefix[48];
-    mapm_get_prefix(sPrefix, charsmax(sPrefix));
-
-    client_print_color(0, print_team_default, "%s^1 %L", sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
+    client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
 
     const VOTE_BY_INCORRECT_ONLINE = 1337;
     map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);

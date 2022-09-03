@@ -38,9 +38,9 @@ public task_check_online() {
         return;
     }
 
-    new bool: IsOnlineIncorrect = (current_online < g_CurrentMap[MinPlayers] || current_online > g_CurrentMap[MaxPlayers]);
+    new bool: is_online_incorrect = (current_online < g_CurrentMap[MinPlayers] || current_online > g_CurrentMap[MaxPlayers]);
 
-    g_Warnings = clamp(IsOnlineIncorrect ? ++g_Warnings : --g_Warnings, 0, get_num(CHECKS_COUNT));
+    g_Warnings = clamp(is_online_incorrect ? ++g_Warnings : --g_Warnings, 0, get_num(CHECKS_COUNT));
     if(g_Warnings != get_num(CHECKS_COUNT)) {
         return;
     }

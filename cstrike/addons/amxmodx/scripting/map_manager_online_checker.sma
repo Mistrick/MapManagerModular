@@ -52,7 +52,6 @@ public task_check_online() {
 
     client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
 
-    const VOTE_BY_INCORRECT_ONLINE = 1337;
     map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);
 }
 

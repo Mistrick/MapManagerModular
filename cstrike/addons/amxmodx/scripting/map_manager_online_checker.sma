@@ -76,6 +76,10 @@ public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
 }
 
 public mapm_can_be_extended(type) {
+    if(type != VOTE_BY_INCORRECT_ONLINE) {
+        return;
+    }
+
     if(get_num(CHECKS_COUNT) <= 0) {
         return EXTEND_ALLOWED;
     }

@@ -29,13 +29,13 @@ public plugin_init() {
     g_pCvars[CHECK_INTERVAL] = register_cvar("mapm_online_check_interval", "30");
     g_pCvars[CHECKS_COUNT] = register_cvar("mapm_online_check_count", "3");
     g_pCvars[CHECK_TIMEOUT] = register_cvar("mapm_online_check_timeout", "120");
-
-    set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b");
 }
 
 public plugin_cfg() {
     mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
     get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
+
+    set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b");
 }
 
 public task_check_online() {

@@ -43,6 +43,10 @@ public task_check_online() {
         return;
     }
 
+    if(g_CurrentMap[MaxPlayers] == INVALID_MAP_INDEX) {
+        return;
+    }
+
     new current_online = get_players_num();
     if(current_online != 0 && get_float(CHECK_TIMEOUT) > get_gametime()) {
         return;
@@ -61,6 +65,8 @@ public task_check_online() {
 }
 
 public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
+    g_CurrentMap[MaxPlayers] = INVALID_MAP_INDEX;
+
     new idx = mapm_get_map_index(g_CurrentMap[Map]);
     if(idx == INVALID_MAP_INDEX) {
         return;

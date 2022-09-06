@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.9"
+#define VERSION "0.1.10"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -447,6 +447,10 @@ public mapm_prepare_votelist(type)
 public mapm_analysis_of_results(type, total_votes)
 {
     if(type == VOTE_BY_SCHEDULER_SECOND || !get_num(SECOND_VOTE)) {
+        return ALLOW_VOTE;
+    }
+
+    if(get_players_num() == 0) {
         return ALLOW_VOTE;
     }
 

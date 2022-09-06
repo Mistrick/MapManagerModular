@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.1.1"
+#define VERSION "0.1.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -25,7 +25,8 @@ enum Cvars {
     DELAY,
     CHANGE_AFTER_VOTE,
     CHANGE_TYPE,
-    ALLOW_EXTEND
+    ALLOW_EXTEND,
+    IGNORE_SPECTATORS
 };
 
 enum {
@@ -50,6 +51,7 @@ public plugin_init()
     g_pCvars[PLAYERS] = register_cvar("mapm_rtv_players", "5");
     g_pCvars[DELAY] = register_cvar("mapm_rtv_delay", "0"); // minutes
     g_pCvars[ALLOW_EXTEND] = register_cvar("mapm_rtv_allow_extend", "0"); // 0 - disable, 1 - enable
+    g_pCvars[IGNORE_SPECTATORS] = register_cvar("mapm_rtv_ignore_spectators", "0"); // 0 - disable, 1 - enable
 
     register_clcmd("say rtv", "clcmd_rtv");
     register_clcmd("say /rtv", "clcmd_rtv");
@@ -88,9 +90,9 @@ public clcmd_rtv(id)
 
     new need_votes;
     if(get_num(MODE) == MODE_PERCENTS) {
-        need_votes = floatround(get_players_num() * get_num(PERCENT) / 100.0, floatround_ceil) - g_iVotes;
+        need_votes = floatround(get_players_num(get_num(IGNORE_SPECTATORS) ? -1 : 0) * get_num(PERCENT) / 100.0, floatround_ceil) - g_iVotes;
     } else {
-        need_votes = get_num(PLAYERS) - g_iVotes;
+        need_votes = min(get_num(PLAYERS), get_players_num(get_num(IGNORE_SPECTATORS) ? -1 : 0)) - g_iVotes;
     }
 
     if(need_votes <= 0) {

@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.1.0"
+#define VERSION "0.1.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -89,7 +89,7 @@ public clcmd_say(id)
 }
 public player_spawn_post(id)
 {
-    if(get_num(FREEZE_IN_VOTE) == FREEZE_FORCE_USE_FLAGS || get_num(FREEZE_IN_VOTE) && !get_num(VOTE_IN_NEW_ROUND)) {
+    if(g_bFreezeFlagsChanged) {
         set_pev(id, pev_flags, pev(id, pev_flags) | FL_FROZEN);
     }
     if(get_num(BLACK_SCREEN)) {

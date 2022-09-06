@@ -58,12 +58,20 @@ stock get_players_num(ignore = 0)
     }
     new pnum;
     for(new i = 1; i <= maxplayers; i++) {
-        if(ignore && i == ignore
+        if(ignore > 0 && i == ignore
             || !is_user_connected(i)
             || is_user_bot(i)
             || is_user_hltv(i)) {
             continue;
         }
+
+        if(ignore == -1) {
+            new team = get_user_team(i);
+            if(team == 0 || team == 3) {
+                continue;
+            }
+        }
+
         pnum++;
     }
     return pnum;

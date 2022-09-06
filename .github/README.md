@@ -15,7 +15,7 @@
     <img src="https://img.shields.io/github/v/release/Mistrick/MapManagerModular?include_prereleases&style=flat-square&logo=github&logoColor=white"
          alt="Release">
     <a href="https://www.amxmodx.org/downloads-new.php">
-    <img src="https://img.shields.io/badge/AMXModX-%3E%3D1.8.2-blue?style=flat-square"
+    <img src="https://img.shields.io/badge/AMXModX-%3E%3D1.9.0-blue?style=flat-square"
          alt="AMXModX dependency">
 </p>
       

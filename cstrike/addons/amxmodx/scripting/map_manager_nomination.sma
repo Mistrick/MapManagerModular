@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.2.0"
+#define VERSION "0.2.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -97,7 +97,11 @@ load_settings()
 
     INI_SetParseEnd(parser, "ini_parse_end");
     INI_SetReaders(parser, "ini_key_value", "ini_new_section");
-    INI_ParseFile(parser, "addons/amxmodx/configs/map_manager_settings.ini");
+    new bool:result = INI_ParseFile(parser, "addons/amxmodx/configs/map_manager_settings.ini");
+    
+    if(!result) {
+        register_default_cmds();
+    }
 }
 public ini_new_section(INIParser:handle, const section[], bool:invalid_tokens, bool:close_bracket, bool:extra_tokens, curtok, any:data)
 {
@@ -121,10 +125,14 @@ public ini_key_value(INIParser:handle, const key[], const value[], bool:invalid_
 public ini_parse_end(INIParser:handle, bool:halted, any:data)
 {
     if(!parser_info[MAPLIST_COMMAND_FOUND]) {
-        register_clcmd("say maps", "clcmd_mapslist");
-        register_clcmd("say /maps", "clcmd_mapslist");
+        register_default_cmds();
     }
     INI_DestroyParser(handle);
+}
+register_default_cmds()
+{
+    register_clcmd("say maps", "clcmd_mapslist");
+    register_clcmd("say /maps", "clcmd_mapslist");
 }
 public plugin_natives()
 {

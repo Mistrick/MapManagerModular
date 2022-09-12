@@ -11,6 +11,10 @@
 #define get_num(%0) get_pcvar_num(g_pCvars[%0])
 #define get_float(%0) get_pcvar_float(g_pCvars[%0])
 
+enum (+=100) {
+    TASK_CHECK_ONLINE = 100,
+};
+
 enum Cvars {
     CHECK_INTERVAL,
     CHECKS_COUNT,
@@ -34,16 +38,10 @@ public plugin_init() {
 public plugin_cfg() {
     mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
     get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
-
-    set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b");
 }
 
 public task_check_online() {
     if(get_num(CHECKS_COUNT) <= 0) {
-        return;
-    }
-
-    if(g_CurrentMap[MaxPlayers] == INVALID_MAP_INDEX) {
         return;
     }
 
@@ -65,13 +63,14 @@ public task_check_online() {
 }
 
 public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
-    g_CurrentMap[MaxPlayers] = INVALID_MAP_INDEX;
+    remove_task(TASK_CHECK_ONLINE);
 
     new idx = mapm_get_map_index(g_CurrentMap[Map]);
     if(idx == INVALID_MAP_INDEX) {
         return;
     }
 
+    set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b", .id = TASK_CHECK_ONLINE);
     ArrayGetArray(maplist, idx, g_CurrentMap);
 }
 

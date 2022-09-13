@@ -3,7 +3,7 @@
 #include <map_manager_scheduler>
 
 #define PLUGIN "Map Manager: Online checker"
-#define VERSION "1.0.1"
+#define VERSION "1.0.2"
 #define AUTHOR "Sergey Shorokhov"
 
 #pragma semicolon 1
@@ -58,7 +58,7 @@ public task_check_online() {
         return;
     }
 
-    client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
+    client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_FORCE_VOTE_BY_ONLINE");
 
     map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);
 }

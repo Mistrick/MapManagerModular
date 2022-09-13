@@ -3,7 +3,7 @@
 #include <map_manager_scheduler>
 
 #define PLUGIN "Map Manager: Online checker"
-#define VERSION "1.0.0"
+#define VERSION "1.0.1"
 #define AUTHOR "Sergey Shorokhov"
 
 #pragma semicolon 1
@@ -33,11 +33,12 @@ public plugin_init() {
     g_pCvars[CHECK_INTERVAL] = register_cvar("mapm_online_check_interval", "30");
     g_pCvars[CHECKS_COUNT] = register_cvar("mapm_online_check_count", "3");
     g_pCvars[CHECK_TIMEOUT] = register_cvar("mapm_online_check_timeout", "120");
+
+    get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
 }
 
 public plugin_cfg() {
     mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
-    get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
 }
 
 public task_check_online() {

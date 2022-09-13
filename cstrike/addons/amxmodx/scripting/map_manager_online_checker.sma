@@ -12,7 +12,7 @@
 #define get_float(%0) get_pcvar_float(g_pCvars[%0])
 
 enum (+=100) {
-    TASK_CHECK_ONLINE = 100,
+    TASK_CHECK_ONLINE = 100
 };
 
 enum Cvars {
@@ -70,6 +70,7 @@ public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
         return;
     }
 
+    g_Warnings = 0;
     set_task(get_float(CHECK_INTERVAL), "task_check_online", .flags = "b", .id = TASK_CHECK_ONLINE);
     ArrayGetArray(maplist, idx, g_CurrentMap);
 }
@@ -79,13 +80,5 @@ public mapm_can_be_extended(type) {
         return EXTEND_ALLOWED;
     }
 
-    if(get_num(CHECKS_COUNT) <= 0) {
-        return EXTEND_ALLOWED;
-    }
-
-    if(g_Warnings == get_num(CHECKS_COUNT)) {
-        return EXTEND_BLOCKED;
-    }
-
-    return EXTEND_ALLOWED;
+    return EXTEND_BLOCKED;
 }

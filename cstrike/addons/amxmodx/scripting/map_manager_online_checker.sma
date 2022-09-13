@@ -58,7 +58,7 @@ public task_check_online() {
         return;
     }
 
-    client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_RTV_START_VOTE");
+    client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_FORCE_VOTE_BY_ONLINE");
 
     map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);
 }

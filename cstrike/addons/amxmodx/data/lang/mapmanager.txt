@@ -44,6 +44,7 @@ MAPM_VOTE_IN_NEXTROUND = Wait vote in next round.
 MAPM_SECOND_VOTE = Second vote.
 MAPM_CHANGELEVEL_NEXTROUND = Map will change in next round.
 MAPM_EARLY_FINISH_VOTE = All players have voted, so we are ending voting^3 early^1.
+MAPM_FORCE_VOTE_BY_ONLINE = Forced voting to change the map. Current map does not match the current map online.
 
 [pl]
 MAPM_VOTE_WILL_BEGIN = Glosowanie rozpocznie sie w nastepnej rundzie.
@@ -91,6 +92,7 @@ MAPM_VOTE_IN_NEXTROUND = Poczekaj na glosowanie w nastepnej rundzie.
 MAPM_SECOND_VOTE = Drugie glosowanie.
 MAPM_CHANGELEVEL_NEXTROUND = Mapa zostanie zmieniona w nastepnej rundzie.
 MAPM_EARLY_FINISH_VOTE = Wszyscy gracze oddali juz glosy. Konczymy glosowanie^3 wczesniej^1.
+MAPM_FORCE_VOTE_BY_ONLINE = Wymuszone głosowanie w sprawie zmiany mapy. Obecna mapa nie zgadza się z aktualną mapą online.
 
 [ru]
 MAPM_VOTE_WILL_BEGIN = Голосование начнется в следующем раунде.
@@ -138,3 +140,4 @@ MAPM_VOTE_IN_NEXTROUND = Подождите, голосование начнет
 MAPM_SECOND_VOTE = Второе голосование.
 MAPM_CHANGELEVEL_NEXTROUND = Карта сменится в следующем раунде.
 MAPM_EARLY_FINISH_VOTE = Проголосовали все игроки,^3 досрочно^1 завершаем голосование.
+MAPM_FORCE_VOTE_BY_ONLINE = Принудительное голосование за смену карты. Несоответствие онлайна текущей карте.

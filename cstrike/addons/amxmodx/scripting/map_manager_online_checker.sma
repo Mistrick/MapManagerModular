@@ -3,7 +3,7 @@
 #include <map_manager_scheduler>
 
 #define PLUGIN "Map Manager: Online checker"
-#define VERSION "1.0.1"
+#define VERSION "1.0.2"
 #define AUTHOR "Sergey Shorokhov"
 
 #pragma semicolon 1

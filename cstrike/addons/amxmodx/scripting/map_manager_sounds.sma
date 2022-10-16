@@ -2,10 +2,12 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Sounds"
-#define VERSION "0.0.2"
+#define VERSION "0.0.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
+
+new const SETTINGS_FILE[] = "map_manager_settings.ini";
 
 enum Sections {
     UNUSED_SECTION,
@@ -31,11 +33,14 @@ public plugin_precache()
 }
 load_settings()
 {
+    new configdir[256];
+    get_localinfo("amxx_configsdir", configdir, charsmax(configdir));
+
     new INIParser:parser = INI_CreateParser();
 
     INI_SetParseEnd(parser, "ini_parse_end");
     INI_SetReaders(parser, "ini_key_value", "ini_new_section");
-    new bool:result = INI_ParseFile(parser, "addons/amxmodx/configs/map_manager_settings.ini");
+    new bool:result = INI_ParseFile(parser, fmt("%s/%s", configdir, SETTINGS_FILE));
 
     if(!result) {
         set_fail_state("Can't read from ini file.");

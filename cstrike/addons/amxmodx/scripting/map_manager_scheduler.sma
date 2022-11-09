@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.10"
+#define VERSION "0.1.11"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -570,7 +570,7 @@ public mapm_vote_finished(const map[], type, total_votes)
     } else if(get_num(CHANGE_TYPE) == CHANGE_AFTER_VOTE) {
         client_print_color(0, print_team_default, "%s^1 %L^1 %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_CHANGE", get_num(CHATTIME), LANG_PLAYER, "MAPM_SECONDS");
         intermission();
-    } else if(get_num(CHANGE_TYPE) == CHANGE_NEXT_ROUND || type == VOTE_BY_RTV) {
+    } else if(get_num(CHANGE_TYPE) == CHANGE_NEXT_ROUND) {
         g_bChangeMapNextRound = true;
         client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_MAP_CHANGE_NEXTROUND");
     }

@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -26,7 +26,8 @@ enum Cvars {
     CHANGE_AFTER_VOTE,
     CHANGE_TYPE,
     ALLOW_EXTEND,
-    IGNORE_SPECTATORS
+    IGNORE_SPECTATORS,
+    CHATTIME
 };
 
 enum {
@@ -63,6 +64,7 @@ public plugin_cfg()
 {
     mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
     g_pCvars[CHANGE_TYPE] = get_cvar_pointer("mapm_change_type");
+    g_pCvars[CHATTIME] = get_cvar_pointer("mp_chattime");
 }
 public client_disconnected(id)
 {
@@ -130,6 +132,7 @@ public mapm_vote_started(type)
 public mapm_vote_finished(const map[], type, total_votes)
 {
     if(type == VOTE_BY_RTV && get_num(CHANGE_TYPE) && get_num(CHANGE_AFTER_VOTE)) {
+        client_print_color(0, print_team_default, "%s^1 %L^1 %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_CHANGE", get_num(CHATTIME), LANG_PLAYER, "MAPM_SECONDS");
         intermission();
     }
 }

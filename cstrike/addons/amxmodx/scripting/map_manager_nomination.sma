@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.2.1"
+#define VERSION "0.3.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -18,6 +18,8 @@
 #if !defined client_disconnected
 #define client_disconnected client_disconnect
 #endif
+
+new const SETTINGS_FILE[] = "map_manager_settings.ini";
 
 enum {
     NOMINATION_FAIL,
@@ -61,11 +63,13 @@ new g_szCurMap[32];
 
 enum Sections {
     UNUSED_SECTION,
-    MAPLIST_COMMANDS
+    MAPLIST_COMMANDS,
+    NOMINATED_MAPS_COMMANDS
 }
 enum ParserData {
     Sections:SECTION,
-    MAPLIST_COMMAND_FOUND
+    MAPLIST_COMMAND_FOUND,
+    NOMINATED_MAPS_COMMAND_FOUND
 };
 new parser_info[ParserData];
 
@@ -93,12 +97,15 @@ public plugin_init()
 }
 load_settings()
 {
+    new configdir[256];
+    get_localinfo("amxx_configsdir", configdir, charsmax(configdir));
+
     new INIParser:parser = INI_CreateParser();
 
     INI_SetParseEnd(parser, "ini_parse_end");
     INI_SetReaders(parser, "ini_key_value", "ini_new_section");
-    new bool:result = INI_ParseFile(parser, "addons/amxmodx/configs/map_manager_settings.ini");
-    
+    new bool:result = INI_ParseFile(parser, fmt("%s/%s", configdir, SETTINGS_FILE));
+
     if(!result) {
         register_default_cmds();
     }
@@ -107,6 +114,8 @@ public ini_new_section(INIParser:handle, const section[], bool:invalid_tokens, b
 {
     if(equal(section, "nomination_maplist_commands")) {
         parser_info[SECTION] = MAPLIST_COMMANDS;
+    } else if(equal(section, "nomination_nominated_maps_commands")) {
+        parser_info[SECTION] = NOMINATED_MAPS_COMMANDS;
     } else {
         parser_info[SECTION] = UNUSED_SECTION;
     }
@@ -119,20 +128,28 @@ public ini_key_value(INIParser:handle, const key[], const value[], bool:invalid_
             register_clcmd(fmt("say %s", key), "clcmd_mapslist");
             parser_info[MAPLIST_COMMAND_FOUND] = true;
         }
+        case NOMINATED_MAPS_COMMANDS: {
+            register_clcmd(fmt("say %s", key), "clcmd_nominated_maps");
+            parser_info[NOMINATED_MAPS_COMMAND_FOUND] = true;
+        }
     }
     return true;
 }
 public ini_parse_end(INIParser:handle, bool:halted, any:data)
 {
-    if(!parser_info[MAPLIST_COMMAND_FOUND]) {
-        register_default_cmds();
-    }
+    register_default_cmds();
     INI_DestroyParser(handle);
 }
 register_default_cmds()
 {
-    register_clcmd("say maps", "clcmd_mapslist");
-    register_clcmd("say /maps", "clcmd_mapslist");
+    if(!parser_info[MAPLIST_COMMAND_FOUND]) {
+        register_clcmd("say maps", "clcmd_mapslist");
+        register_clcmd("say /maps", "clcmd_mapslist");
+    }
+    if(!parser_info[NOMINATED_MAPS_COMMAND_FOUND]) {
+        register_clcmd("say nominations", "clcmd_nominated_maps");
+        register_clcmd("say /nominations", "clcmd_nominated_maps");
+    }
 }
 public plugin_natives()
 {
@@ -511,6 +528,38 @@ public mapslist_handler(id, menu, item)
     return PLUGIN_HANDLED;
 }
 
+public clcmd_nominated_maps(id)
+{
+    new size = ArraySize(g_aNomList);
+
+    if(!size) {
+        client_print_color(id, print_team_default, "%s ^1%L", g_sPrefix, id, "MAPM_NOM_NOMINATED_NOTHING");
+        return PLUGIN_HANDLED;
+    }
+
+    client_print_color(id, print_team_default, "%s ^1%L", g_sPrefix, id, "MAPM_NOM_NOMINATED_LIST");
+
+    new nom_info[NomStruct];
+    new nominated_list[192], len, map_len;
+
+    for(new i; i < size; i++) {
+        ArrayGetArray(g_aNomList, i, nom_info);
+        map_len = strlen(nom_info[NomMap]);
+
+        if(len + map_len > 100) {
+            client_print_color(id, print_team_default, "%s ^1%s", g_sPrefix, nominated_list);
+            nominated_list = "";
+        }
+
+        len = formatex(nominated_list, charsmax(nominated_list), "%s%s, ", nominated_list, nom_info[NomMap]);
+    }
+
+    nominated_list[len - 2] = 0;
+    client_print_color(id, print_team_default, "%s ^1%s.", g_sPrefix, nominated_list);
+
+    return PLUGIN_HANDLED;
+}
+
 public mapm_prepare_votelist(type)
 {
     if(g_bIgnoreVote) {
@@ -544,10 +593,10 @@ map_nominated(map[])
 clear_nominated_maps(id)
 {
     new nom_info[NomStruct];
-    for(new i = 0; i < ArraySize(g_aNomList); i++) {
+    for(new i = ArraySize(g_aNomList) - 1; i >= 0 ; i--) {
         ArrayGetArray(g_aNomList, i, nom_info);
         if(id == nom_info[NomPlayer]) {
-            ArrayDeleteItem(g_aNomList, i--);
+            ArrayDeleteItem(g_aNomList, i);
             if(!--g_iNomMaps[id]) {
                 break;
             }

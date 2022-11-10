@@ -51,7 +51,8 @@ enum {
     VOTE_BY_CMD,
     VOTE_BY_RTV,
     VOTE_BY_SCHEDULER,
-    VOTE_BY_SCHEDULER_SECOND
+    VOTE_BY_SCHEDULER_SECOND,
+    VOTE_BY_INCORRECT_ONLINE
 };
 
 // used as return value in forward "mapm_analysis_of_results"

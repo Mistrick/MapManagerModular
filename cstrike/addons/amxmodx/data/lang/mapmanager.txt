@@ -19,6 +19,8 @@ MAPM_NOM_ALREADY_NOM = This map is already nominated.
 MAPM_NOM_CANT_NOM = You can't nominate any more maps.
 MAPM_NOM_CANT_NOM2 = All nomination slots reserved.
 MAPM_NOM_MAP = %s^1 nominated^3 %s^1.
+MAPM_NOM_NOMINATED_LIST = Nominated maps:
+MAPM_NOM_NOMINATED_NOTHING = No nominated maps.
 MAPM_MENU_FAST_NOM = Found some maps:
 MAPM_MENU_MAP_LIST = Maps list
 MAPM_MENU_BACK = Back
@@ -45,6 +47,7 @@ MAPM_VOTE_IN_NEXTROUND = Wait vote in next round.
 MAPM_SECOND_VOTE = Second vote.
 MAPM_CHANGELEVEL_NEXTROUND = Map will change in next round.
 MAPM_EARLY_FINISH_VOTE = All players have voted, so we are ending voting^3 early^1.
+MAPM_FORCE_VOTE_BY_ONLINE = Forced voting to change the map. Current map does not match the current map online.
 
 [pl]
 MAPM_VOTE_WILL_BEGIN = Glosowanie rozpocznie sie w nastepnej rundzie.
@@ -66,6 +69,8 @@ MAPM_NOM_ALREADY_NOM = Ta mapa jest juz nominowana.
 MAPM_NOM_CANT_NOM = Nie mozesz nominowac wiecej map.
 MAPM_NOM_CANT_NOM2 = Nie mozesz nominowac juz wiecej map.
 MAPM_NOM_MAP = %s^1 nominowal^3 %s^1.
+MAPM_NOM_NOMINATED_LIST = Nominated maps:
+MAPM_NOM_NOMINATED_NOTHING = No nominated maps.
 MAPM_MENU_FAST_NOM = Szybka nominacja map:
 MAPM_MENU_MAP_LIST = Lista map
 MAPM_MENU_BACK = Wroc
@@ -92,6 +97,7 @@ MAPM_VOTE_IN_NEXTROUND = Poczekaj na glosowanie w nastepnej rundzie.
 MAPM_SECOND_VOTE = Drugie glosowanie.
 MAPM_CHANGELEVEL_NEXTROUND = Mapa zostanie zmieniona w nastepnej rundzie.
 MAPM_EARLY_FINISH_VOTE = Wszyscy gracze oddali juz glosy. Konczymy glosowanie^3 wczesniej^1.
+MAPM_FORCE_VOTE_BY_ONLINE = Wymuszone głosowanie w sprawie zmiany mapy. Obecna mapa nie zgadza się z aktualną mapą online.
 
 [ru]
 MAPM_VOTE_WILL_BEGIN = Голосование начнется в следующем раунде.
@@ -114,6 +120,8 @@ MAPM_NOM_ALREADY_NOM = Эта карта уже номинирована.
 MAPM_NOM_CANT_NOM = Вы не можете больше номинировать карты.
 MAPM_NOM_CANT_NOM2 = Уже номинировано максимальное число карт.
 MAPM_NOM_MAP = %s^1 номинировал на голосование^3 %s^1.
+MAPM_NOM_NOMINATED_LIST = Номинированные карты:
+MAPM_NOM_NOMINATED_NOTHING = Нет номинированных карт.
 MAPM_MENU_FAST_NOM = Найдено несколько карт:
 MAPM_MENU_MAP_LIST = Список карт
 MAPM_MENU_BACK = Назад
@@ -140,3 +148,4 @@ MAPM_VOTE_IN_NEXTROUND = Подождите, голосование начнет
 MAPM_SECOND_VOTE = Второе голосование.
 MAPM_CHANGELEVEL_NEXTROUND = Карта сменится в следующем раунде.
 MAPM_EARLY_FINISH_VOTE = Проголосовали все игроки,^3 досрочно^1 завершаем голосование.
+MAPM_FORCE_VOTE_BY_ONLINE = Принудительное голосование за смену карты. Несоответствие онлайна текущей карте.

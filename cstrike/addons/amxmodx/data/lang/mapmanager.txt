@@ -97,6 +97,8 @@ MAPM_WINS = wygrane
 MAPM_VOTE_IN_NEXTROUND = Poczekaj na glosowanie w nastepnej rundzie.
 MAPM_SECOND_VOTE = Drugie glosowanie.
 MAPM_CHANGELEVEL_NEXTROUND = Mapa zostanie zmieniona w nastepnej rundzie.
+MAPM_VOTE_ALREADY_STARTED = Głosowanie już się rozpoczęło.
+MAPM_VOTE_ALREADY_FINISHED = Głosowanie już się zakończyło.
 MAPM_EARLY_FINISH_VOTE = Wszyscy gracze oddali juz glosy. Konczymy glosowanie^3 wczesniej^1.
 MAPM_FORCE_VOTE_BY_ONLINE = Wymuszone głosowanie w sprawie zmiany mapy. Obecna mapa nie zgadza się z aktualną mapą online.
 

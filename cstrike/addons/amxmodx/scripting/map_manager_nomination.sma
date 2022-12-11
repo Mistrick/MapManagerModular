@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.0"
+#define VERSION "0.3.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -232,7 +232,7 @@ public clcmd_say(id)
 
     if(map_index != INVALID_MAP_INDEX) {
         nominate_map(id, text);
-    } else if(strlen(text) >= 4) {
+    } else if(strlen(text) >= 3) {
         new Array:nominate_list = ArrayCreate(1, 1), array_size;
 
         map_index = 0;

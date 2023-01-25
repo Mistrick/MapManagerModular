@@ -174,6 +174,15 @@ public plugin_precache()
     g_vecPOVOrigin = origin;
 
     // TODO: Move offsets to defines
+    /*******
+    *** Fix protruding images outside the monitor in more than 1920x1080 resolution
+    ***
+    *** origin[0] += 170.0;
+    *** origin[1] += 90.0;
+    *** origin[2] += 48.0;
+    ***
+    *******/
+    
     origin[0] += 144.0;
     origin[1] += 96.0;
     origin[2] += 48.0;

@@ -8,7 +8,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.1"
+#define VERSION "0.3.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -40,7 +40,8 @@ enum Cvars {
     DENOMINATE_TIME,
     RANDOM_SORT,
     REMOVE_MAPS,
-    SHOW_LISTS
+    SHOW_LISTS,
+    FAST_NOMINATION
 };
 
 new g_pCvars[Cvars];
@@ -85,6 +86,7 @@ public plugin_init()
     g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "0"); // 0 - disable, 1 - enable
     g_pCvars[REMOVE_MAPS] = register_cvar("mapm_nom_remove_maps", "1"); // 0 - disable, 1 - enable
     g_pCvars[SHOW_LISTS] = register_cvar("mapm_nom_show_lists", "0"); // 0 - disable, 1 - enable
+    g_pCvars[FAST_NOMINATION] = register_cvar("mapm_nom_fast_nomination", "1"); // 0 - disable, 1 - enable
 
     g_hForwards[CAN_BE_NOMINATED] = CreateMultiForward("mapm_can_be_nominated", ET_CONTINUE, FP_CELL, FP_STRING);
 
@@ -225,14 +227,19 @@ public clcmd_say(id)
 {
     new text[MAPNAME_LENGTH]; read_args(text, charsmax(text));
     remove_quotes(text); trim(text); strtolower(text);
-    
-    if(is_string_with_space(text)) return PLUGIN_CONTINUE;
-    
+
+    if(is_string_with_space(text)) {
+        return PLUGIN_CONTINUE;
+    }
+
     new map_index = mapm_get_map_index(text);
 
     if(map_index != INVALID_MAP_INDEX) {
         nominate_map(id, text);
-    } else if(strlen(text) >= 3) {
+        return PLUGIN_CONTINUE;
+    }
+
+    if(get_num(FAST_NOMINATION) && strlen(text) >= 3) {
         new Array:nominate_list = ArrayCreate(1, 1), array_size;
 
         map_index = 0;

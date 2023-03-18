@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.1.11"
+#define VERSION "0.2.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -45,6 +45,7 @@ enum Cvars {
     FRAGS_TO_VOTE,
     VOTE_IN_NEW_ROUND,
     LAST_ROUND,
+    FINAL_ROUND,
     SECOND_VOTE,
     SECOND_VOTE_PERCENT,
     CHANGE_TO_DEFAULT,
@@ -73,7 +74,7 @@ new g_iVoteType;
 
 new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 
-new bool:g_bChangeMapNextRound;
+new LastRoundState:g_eLastRoundState;
 new IgnoreFlags:g_bIgnoreCheckStart;
 
 new g_sPrefix[32];
@@ -89,6 +90,7 @@ public plugin_init()
     g_pCvars[FRAGS_TO_VOTE] = register_cvar("mapm_frags_to_vote", "5"); // frags
     g_pCvars[VOTE_IN_NEW_ROUND] = register_cvar("mapm_vote_in_new_round", "0"); // 0 - disable, 1 - enable
     g_pCvars[LAST_ROUND] = register_cvar("mapm_last_round", "0"); // 0 - disable, 1 - enable
+    g_pCvars[FINAL_ROUND] = register_cvar("mapm_final_round", "0"); // 0 - disable, 1 - enable
 
     g_pCvars[SECOND_VOTE] = register_cvar("mapm_second_vote", "0"); // 0 - disable, 1 - enable
     g_pCvars[SECOND_VOTE_PERCENT] = register_cvar("mapm_second_vote_percent", "50");
@@ -144,7 +146,7 @@ public plugin_natives()
     register_native("map_scheduler_start_vote", "native_start_vote");
     register_native("map_scheduler_extend_map", "native_extend_map");
     register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
-    register_native("is_last_round", "native_is_last_round");
+    register_native("get_last_round_state", "native_get_last_round_state");
 }
 public module_filter_handler(const library[], LibType:type)
 {
@@ -192,9 +194,9 @@ public native_vote_will_in_next_round(plugin, params)
 {
     return g_bVoteInNewRound;
 }
-public native_is_last_round(plugin, params)
+public native_get_last_round_state(plugin, params)
 {
-    return g_bChangeMapNextRound;
+    return _:g_eLastRoundState;
 }
 public plugin_end()
 {
@@ -340,10 +342,15 @@ public event_teamscore()
 }
 public event_newround()
 {
-    if(is_vote_finished() && g_bChangeMapNextRound) {
-        new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
-        client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
-        intermission();
+    if(is_vote_finished() && g_eLastRoundState) {
+        if(g_eLastRoundState == LRS_Last && g_iTeamScore[0] == g_iTeamScore[1] && get_num(FINAL_ROUND)) {
+            g_eLastRoundState = LRS_Final;
+            client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_FINAL_ROUND");
+        } else {
+            new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
+            client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
+            intermission();
+        }
     }
 
     if(g_bIgnoreCheckStart & IGNORE_ROUND_CHECK) {
@@ -412,7 +419,7 @@ planning_vote(type)
 }
 public mapm_maplist_loaded(Array:maplist, const nextmap[])
 {
-    if(!g_bChangeMapNextRound) {
+    if(!g_eLastRoundState) {
         set_pcvar_string(g_pCvars[NEXTMAP], nextmap);
     }
 }
@@ -562,7 +569,7 @@ public mapm_vote_finished(const map[], type, total_votes)
         // What if timelimit 0?
         g_fOldTimeLimit = get_float(TIMELIMIT);
         set_float(TIMELIMIT, 0.0);
-        g_bChangeMapNextRound = true;
+        g_eLastRoundState = LRS_Last;
 
         client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_LASTROUND");
         
@@ -571,7 +578,10 @@ public mapm_vote_finished(const map[], type, total_votes)
         client_print_color(0, print_team_default, "%s^1 %L^1 %L.", g_sPrefix, LANG_PLAYER, "MAPM_MAP_CHANGE", get_num(CHATTIME), LANG_PLAYER, "MAPM_SECONDS");
         intermission();
     } else if(get_num(CHANGE_TYPE) == CHANGE_NEXT_ROUND) {
-        g_bChangeMapNextRound = true;
+        g_fOldTimeLimit = get_float(TIMELIMIT);
+        set_float(TIMELIMIT, 0.0);
+        g_eLastRoundState = LRS_Last;
+
         client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_MAP_CHANGE_NEXTROUND");
     }
 

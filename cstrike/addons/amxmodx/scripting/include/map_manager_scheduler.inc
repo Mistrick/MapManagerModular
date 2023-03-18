@@ -19,6 +19,12 @@ enum IgnoreFlags (<<=1) {
     IGNORE_FRAGS_CHECK
 };
 
+enum LastRoundState {
+    LRS_Not, // Not last round
+    LRS_Last, // Last round, round that can be played after voting
+    LRS_Final // Final round, one more round after the last one if the last one ended in a draw
+}
+
 /**
  * Get ignore flags for starting vote.
  *
@@ -65,4 +71,4 @@ native bool:is_vote_will_in_next_round();
  *
  * @return                      true/false
  */
-native bool:is_last_round();
+native LastRoundState:get_last_round_state();

@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.1.3"
+#define VERSION "0.1.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -77,6 +77,10 @@ public clcmd_rtv(id)
 {
     if(is_vote_started() || is_vote_finished() || is_vote_will_in_next_round()) {
         // add msg?
+        return PLUGIN_HANDLED;
+    }
+
+    if(is_one_map_mode()) {
         return PLUGIN_HANDLED;
     }
 

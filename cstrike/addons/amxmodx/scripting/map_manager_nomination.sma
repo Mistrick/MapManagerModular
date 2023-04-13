@@ -2,13 +2,14 @@
 #include <map_manager>
 #include <map_manager_blocklist>
 #include <map_manager_adv_lists>
+#include <map_manager_scheduler>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.2"
+#define VERSION "0.3.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -225,6 +226,10 @@ public client_disconnected(id)
 }
 public clcmd_say(id)
 {
+    if(is_one_map_mode()) {
+        return PLUGIN_HANDLED;
+    }
+
     new text[MAPNAME_LENGTH]; read_args(text, charsmax(text));
     remove_quotes(text); trim(text); strtolower(text);
 
@@ -390,11 +395,17 @@ public nomlist_handler(id, menu, item)
 }
 public clcmd_mapslist(id)
 {
+    if(is_one_map_mode()) {
+        return PLUGIN_HANDLED;
+    }
+
     if(get_num(SHOW_LISTS) && mapm_advl_get_active_lists() > 1) {
         show_lists_menu(id);
     } else {
         show_nomination_menu(id, g_aMapsList);
     }
+
+    return PLUGIN_CONTINUE;
 }
 show_lists_menu(id)
 {

@@ -67,8 +67,15 @@ native map_scheduler_extend_map(count = 1);
 native bool:is_vote_will_in_next_round();
 
 /**
- * Returns true if now is last round.
+ * Returns state of last round.
+ *
+ * @return                      LastRoundState value
+ */
+native LastRoundState:get_last_round_state();
+
+/**
+ * Returns true if one map mode active.
  *
  * @return                      true/false
  */
-native LastRoundState:get_last_round_state();
+native bool:is_one_map_mode();

@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.2.0"
+#define VERSION "0.2.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -76,6 +76,8 @@ new g_sSecondVoteMaps[2][MAPNAME_LENGTH];
 
 new LastRoundState:g_eLastRoundState;
 new IgnoreFlags:g_bIgnoreCheckStart;
+
+new bool:g_bOneMapMode;
 
 new g_sPrefix[32];
 new g_sCurMap[MAPNAME_LENGTH];
@@ -147,6 +149,7 @@ public plugin_natives()
     register_native("map_scheduler_extend_map", "native_extend_map");
     register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
     register_native("get_last_round_state", "native_get_last_round_state");
+    register_native("is_one_map_mode", "native_is_one_map_mode");
 }
 public module_filter_handler(const library[], LibType:type)
 {
@@ -177,6 +180,10 @@ public native_start_vote(plugin, params)
         return 0;
     }
 
+    if(g_bOneMapMode) {
+        return 0;
+    }
+
     enum { arg_type = 1 };
     planning_vote(get_param(arg_type));
 
@@ -197,6 +204,10 @@ public native_vote_will_in_next_round(plugin, params)
 public native_get_last_round_state(plugin, params)
 {
     return _:g_eLastRoundState;
+}
+public native_is_one_map_mode(plugin, params)
+{
+    return g_bOneMapMode;
 }
 public plugin_end()
 {
@@ -230,6 +241,10 @@ restore_limits()
 public concmd_startvote(id, level, cid)
 {
     if(!cmd_access(id, level, cid, 1)) {
+        return PLUGIN_HANDLED;
+    }
+
+    if(g_bOneMapMode) {
         return PLUGIN_HANDLED;
     }
 
@@ -309,6 +324,10 @@ public task_checktime()
         return 0;
     }
 
+    if(g_bOneMapMode) {
+        return 0;
+    }
+
     new Float:time_to_vote = get_float(TIMELEFT_TO_VOTE);
     
     new timeleft = get_timeleft();
@@ -323,6 +342,10 @@ public task_checktime()
 public event_deathmsg()
 {
     if(g_bIgnoreCheckStart & IGNORE_FRAGS_CHECK) {
+        return 0;
+    }
+
+    if(g_bOneMapMode) {
         return 0;
     }
 
@@ -354,6 +377,10 @@ public event_newround()
     }
 
     if(g_bIgnoreCheckStart & IGNORE_ROUND_CHECK) {
+        return 0;
+    }
+
+    if(g_bOneMapMode) {
         return 0;
     }
 
@@ -421,6 +448,16 @@ public mapm_maplist_loaded(Array:maplist, const nextmap[])
 {
     if(!g_eLastRoundState) {
         set_pcvar_string(g_pCvars[NEXTMAP], nextmap);
+    }
+
+    if(ArraySize(maplist) == 1) {
+        new map_info[MapStruct];
+        ArrayGetArray(maplist, 0, map_info);
+        if(equali(g_sCurMap, map_info[Map])) {
+            g_bOneMapMode = true;
+        }
+    } else {
+        g_bOneMapMode = false;
     }
 }
 public mapm_can_be_extended(type)

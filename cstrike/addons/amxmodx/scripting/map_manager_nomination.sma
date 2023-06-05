@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.3"
+#define VERSION "0.3.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -274,11 +274,6 @@ nominate_map(id, map[])
         return NOMINATION_FAIL;
     }
 
-    if(get_num(TYPE) == TYPE_FIXED && ArraySize(g_aNomList) >= get_num(MAPS_IN_VOTE)) {
-        client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM2");
-        return NOMINATION_FAIL;
-    }
-    
     new nom_info[NomStruct], name[32];
     get_user_name(id, name, charsmax(name));
     
@@ -303,7 +298,12 @@ nominate_map(id, map[])
         client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_NOM_REMOVE_NOM", name, map);
         return NOMINATION_REMOVED;
     }
-    
+
+    if(get_num(TYPE) == TYPE_FIXED && ArraySize(g_aNomList) >= get_num(MAPS_IN_VOTE)) {
+        client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM2");
+        return NOMINATION_FAIL;
+    }
+
     if(g_iNomMaps[id] >= get_num(MAPS_PER_PLAYER)) {
         client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM");
         return NOMINATION_FAIL;

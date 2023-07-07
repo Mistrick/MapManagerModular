@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.1.2"
+#define VERSION "0.1.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -62,12 +62,10 @@ public plugin_precache()
 }
 public plugin_cfg()
 {
-    if(get_num(FREEZE_IN_VOTE)) {
-        g_pCvars[FREEZETIME] = get_cvar_pointer("mp_freezetime");
-        g_pCvars[VOTE_IN_NEW_ROUND] = get_cvar_pointer("mapm_vote_in_new_round");
-        g_pCvars[PREPARE_TIME] = get_cvar_pointer("mapm_prepare_time");
-        g_pCvars[VOTE_TIME] = get_cvar_pointer("mapm_vote_time");
-    }
+    g_pCvars[FREEZETIME] = get_cvar_pointer("mp_freezetime");
+    g_pCvars[VOTE_IN_NEW_ROUND] = get_cvar_pointer("mapm_vote_in_new_round");
+    g_pCvars[PREPARE_TIME] = get_cvar_pointer("mapm_prepare_time");
+    g_pCvars[VOTE_TIME] = get_cvar_pointer("mapm_vote_time");
 }
 public plugin_end()
 {

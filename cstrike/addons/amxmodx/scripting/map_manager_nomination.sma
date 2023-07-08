@@ -2,13 +2,14 @@
 #include <map_manager>
 #include <map_manager_blocklist>
 #include <map_manager_adv_lists>
+#include <map_manager_scheduler>
 
 #if AMXX_VERSION_NUM < 183
 #include <colorchat>
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.0"
+#define VERSION "0.3.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -40,7 +41,8 @@ enum Cvars {
     DENOMINATE_TIME,
     RANDOM_SORT,
     REMOVE_MAPS,
-    SHOW_LISTS
+    SHOW_LISTS,
+    FAST_NOMINATION
 };
 
 new g_pCvars[Cvars];
@@ -85,6 +87,7 @@ public plugin_init()
     g_pCvars[RANDOM_SORT] = register_cvar("mapm_nom_random_sort", "0"); // 0 - disable, 1 - enable
     g_pCvars[REMOVE_MAPS] = register_cvar("mapm_nom_remove_maps", "1"); // 0 - disable, 1 - enable
     g_pCvars[SHOW_LISTS] = register_cvar("mapm_nom_show_lists", "0"); // 0 - disable, 1 - enable
+    g_pCvars[FAST_NOMINATION] = register_cvar("mapm_nom_fast_nomination", "1"); // 0 - disable, 1 - enable
 
     g_hForwards[CAN_BE_NOMINATED] = CreateMultiForward("mapm_can_be_nominated", ET_CONTINUE, FP_CELL, FP_STRING);
 
@@ -223,16 +226,25 @@ public client_disconnected(id)
 }
 public clcmd_say(id)
 {
+    if(is_one_map_mode()) {
+        return PLUGIN_HANDLED;
+    }
+
     new text[MAPNAME_LENGTH]; read_args(text, charsmax(text));
     remove_quotes(text); trim(text); strtolower(text);
-    
-    if(is_string_with_space(text)) return PLUGIN_CONTINUE;
-    
+
+    if(is_string_with_space(text)) {
+        return PLUGIN_CONTINUE;
+    }
+
     new map_index = mapm_get_map_index(text);
 
     if(map_index != INVALID_MAP_INDEX) {
         nominate_map(id, text);
-    } else if(strlen(text) >= 4) {
+        return PLUGIN_CONTINUE;
+    }
+
+    if(get_num(FAST_NOMINATION) && strlen(text) >= 3) {
         new Array:nominate_list = ArrayCreate(1, 1), array_size;
 
         map_index = 0;
@@ -262,11 +274,6 @@ nominate_map(id, map[])
         return NOMINATION_FAIL;
     }
 
-    if(get_num(TYPE) == TYPE_FIXED && ArraySize(g_aNomList) >= get_num(MAPS_IN_VOTE)) {
-        client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM2");
-        return NOMINATION_FAIL;
-    }
-    
     new nom_info[NomStruct], name[32];
     get_user_name(id, name, charsmax(name));
     
@@ -291,7 +298,12 @@ nominate_map(id, map[])
         client_print_color(0, id, "%s^3 %L", g_sPrefix, LANG_PLAYER, "MAPM_NOM_REMOVE_NOM", name, map);
         return NOMINATION_REMOVED;
     }
-    
+
+    if(get_num(TYPE) == TYPE_FIXED && ArraySize(g_aNomList) >= get_num(MAPS_IN_VOTE)) {
+        client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM2");
+        return NOMINATION_FAIL;
+    }
+
     if(g_iNomMaps[id] >= get_num(MAPS_PER_PLAYER)) {
         client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_NOM_CANT_NOM");
         return NOMINATION_FAIL;
@@ -383,11 +395,17 @@ public nomlist_handler(id, menu, item)
 }
 public clcmd_mapslist(id)
 {
+    if(is_one_map_mode()) {
+        return PLUGIN_HANDLED;
+    }
+
     if(get_num(SHOW_LISTS) && mapm_advl_get_active_lists() > 1) {
         show_lists_menu(id);
     } else {
         show_nomination_menu(id, g_aMapsList);
     }
+
+    return PLUGIN_CONTINUE;
 }
 show_lists_menu(id)
 {

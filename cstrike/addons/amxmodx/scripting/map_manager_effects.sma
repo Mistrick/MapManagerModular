@@ -4,7 +4,7 @@
 #include <map_manager>
 
 #define PLUGIN "Map Manager: Effects"
-#define VERSION "0.1.1"
+#define VERSION "0.1.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -27,9 +27,7 @@ enum Cvars {
     FREEZETIME,
     VOTE_IN_NEW_ROUND,
     PREPARE_TIME,
-    VOTE_TIME,
-    CHANGE_TYPE,
-    LAST_ROUND
+    VOTE_TIME
 };
 
 enum {
@@ -64,14 +62,10 @@ public plugin_precache()
 }
 public plugin_cfg()
 {
-    if(get_num(FREEZE_IN_VOTE)) {
-        g_pCvars[FREEZETIME] = get_cvar_pointer("mp_freezetime");
-        g_pCvars[VOTE_IN_NEW_ROUND] = get_cvar_pointer("mapm_vote_in_new_round");
-        g_pCvars[PREPARE_TIME] = get_cvar_pointer("mapm_prepare_time");
-        g_pCvars[VOTE_TIME] = get_cvar_pointer("mapm_vote_time");
-        g_pCvars[CHANGE_TYPE] = get_cvar_pointer("mapm_change_type");
-        g_pCvars[LAST_ROUND] = get_cvar_pointer("mapm_last_round");
-    }
+    g_pCvars[FREEZETIME] = get_cvar_pointer("mp_freezetime");
+    g_pCvars[VOTE_IN_NEW_ROUND] = get_cvar_pointer("mapm_vote_in_new_round");
+    g_pCvars[PREPARE_TIME] = get_cvar_pointer("mapm_prepare_time");
+    g_pCvars[VOTE_TIME] = get_cvar_pointer("mapm_vote_time");
 }
 public plugin_end()
 {

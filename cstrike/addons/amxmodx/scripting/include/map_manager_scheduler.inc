@@ -19,6 +19,12 @@ enum IgnoreFlags (<<=1) {
     IGNORE_FRAGS_CHECK
 };
 
+enum LastRoundState {
+    LRS_Not, // Not last round
+    LRS_Last, // Last round, round that can be played after voting
+    LRS_Final // Final round, one more round after the last one if the last one ended in a draw
+}
+
 /**
  * Get ignore flags for starting vote.
  *
@@ -61,8 +67,15 @@ native map_scheduler_extend_map(count = 1);
 native bool:is_vote_will_in_next_round();
 
 /**
- * Returns true if now is last round.
+ * Returns state of last round.
+ *
+ * @return                      LastRoundState value
+ */
+native LastRoundState:get_last_round_state();
+
+/**
+ * Returns true if one map mode active.
  *
  * @return                      true/false
  */
-native bool:is_last_round();
+native bool:is_one_map_mode();

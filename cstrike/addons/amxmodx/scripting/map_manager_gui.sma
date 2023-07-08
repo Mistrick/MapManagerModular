@@ -13,7 +13,7 @@ Models, sprites for test by 8dp
 #endif
 
 #define PLUGIN "Map Manager: GUI"
-#define VERSION "0.0.6"
+#define VERSION "0.0.7"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -139,7 +139,7 @@ public plugin_cfg()
 }
 public check_cvar()
 {
-    if(get_num(BLACK_SCREEN)) {
+    if(g_pCvars[BLACK_SCREEN] && get_num(BLACK_SCREEN)) {
         log_amx("WARNING: set config value ^"mapm_black_screen^" to 0.");
         set_pcvar_num(g_pCvars[BLACK_SCREEN], 0);
     }

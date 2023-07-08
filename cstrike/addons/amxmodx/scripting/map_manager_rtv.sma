@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.1.3"
+#define VERSION "0.1.4"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -87,6 +87,10 @@ public clcmd_rtv(id)
     }
     else if(is_vote_will_in_next_round()) {
         client_print_color(id, print_team_default, "%s^1 %L", g_sPrefix, id, "MAPM_VOTE_WILL_BEGIN");
+        return PLUGIN_HANDLED;
+    }
+
+    if(is_one_map_mode()) {
         return PLUGIN_HANDLED;
     }
 

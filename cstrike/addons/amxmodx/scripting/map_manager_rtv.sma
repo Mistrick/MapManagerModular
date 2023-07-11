@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Rtv"
-#define VERSION "0.1.4"
+#define VERSION "0.1.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1

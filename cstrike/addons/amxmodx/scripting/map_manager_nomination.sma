@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.4"
+#define VERSION "0.3.5"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -227,7 +227,7 @@ public client_disconnected(id)
 public clcmd_say(id)
 {
     if(is_one_map_mode()) {
-        return PLUGIN_HANDLED;
+        return PLUGIN_CONTINUE;
     }
 
     new text[MAPNAME_LENGTH]; read_args(text, charsmax(text));

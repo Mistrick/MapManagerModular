@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.1.5"
+#define VERSION "3.2.0"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -92,6 +92,20 @@ new g_sDisplayedItemName[MAX_VOTELIST_SIZE + 1][MAPNAME_LENGTH * 2];
 
 new g_iPlayersNum;
 
+enum _:CustomItemStruct {
+    CI_Name[64],
+    CI_Handler,
+    bool:CI_AddBlank,
+    bool:CI_AddNumber
+}
+
+new Array:g_aCustomItems;
+new g_sCustomItemsMenu[MAX_VOTELIST_SIZE][128];
+new g_iCustomItemsKeys;
+new g_iCustomItemsHandlers[MAX_VOTELIST_SIZE];
+new g_iCustomItemsIndex[MAX_VOTELIST_SIZE];
+new bool:g_bCustomItemSkipNum[MAX_VOTELIST_SIZE];
+
 public plugin_init()
 {
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
@@ -134,6 +148,8 @@ public plugin_natives()
     g_aMapsList = ArrayCreate(MapStruct, 1);
     get_mapname(g_sCurMap, charsmax(g_sCurMap));
 
+    g_aCustomItems = ArrayCreate(CustomItemStruct, 1);
+
     register_native("mapm_load_maplist", "native_load_maplist");
     register_native("mapm_load_maplist_to_array", "native_load_maplist_to_array");
     register_native("mapm_block_load_maplist", "native_block_load_maplist");
@@ -152,6 +168,7 @@ public plugin_natives()
     register_native("mapm_get_vote_type", "native_get_vote_type");
     register_native("mapm_add_vote_to_item", "native_add_vote_to_item");
     register_native("mapm_set_displayed_name", "native_set_displayed_name");
+    register_native("mapm_add_custom_item", "native_add_custom_item");
     register_native("is_vote_started", "native_is_vote_started");
     register_native("is_vote_finished", "native_is_vote_finished");
 }
@@ -358,6 +375,32 @@ public native_set_displayed_name(plugin, params)
 
     return 0;
 }
+public native_add_custom_item(plugin, params)
+{
+    enum {
+        arg_name = 1,
+        arg_handler,
+        arg_add_blank,
+        arg_add_number
+    }
+
+    new custom_item[CustomItemStruct];
+    new handler[32];
+    get_string(arg_name, custom_item[CI_Name], charsmax(custom_item[CI_Name]));
+    get_string(arg_handler, handler, charsmax(handler));
+    custom_item[CI_AddBlank] = bool:get_param(arg_add_blank);
+    custom_item[CI_AddNumber] = bool:get_param(arg_add_number);
+
+    if(custom_item[CI_AddNumber]) {
+        custom_item[CI_Handler] = CreateOneForward(plugin, handler, FP_CELL, FP_CELL);
+
+        if(custom_item[CI_Handler] == -1) {
+            return -1;
+        }
+    }
+
+    return ArrayPushArray(g_aCustomItems, custom_item);
+}
 public native_is_vote_started(plugin, params)
 {
     return g_bVoteStarted;
@@ -513,6 +556,14 @@ prepare_vote(type)
         }
     }
 
+    // custom items
+    new c_items_count = custom_items_builder();
+    new max_custom_items = MAX_VOTELIST_SIZE - (g_iVoteItems + g_bCanExtend);
+
+    if(c_items_count >= max_custom_items) {
+        log_amx("Check your settings. You have more custom items than can add to vote.");
+    }
+
     if(get_num(RANDOM_NUMS)) {
         arrayset(g_iRandomNums, -1, sizeof(g_iRandomNums));
         for(new i; i < g_iVoteItems + g_bCanExtend; i++) {
@@ -543,6 +594,39 @@ prepare_vote(type)
     countdown(TASK_PREPARE_VOTE);
 
     return 1;
+}
+custom_items_builder()
+{
+    new len = 0, item = 0;
+    new custom_item[CustomItemStruct];
+    new ci_size = ArraySize(g_aCustomItems);
+    g_iCustomItemsKeys = 0;
+    arrayset(g_bCustomItemSkipNum, false, sizeof(g_bCustomItemSkipNum));
+
+    for(new i; i < ci_size; i++) {
+        ArrayGetArray(g_aCustomItems, i, custom_item);
+
+        len = 0;
+
+        if(custom_item[CI_AddBlank]) {
+            len += formatex(g_sCustomItemsMenu[i][len], charsmax(g_sCustomItemsMenu[]) - len, "^n");
+        }
+
+        if(custom_item[CI_AddNumber]) {
+            len += formatex(g_sCustomItemsMenu[i][len], charsmax(g_sCustomItemsMenu[]) - len, "\r%%d. ");
+            g_iCustomItemsKeys |= (1 << item);
+            g_iCustomItemsHandlers[item] = custom_item[CI_Handler];
+            g_iCustomItemsIndex[item] = i;
+
+            item++;
+        } else {
+            g_bCustomItemSkipNum[i] = true;
+        }
+
+        len += formatex(g_sCustomItemsMenu[i][len], charsmax(g_sCustomItemsMenu[]) - len, "\w%s^n", custom_item[CI_Name]);
+    }
+
+    return item;
 }
 is_map_allowed(map[], type, index)
 {
@@ -648,6 +732,15 @@ public show_votemenu(id)
         len += formatex(menu[len], charsmax(menu) - len, "^n");
     }
 
+    // custom items
+    for(new i, skip, ci_size = ArraySize(g_aCustomItems); i < ci_size; i++) {
+        if(g_bCustomItemSkipNum[i]) {
+            skip++;
+        }
+        len += formatex(menu[len], charsmax(menu) - len, g_sCustomItemsMenu[i], item + i + 1 - skip);
+    }
+    keys |= g_iCustomItemsKeys << item;
+
     len += formatex(menu[len], charsmax(menu) - len, "^n\d%L \r%d\d %L", id, "MAPM_MENU_LEFT", g_iTimer, id, "MAPM_SECONDS");
 
     if(!keys) keys = (1 << 9);
@@ -666,6 +759,18 @@ public show_votemenu(id)
 }
 public votemenu_handler(id, key)
 {
+    // custom items
+    if(key >= g_iVoteItems + g_bCanExtend) {
+        new item = key - (g_iVoteItems + g_bCanExtend);
+        new ci_handler = g_iCustomItemsHandlers[item];
+
+        new ret;
+        ExecuteForward(ci_handler, ret, id, g_iCustomItemsIndex[item]);
+
+        show_votemenu(id);
+        return PLUGIN_HANDLED;
+    }
+
     if(g_iVoted[id] != NOT_VOTED) {
         show_votemenu(id);
         return PLUGIN_HANDLED;

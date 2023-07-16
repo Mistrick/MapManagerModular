@@ -192,6 +192,24 @@ native mapm_add_vote_to_item(item, value);
 native mapm_set_displayed_name(item, name[]);
 
 /**
+ * Adds a custom item that will always be displayed with the vote.
+ *
+ * @note The handler function should be prototyped as:
+ * public <function>(id, MCustomItem:item)
+ *  id - client index who used the custom item
+ *  item - custom item index
+ *
+ * @param name                  Displayed name
+ * @param handler               Handler function, which will be called after selecting a custom item in the voting
+ * @param add_blank             Adds blank line before custom item
+ * @param add_number            Adds number in vote menu, if false handler will be ignored
+ *
+ * @return                      Custom item index
+ *                              Invalid_Custom_Item - If can't register handler
+ */
+native MCustomItem:mapm_add_custom_item(name[], handler[], bool:add_blank = false, bool:add_number = true);
+
+/**
  * Returns if vote started.
  * 
  * @return                      true/false

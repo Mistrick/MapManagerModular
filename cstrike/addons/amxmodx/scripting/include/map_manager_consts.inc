@@ -102,3 +102,7 @@ enum {
     NOMINATION_ALLOWED,
     NOMINATION_BLOCKED
 };
+
+enum MCustomItem {
+    Invalid_Custom_Item = -1
+};

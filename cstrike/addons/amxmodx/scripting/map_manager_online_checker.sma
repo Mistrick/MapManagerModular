@@ -3,7 +3,7 @@
 #include <map_manager_scheduler>
 
 #define PLUGIN "Map Manager: Online checker"
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 #define AUTHOR "Sergey Shorokhov"
 
 #pragma semicolon 1
@@ -27,7 +27,8 @@ new g_pCvars[Cvars];
 new g_CurrentMap[MapStruct];
 new g_Warnings;
 
-public plugin_init() {
+public plugin_init()
+{
     register_plugin(PLUGIN, VERSION + VERSION_HASH, AUTHOR);
 
     g_pCvars[CHECK_INTERVAL] = register_cvar("mapm_online_check_interval", "30");
@@ -37,11 +38,16 @@ public plugin_init() {
     get_mapname(g_CurrentMap[Map], charsmax(g_CurrentMap[Map]));
 }
 
-public plugin_cfg() {
+public plugin_cfg()
+{
     mapm_get_prefix(g_sPrefix, charsmax(g_sPrefix));
 }
 
-public task_check_online() {
+public task_check_online()
+{
+    if(is_vote_will_in_next_round() || is_vote_started() || is_vote_finished()) {
+        return;
+    }
     if(get_num(CHECKS_COUNT) <= 0) {
         return;
     }
@@ -63,7 +69,8 @@ public task_check_online() {
     map_scheduler_start_vote(VOTE_BY_INCORRECT_ONLINE);
 }
 
-public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
+public mapm_maplist_loaded(Array: maplist, const nextmap[])
+{
     remove_task(TASK_CHECK_ONLINE);
 
     new idx = mapm_get_map_index(g_CurrentMap[Map]);
@@ -76,7 +83,8 @@ public mapm_maplist_loaded(Array: maplist, const nextmap[]) {
     ArrayGetArray(maplist, idx, g_CurrentMap);
 }
 
-public mapm_can_be_extended(type) {
+public mapm_can_be_extended(type)
+{
     if(type != VOTE_BY_INCORRECT_ONLINE) {
         return EXTEND_ALLOWED;
     }

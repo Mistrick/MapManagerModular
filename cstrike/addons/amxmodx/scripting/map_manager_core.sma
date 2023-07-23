@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.2.0"
+#define VERSION "3.2.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -602,6 +602,7 @@ custom_items_builder()
     new ci_size = ArraySize(g_aCustomItems);
     g_iCustomItemsKeys = 0;
     arrayset(g_bCustomItemSkipNum, false, sizeof(g_bCustomItemSkipNum));
+    arrayset(g_iCustomItemsIndex, 0, sizeof(g_iCustomItemsIndex));
 
     for(new i; i < ci_size; i++) {
         ArrayGetArray(g_aCustomItems, i, custom_item);
@@ -760,7 +761,7 @@ public show_votemenu(id)
 public votemenu_handler(id, key)
 {
     // custom items
-    if(key >= g_iVoteItems + g_bCanExtend) {
+    if(g_iCustomItemsIndex[0] && key >= g_iVoteItems + g_bCanExtend) {
         new item = key - (g_iVoteItems + g_bCanExtend);
         new ci_handler = g_iCustomItemsHandlers[item];
 

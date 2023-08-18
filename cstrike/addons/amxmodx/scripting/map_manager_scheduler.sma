@@ -425,7 +425,7 @@ public delayed_change()
 {
     new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
     set_float(CHATTIME, get_float(CHATTIME) - 1.0);
-    server_cmd("changelevel %s", nextmap);
+    engine_changelevel(nextmap);
 }
 planning_vote(type)
 {

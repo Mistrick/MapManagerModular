@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.2.1"
+#define VERSION "0.2.2"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1

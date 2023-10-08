@@ -750,6 +750,10 @@ public show_votemenu(id)
     new item_data[ItemStruct], custom_item_data[CustomItemStruct];
 
     for(new i, size = ArraySize(g_aMenuItems); i < size; i++) {
+        if(g_bCanExtend && i == g_iPushPos) {
+            len += formatex(menu[len], charsmax(menu) - len, "^n");
+        }
+
         ArrayGetArray(g_aMenuItems, i, item_data);
         if(item_data[is_type] == it_custom) {
             ArrayGetArray(g_aCustomItems, item_data[is_custom_index], custom_item_data);

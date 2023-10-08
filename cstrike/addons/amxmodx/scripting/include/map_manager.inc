@@ -199,6 +199,7 @@ native mapm_set_displayed_name(item, name[]);
  *  id - client index who used the custom item
  *  item - custom item index
  *
+ * @param type                  Item type
  * @param name                  Displayed name
  * @param handler               Handler function, which will be called after selecting a custom item in the voting
  * @param add_blank             Adds blank line before custom item
@@ -207,7 +208,7 @@ native mapm_set_displayed_name(item, name[]);
  * @return                      Custom item index
  *                              Invalid_Custom_Item - If can't register handler
  */
-native MCustomItem:mapm_add_custom_item(name[], handler[], bool:add_blank = false, bool:add_number = true);
+native MCustomItem:mapm_add_custom_item(MCI_Type:type, name[], handler[], bool:add_blank = false, bool:add_number = true);
 
 /**
  * Returns if vote started.

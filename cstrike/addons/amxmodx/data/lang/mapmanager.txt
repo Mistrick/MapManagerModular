@@ -1,5 +1,6 @@
 [en]
 MAPM_VOTE_WILL_BEGIN = The voting will begin in next round.
+MAPM_START_VOTE = %s^1 started voting.
 MAPM_CANCEL_VOTE = %s^1 canceled voting.
 MAPM_TIME_TO_END = Until map end left
 MAPM_TIMELEFT_OR = or
@@ -106,6 +107,7 @@ MAPM_FORCE_VOTE_BY_ONLINE = Wymuszone głosowanie w sprawie zmiany mapy. Obecna 
 
 [ru]
 MAPM_VOTE_WILL_BEGIN = Голосование начнется в следующем раунде.
+MAPM_START_VOTE = %s^1 запустил голосование.
 MAPM_CANCEL_VOTE = %s^1 отменил голосование.
 MAPM_TIME_TO_END = До конца карты осталось
 MAPM_TIMELEFT_OR = либо

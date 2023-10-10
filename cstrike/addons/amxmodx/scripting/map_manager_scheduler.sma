@@ -240,6 +240,10 @@ restore_limits()
 }
 public concmd_startvote(id, level, cid)
 {
+    if(is_vote_started() || is_vote_finished() || is_vote_will_in_next_round()) {
+        return PLUGIN_HANDLED;
+    }
+
     if(!cmd_access(id, level, cid, 1)) {
         return PLUGIN_HANDLED;
     }
@@ -257,6 +261,10 @@ public concmd_startvote(id, level, cid)
 }
 public concmd_stopvote(id, level, cid)
 {
+    if(is_vote_finished()) {
+        return PLUGIN_HANDLED;
+    }
+
     if(!cmd_access(id, level, cid, 1)) {
         return PLUGIN_HANDLED;
     }

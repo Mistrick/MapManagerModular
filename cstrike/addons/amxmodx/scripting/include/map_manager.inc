@@ -256,7 +256,7 @@ forward mapm_countdown(type, time);
  *
  * @param type                  Type of vote, used const VOTE_BY_*
  * 
- * @noreturn
+ * @return                      Return 1 to block the vote
  */
 forward mapm_prepare_votelist(type);
 

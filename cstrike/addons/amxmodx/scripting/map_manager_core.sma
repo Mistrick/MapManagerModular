@@ -7,7 +7,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Core"
-#define VERSION "3.3.0"
+#define VERSION "3.3.1"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -136,7 +136,7 @@ public plugin_init()
 
     g_hForwards[MAPLIST_LOADED] = CreateMultiForward("mapm_maplist_loaded", ET_IGNORE, FP_CELL, FP_STRING);
     g_hForwards[MAPLIST_UNLOADED] = CreateMultiForward("mapm_maplist_unloaded", ET_IGNORE);
-    g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_IGNORE, FP_CELL);
+    g_hForwards[PREPARE_VOTELIST] = CreateMultiForward("mapm_prepare_votelist", ET_CONTINUE, FP_CELL);
     g_hForwards[VOTE_STARTED] = CreateMultiForward("mapm_vote_started", ET_IGNORE, FP_CELL);
     g_hForwards[VOTE_CANCELED] = CreateMultiForward("mapm_vote_canceled", ET_IGNORE, FP_CELL);
     g_hForwards[ANALYSIS_OF_RESULTS] = CreateMultiForward("mapm_analysis_of_results", ET_CONTINUE, FP_CELL, FP_CELL);
@@ -560,6 +560,10 @@ prepare_vote(type)
     // push from addons
     new ret;
     ExecuteForward(g_hForwards[PREPARE_VOTELIST], ret, type);
+
+    if(ret) {
+        return 0;
+    }
 
     if(g_iExternalMaxItems) {
         vote_max_items = g_iExternalMaxItems;

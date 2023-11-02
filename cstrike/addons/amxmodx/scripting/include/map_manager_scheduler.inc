@@ -34,7 +34,7 @@ native IgnoreFlags:map_scheduler_get_ignore_check();
 
 /**
  * Set ignore flags for starting vote.
- * 
+ *
  * @param flags                 Flags from IgnoreFlags enum
  *
  * @noreturn
@@ -43,7 +43,7 @@ native map_scheduler_set_ignore_check(IgnoreFlags:flags);
 
 /**
  * Start vote by scheduler, work with own cvars.
- * 
+ *
  * @param type                  Type of vote, used const VOTE_BY_*
  *
  * @noreturn
@@ -51,8 +51,15 @@ native map_scheduler_set_ignore_check(IgnoreFlags:flags);
 native map_scheduler_start_vote(type);
 
 /**
+ * Stop vote by scheduler.
+ *
+ * @noreturn
+ */
+native map_scheduler_stop_vote();
+
+/**
  * Extend current map time.
- * 
+ *
  * @param count                 Extend time param, bonus time = count * cvarnum(extend_time)
  *
  * @noreturn

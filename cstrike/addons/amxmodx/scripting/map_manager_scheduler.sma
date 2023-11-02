@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Scheduler"
-#define VERSION "0.2.2"
+#define VERSION "0.2.3"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -146,6 +146,7 @@ public plugin_natives()
     register_native("map_scheduler_get_ignore_check", "native_get_ignore_check");
     register_native("map_scheduler_set_ignore_check", "native_set_ignore_check");
     register_native("map_scheduler_start_vote", "native_start_vote");
+    register_native("map_scheduler_stop_vote", "native_stop_vote");
     register_native("map_scheduler_extend_map", "native_extend_map");
     register_native("is_vote_will_in_next_round", "native_vote_will_in_next_round");
     register_native("get_last_round_state", "native_get_last_round_state");
@@ -189,11 +190,22 @@ public native_start_vote(plugin, params)
 
     return 1;
 }
+public native_stop_vote(plugin, params)
+{
+    if(!is_vote_started()) {
+        return 0;
+    }
+
+    stop_vote();
+
+    return 1;
+}
 public native_extend_map(plugin, params)
 {
     enum { arg_count = 1 };
     new count = get_param(arg_count);
     g_iExtendedNum += count;
+    // TODO: rounds support?
     set_float(TIMELIMIT, get_float(TIMELIMIT) + float(get_num(EXTENDED_TIME)) * float(count));
     return 1;
 }
@@ -257,6 +269,10 @@ public concmd_startvote(id, level, cid)
 }
 public concmd_stopvote(id, level, cid)
 {
+    if(!is_vote_started()) {
+        return PLUGIN_HANDLED;
+    }
+
     if(!cmd_access(id, level, cid, 1)) {
         return PLUGIN_HANDLED;
     }
@@ -264,6 +280,12 @@ public concmd_stopvote(id, level, cid)
     new name[32]; get_user_name(id, name, charsmax(name));
     log_amx("%s stopped vote", id ? name : "Server");
     
+    stop_vote();
+
+    return PLUGIN_HANDLED;
+}
+stop_vote()
+{
     mapm_stop_vote();
 
     if(mapm_get_vote_type() == VOTE_BY_SCHEDULER_SECOND) {
@@ -277,8 +299,6 @@ public concmd_stopvote(id, level, cid)
             set_float(TIMELIMIT, g_fOldTimeLimit);
         }
     }
-
-    return PLUGIN_HANDLED;
 }
 public clcmd_votemap()
 {

@@ -407,11 +407,13 @@ public clcmd_mapslist(id)
 
     return PLUGIN_CONTINUE;
 }
+
 show_lists_menu(id)
 {
     new text[64];
-    // TODO: add ML
-    new menu = menu_create("Maps lists:", "lists_handler");
+    formatex(text, charsmax(text), "%L", id, "MAPM_MENU_LIST_TITLE");
+
+    new menu = menu_create(text, "lists_handler");
 
     new list[32], size = mapm_advl_get_active_lists();
     for(new i; i < size; i++) {
@@ -425,9 +427,10 @@ show_lists_menu(id)
     menu_setprop(menu, MPROP_NEXTNAME, text);
     formatex(text, charsmax(text), "%L", id, "MAPM_MENU_EXIT");
     menu_setprop(menu, MPROP_EXITNAME, text);
-    
+
     menu_display(id, menu);
 }
+
 public lists_handler(id, menu, item)
 {
     if(item == MENU_EXIT) {
@@ -449,6 +452,7 @@ public lists_handler(id, menu, item)
 
     return PLUGIN_HANDLED;
 }
+
 show_nomination_menu(id, Array:maplist, custom_title[] = "")
 {
     new text[64];
@@ -509,6 +513,7 @@ show_nomination_menu(id, Array:maplist, custom_title[] = "")
     
     menu_display(id, menu);
 }
+
 bool:in_array(Array:array, index)
 {
     for(new i, size = ArraySize(array); i < size; i++) {

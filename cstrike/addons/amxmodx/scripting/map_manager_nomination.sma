@@ -451,6 +451,9 @@ public lists_handler(id, menu, item)
 }
 show_nomination_menu(id, Array:maplist, custom_title[] = "")
 {
+   if(!is_user_connected(id))
+        return;
+        
     new text[64];
     if(!custom_title[0]) {
         formatex(text, charsmax(text), "%L", LANG_PLAYER, "MAPM_MENU_MAP_LIST");
@@ -520,10 +523,16 @@ bool:in_array(Array:array, index)
 }
 public mapslist_handler(id, menu, item)
 {
+    if(!is_user_connected(id)) {
+        menu_destroy(menu);
+        return PLUGIN_HANDLED;
+    }
+    
     if(item == MENU_EXIT) {
         menu_destroy(menu);
         return PLUGIN_HANDLED;
     }
+    
     
     new item_info[8], item_name[MAPNAME_LENGTH + 16], access, callback;
     menu_item_getinfo(menu, item, access, item_info, charsmax(item_info), item_name, charsmax(item_name), callback);

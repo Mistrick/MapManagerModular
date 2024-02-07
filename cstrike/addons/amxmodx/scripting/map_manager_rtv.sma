@@ -113,13 +113,18 @@ public clcmd_rtv(id)
 
     if(need_votes <= 0) {
         map_scheduler_start_vote(VOTE_BY_RTV);
-        return PLUGIN_HANDLED;
     }
 
     if(!g_bVoted[id]) {
         g_bVoted[id] = true;
         new name[32]; get_user_name(id, name, charsmax(name));
-        client_print_color(0, print_team_default, "%s^3 %L.", g_sPrefix, LANG_PLAYER, "MAPM_RTV_VOTED", name, need_votes);
+
+        if(need_votes <= 0) {
+            client_print_color(0, id, "%s^3 %L.", g_sPrefix, LANG_PLAYER, "MAPM_RTV_VOTED_LAST", name);
+        }
+        else {
+            client_print_color(0, id, "%s^3 %L.", g_sPrefix, LANG_PLAYER, "MAPM_RTV_VOTED", name, need_votes);
+        }
     } else {
         client_print_color(id, print_team_default, "%s^1 %L.", g_sPrefix, id, "MAPM_RTV_ALREADY_VOTED", need_votes);
     }

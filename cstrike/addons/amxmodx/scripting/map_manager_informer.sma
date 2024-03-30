@@ -104,9 +104,9 @@ public clcmd_nextmap(id)
 {
     if(is_vote_finished()) {
         new map[MAPNAME_LENGTH]; get_pcvar_string(g_pCvars[NEXTMAP], map, charsmax(map));
-        client_print_color(0, id, "%s^1 %L ^3%s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", map);
+        client_print_color(0, id, "%s^1 %L %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", map);
     } else {
-        client_print_color(0, id, "%s^1 %L ^3%L^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", LANG_PLAYER, "MAPM_NOT_SELECTED");
+        client_print_color(0, id, "%s^1 %L %L^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", LANG_PLAYER, "MAPM_NOT_SELECTED");
     }
 }
 public clcmd_currentmap(id)

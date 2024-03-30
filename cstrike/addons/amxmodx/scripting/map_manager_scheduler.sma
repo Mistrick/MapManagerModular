@@ -391,7 +391,7 @@ public event_newround()
             client_print_color(0, print_team_default, "%s^1 %L", g_sPrefix, LANG_PLAYER, "MAPM_FINAL_ROUND");
         } else {
             new nextmap[MAPNAME_LENGTH]; get_string(NEXTMAP, nextmap, charsmax(nextmap));
-            client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
+            client_print_color(0, print_team_default, "%s^1 %L %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", nextmap);
             intermission();
         }
     }
@@ -615,7 +615,7 @@ public mapm_vote_finished(const map[], type, total_votes)
     if(!total_votes) {
         client_print_color(0, print_team_default, "%s^1 %L %L", g_sPrefix, LANG_PLAYER, "MAPM_NOBODY_VOTE", LANG_PLAYER, "MAPM_NEXTMAP_BY_VOTE", map);
     } else {
-        client_print_color(0, print_team_default, "%s^1 %L^3 %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", map);
+        client_print_color(0, print_team_default, "%s^1 %L %s^1.", g_sPrefix, LANG_PLAYER, "MAPM_NEXTMAP", map);
     }
 
     set_pcvar_string(g_pCvars[NEXTMAP], map);

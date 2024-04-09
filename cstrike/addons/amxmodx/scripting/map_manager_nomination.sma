@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.5"
+#define VERSION "0.3.6"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -332,11 +332,10 @@ show_nomlist(id, Array: array, size)
     new menu = menu_create(text, "nomlist_handler");
     new map_info[MapStruct], item_name[MAPNAME_LENGTH + 16], map_index, nom_index, block_count;
     
-    for(new i, str_num[6]; i < size; i++) {
+    for(new i; i < size; i++) {
         map_index = ArrayGetCell(array, i);
         ArrayGetArray(g_aMapsList, map_index, map_info);
         
-        num_to_str(map_index, str_num, charsmax(str_num));
         nom_index = map_nominated(map_info[Map]);
         block_count = mapm_get_blocked_count(map_info[Map]);
 
@@ -396,6 +395,9 @@ public nomlist_handler(id, menu, item)
 public clcmd_mapslist(id)
 {
     if(is_one_map_mode()) {
+        return PLUGIN_HANDLED;
+    }
+    if(!is_user_connected(id)) {
         return PLUGIN_HANDLED;
     }
 

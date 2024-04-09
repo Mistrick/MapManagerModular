@@ -20,7 +20,7 @@ jobs:
       semver: ${{ steps.declare_sha.outputs.semver }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.1.1
         with:
           fetch-depth: 0
 
@@ -52,9 +52,9 @@ jobs:
         run: sed -i "s|VERSION_HASH \"\"|VERSION_HASH \"-$SHA_SHORT\"|g" $FILE
 
       - name: Setup AMXXPawn Compiler
-        uses: wopox1337/setup-amxxpawn@v1
+        uses: wopox1337/setup-amxxpawn@v1.1.0
         with:
-          version: "1.10.5428"
+          version: "1.10.5467"
 
       - name: Compile plugins
         working-directory: cstrike/addons/amxmodx/scripting/
@@ -76,7 +76,7 @@ jobs:
           mv cstrike/ publish/
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: MapManager-${{ env.SHA_SHORT }}-dev
           path: publish/*
@@ -91,7 +91,7 @@ jobs:
       startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.4
         with:
           name: MapManager-${{needs.build.outputs.sha}}-dev
 
@@ -100,7 +100,7 @@ jobs:
         run: 7z a -mm=Deflate -mfb=258 -mpass=15 -r MapManager-v${{needs.build.outputs.semver}}.zip cstrike/
 
       - name: Publish artifacts
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2.0.4
         id: publish-job
         if: |
           startsWith(github.ref, 'refs/tags/') &&

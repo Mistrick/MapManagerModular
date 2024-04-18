@@ -3,7 +3,7 @@
 #include <map_manager_scheduler>
 
 #define PLUGIN "Map Manager: Online checker"
-#define VERSION "1.0.3"
+#define VERSION "1.0.4"
 #define AUTHOR "Sergey Shorokhov"
 
 #pragma semicolon 1
@@ -46,6 +46,9 @@ public plugin_cfg()
 public task_check_online()
 {
     if(is_vote_will_in_next_round() || is_vote_started() || is_vote_finished()) {
+        return;
+    }
+    if(is_one_map_mode()) {
         return;
     }
     if(get_num(CHECKS_COUNT) <= 0) {

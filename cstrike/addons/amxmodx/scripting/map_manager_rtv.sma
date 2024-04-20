@@ -82,7 +82,7 @@ public clcmd_rtv(id)
         return PLUGIN_HANDLED;
     }
     else if(is_vote_finished()) {
-        client_print_color(id, print_team_default, "%s^1 %L %L^3 %s.", g_sPrefix, id, "MAPM_VOTE_ALREADY_FINISHED", id, "MAPM_NEXTMAP", g_sNextMap);
+        client_print_color(id, print_team_default, "%s^1 %L %L %s^1.", g_sPrefix, id, "MAPM_VOTE_ALREADY_FINISHED", id, "MAPM_NEXTMAP", g_sNextMap);
         return PLUGIN_HANDLED;
     }
     else if(is_vote_will_in_next_round()) {

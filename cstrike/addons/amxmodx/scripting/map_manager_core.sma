@@ -817,6 +817,9 @@ public show_votemenu(id)
 }
 public votemenu_handler(id, key)
 {
+    if(!is_user_connected(id))
+        return PLUGIN_HANDLED;
+        
     new original = get_original_num(key - g_iOffset);
 
     new item = g_iKeyToIndex[original];

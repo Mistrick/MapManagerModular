@@ -9,7 +9,7 @@
 #endif
 
 #define PLUGIN "Map Manager: Nomination"
-#define VERSION "0.3.6"
+#define VERSION "0.3.7"
 #define AUTHOR "Mistrick"
 
 #pragma semicolon 1
@@ -587,16 +587,33 @@ public mapm_prepare_votelist(type)
     }
     new nom_info[NomStruct];
     new max_items = mapm_get_votelist_size();
+    new Array:a = ArrayCreate(MAPNAME_LENGTH, 0);
     for(new i = mapm_get_count_maps_in_vote(), index; i < max_items && ArraySize(g_aNomList); i++) {
         index = random_num(0, ArraySize(g_aNomList) - 1);
         ArrayGetArray(g_aNomList, index, nom_info);
         ArrayDeleteItem(g_aNomList, index);
         g_iNomMaps[nom_info[NomPlayer]]--;
 
-        if(mapm_push_map_to_votelist(nom_info[NomMap], PUSH_BY_NOMINATION) != PUSH_SUCCESS) {
+        result = mapm_push_map_to_votelist(nom_info[NomMap], PUSH_BY_NOMINATION);
+        if(result != PUSH_SUCCESS) {
             i--;
+            if(result == PUSH_BLOCKED) {
+                ArrayPushString(a, nom_info[NomMap]);
+            }
         }
     }
+
+    new size = ArraySize(a);
+    if(size) {
+        new removed_maps[192], map[MAPNAME_LENGTH], len;
+        for(new i; i < size; i++) {
+            ArrayGetString(a, i, map, charsmax(map));
+            len += formatex(removed_maps[len], charsmax(removed_maps) - len, "%s, ", map);
+        }
+        removed_maps[len - 2] = 0;
+        client_print_color(0, print_team_default, "%s ^1%L.", g_sPrefix, LANG_PLAYER, "MAPM_NOM_REMOVED_MAPS", removed_maps);
+    }
+    ArrayDestroy(a);
 }
 
 map_nominated(map[])
